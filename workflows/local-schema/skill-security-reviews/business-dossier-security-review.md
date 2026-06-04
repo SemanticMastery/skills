@@ -1,7 +1,7 @@
 # Security Review: business-dossier (student bundle)
 
 **Review date:** 2026-06-04  
-**Bundle:** Semantic Links Local Schema Workflow  
+**Bundle:** Local Schema Generator (`local-schema`)  
 **Verdict:** **CONDITIONAL** — requires student API keys and external CLIs
 
 ---

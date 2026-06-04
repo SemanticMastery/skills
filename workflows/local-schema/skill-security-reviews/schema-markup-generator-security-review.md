@@ -1,7 +1,7 @@
 # Security Review: schema-markup-generator (student bundle)
 
 **Review date:** 2026-06-04  
-**Bundle:** Semantic Links Local Schema Workflow  
+**Bundle:** Local Schema Generator (`local-schema`)  
 **Verdict:** **APPROVE** (with operational caveats below)
 
 ---

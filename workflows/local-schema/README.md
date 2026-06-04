@@ -1,7 +1,7 @@
-# Workflow: `local-schema`
+# Local Schema Generator
 
-**ID:** `local-schema`  
-**Repo path:** `workflows/local-schema/` in [SemanticMastery/skills](https://github.com/SemanticMastery/skills)
+**Workflow ID:** `local-schema` (folder: `workflows/local-schema/`)  
+**Repo:** [SemanticMastery/skills](https://github.com/SemanticMastery/skills)
 
 A **coaching bundle** for local SEO structured data: three agent skills plus the minimal Node scripts needed to run the contractor dossier pipeline.
 
@@ -16,7 +16,7 @@ A **coaching bundle** for local SEO structured data: three agent skills plus the
 
 ## Quick start (mastermind)
 
-1. Clone [SemanticMastery/skills](https://github.com/SemanticMastery/skills) (private) or download the **`local-schema`** zip from `dist/`.
+1. Clone [SemanticMastery/skills](https://github.com/SemanticMastery/skills) (private) or download the **Local Schema Generator** zip (`dist/local-schema-*.zip`).
 2. Set **`BUNDLE_ROOT`** to this folder (`workflows/local-schema` — the directory that contains `skills/` and `scripts/`).
 3. Open **[INSTALL.md](INSTALL.md)** and complete prerequisites (Node 18+, API keys).
 4. Run `npm install` inside `scripts/seo`.

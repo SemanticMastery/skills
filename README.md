@@ -15,9 +15,9 @@ Students and mastermind members: open the workflow folder, follow its `INSTALL.m
 
 ## Workflows
 
-| ID | Folder | Description |
-|----|--------|-------------|
-| **local-schema** | [workflows/local-schema/](workflows/local-schema/) | Local SEO JSON-LD: `schema-markup-generator`, `knowsabout-entity-research`, `business-dossier`, plus dossier compose scripts |
+| ID | Display name | Folder | Description |
+|----|--------------|--------|-------------|
+| `local-schema` | **Local Schema Generator** | [workflows/local-schema/](workflows/local-schema/) | Local SEO JSON-LD: `schema-markup-generator`, `knowsabout-entity-research`, `business-dossier`, plus dossier compose scripts |
 
 ## Releases
 

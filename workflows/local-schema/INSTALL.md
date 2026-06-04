@@ -1,7 +1,7 @@
-# Install guide — `local-schema` workflow
+# Install guide — Local Schema Generator
 
-**Workflow ID:** `local-schema`  
-**GitHub:** `SemanticMastery/skills` → `workflows/local-schema/`
+**Workflow ID:** `local-schema` (install from `workflows/local-schema/` in the repo)  
+**GitHub:** [SemanticMastery/skills](https://github.com/SemanticMastery/skills)
 
 Works on **Windows** and **macOS**. Supports **Cursor** and **Claude Code** (install to one or both).
 
@@ -44,7 +44,7 @@ firecrawl --status
 
 ## 2. Unpack the bundle
 
-Extract the **`local-schema`** zip **or** clone the skills repo and use the workflow folder:
+Extract the **Local Schema Generator** zip (`local-schema-*.zip`) **or** clone the skills repo and use the workflow folder:
 
 ```text
 <BUNDLE_ROOT>/          # = workflows/local-schema in the repo

@@ -1,6 +1,6 @@
 # Changes from upstream (seo-geo-claude-skills)
 
-This workflow (`local-schema`) is derived from [aaron-he-zhu/seo-geo-claude-skills](https://github.com/aaron-he-zhu/seo-geo-claude-skills) under Apache-2.0.
+**Local Schema Generator** (workflow ID: `local-schema`) is derived from [aaron-he-zhu/seo-geo-claude-skills](https://github.com/aaron-he-zhu/seo-geo-claude-skills) under Apache-2.0.
 
 ## `schema-markup-generator` (fork)
 

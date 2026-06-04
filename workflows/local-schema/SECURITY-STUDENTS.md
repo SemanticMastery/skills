@@ -1,6 +1,6 @@
 # Security notes for students
 
-Short summary of install risk for the **`local-schema`** workflow. Full reviews are in `skill-security-reviews/`.
+Short summary of install risk for **Local Schema Generator** (workflow ID: `local-schema`). Full reviews are in `skill-security-reviews/`.
 
 ## Bottom line
 
