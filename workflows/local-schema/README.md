@@ -16,7 +16,9 @@ A **coaching bundle** for local SEO structured data: three agent skills plus the
 
 ## Quick start (mastermind)
 
-1. Clone [SemanticMastery/skills](https://github.com/SemanticMastery/skills) (private) or download the **Local Schema Generator** zip (`dist/local-schema-*.zip`).
+**Start here:** [QUICKSTART-MASTERMIND.md](QUICKSTART-MASTERMIND.md) (zip-only setup for today’s session).
+
+1. Download the **Local Schema Generator** zip (`local-schema-*.zip` from Bradley). GitHub clone access will be offered later.
 2. Set **`BUNDLE_ROOT`** to this folder (`workflows/local-schema` — the directory that contains `skills/` and `scripts/`).
 3. Open **[INSTALL.md](INSTALL.md)** and complete prerequisites (Node 18+, API keys).
 4. Run `npm install` inside `scripts/seo`.
