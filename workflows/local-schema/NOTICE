@@ -1,0 +1,46 @@
+Semantic Mastery workflow: local-schema (Local Schema Generator bundle)
+Copyright 2026 SemanticMastery (https://github.com/SemanticMastery)
+
+This distribution bundles agent skills and scripts for local SEO schema workflows.
+Portions are derived from the Apache-2.0 project seo-geo-claude-skills by Aaron He Zhu.
+
+================================================================================
+Upstream (Apache-2.0)
+================================================================================
+
+Copyright 2024 Aaron He Zhu
+
+Source: https://github.com/aaron-he-zhu/seo-geo-claude-skills
+
+Derived skill directories (modified by SemanticMastery):
+  skills/schema-markup-generator/
+
+See CHANGES.md for a summary of modifications from upstream.
+
+================================================================================
+SemanticMastery original and coaching content
+================================================================================
+
+Copyright 2026 SemanticMastery (https://github.com/SemanticMastery)
+
+Original or substantially authored by SemanticMastery:
+  skills/business-dossier/          (Glen Patel TSCR coaching prompts and workflow)
+  skills/knowsabout-entity-research/
+  scripts/seo/                        (business dossier compose pipeline)
+  INSTALL.md, README.md, SECURITY-STUDENTS.md (as applicable)
+
+================================================================================
+Third-party services (not included in this repo)
+================================================================================
+
+Students supply their own API keys and CLI auth for:
+  xAI Grok (GROK_API_KEY), SerpAPI (SERPAPI_API_KEY), Firecrawl CLI,
+  and optional DataForSEO credentials used by get-gbp-categories.mjs fallback.
+
+================================================================================
+Non-endorsement
+================================================================================
+
+This bundle is maintained by SemanticMastery for coaching participants.
+It is not affiliated with, endorsed by, or sponsored by Aaron He Zhu or the
+seo-geo-claude-skills project maintainers.

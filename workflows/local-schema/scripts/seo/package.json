@@ -1,0 +1,7 @@
+{
+  "name": "semantic-links-schema-workflow-seo-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Business dossier compose pipeline (Grok + SerpAPI + Firecrawl pre-gather)",
+  "dependencies": {}
+}

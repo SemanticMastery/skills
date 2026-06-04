@@ -1,0 +1,28 @@
+{
+  "_comment": "Per-client overrides for resolve-entity-urls.mjs. Copy to {project}/resources/schema/entity-url-overrides.json. Keys in wikiTitleOverrides / wikiSearchQuery are lowercase entity display names.",
+  "client": "Example Client",
+  "wikiTitleOverrides": {
+    "grant, west virginia": "Grant_Town,_West_Virginia"
+  },
+  "wikiSearchQuery": {},
+  "opensearchReject": [
+    {
+      "queryIncludes": ["grant", "west virginia"],
+      "queryExcludes": ["county"],
+      "titleIncludes": ["ghent"]
+    },
+    {
+      "queryIncludes": ["fort mulligan"],
+      "titleIncludesAny": ["maine"],
+      "titleExcludes": ["mulligan"]
+    },
+    {
+      "queryIncludes": ["fort mulligan"],
+      "titleIncludes": ["sullivan"],
+      "titleExcludes": ["mulligan"]
+    }
+  ],
+  "preferredEntityNames": {
+    "grant slug primary": "Grant Town, West Virginia"
+  }
+}
