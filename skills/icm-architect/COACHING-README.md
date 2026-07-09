@@ -17,14 +17,15 @@
 
 ## Minute 2–10 — Demo A: Agency Client (Standard)
 
-1. Optional: drop a `*dossier*.md` in the folder first (or let the skill suggest one).
+1. Optional: drop a company `*dossier*.md` in the folder first (or let the skill suggest one).
 2. Invoke `/icm-architect` in that folder (empty or dossier-only is OK).
 3. Location: here. Type: Agency Client. Harness: Cursor.
-4. Goal/outcome/services: e.g. local SEO client (tools annotate modules; tree stays full by default).
-5. Decline go-deeper (or do a 30-second why-stages).
-6. Review proposal: full `01`-`04` catalog → optionally omit one module to show renumber → confirm.
-7. Say **`Create it`** (not only "looks good").
-8. Open `HOW-TO-WORK-THIS-PROJECT.md` + `CAMPAIGN-CONTEXT.md` (+ dossier under `1.1-docs` if used).
+4. **Client = person** (e.g. `Jordan Lee` → `Jordan-Lee/`). **Campaign = company** from dossier (e.g. `Columbia Land Clearing` → `Jordan-Lee/Columbia-Land-Clearing/`). Do **not** use the company as the client folder. Retainer/monthly = goal/outcome text, not a campaign slug.
+5. Goal/outcome/services: e.g. local SEO under monthly retainer (tools annotate modules; tree stays full by default).
+6. Decline go-deeper (or do a 30-second why-stages).
+7. Review proposal: person/company paths + full `01`-`04` catalog → optionally omit one module to show renumber → confirm.
+8. Say **`Create it`** (not only "looks good").
+9. Open `HOW-TO-WORK-THIS-PROJECT.md` + `CAMPAIGN-CONTEXT.md` (+ dossier under campaign `1.1-docs` if used).
 
 ## Minute 10–16 — Demo B: WorkFlows
 

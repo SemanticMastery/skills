@@ -32,7 +32,7 @@ Do not write scaffold files if the refuse path triggers.
 
 Run once after preflight (and again briefly when the user picks **Agency Client**, if still missing):
 
-> A business dossier (`.md` or `.docx`) in this folder gives the scaffold real firmographics and campaign context for CONTEXT routers. If you have a **business-dossier** skill (or an existing dossier), add that file to this project root before or during the interview — then tell me the filename. You can also continue without one and use placeholders.
+> A business dossier (`.md` or `.docx`) in this folder seeds the **campaign (company/brand)** — firmographics for CONTEXT routers. It does **not** replace asking who the **human client** is. If you have a **business-dossier** skill (or an existing dossier), add that file to this project root before or during the interview — then tell me the filename. You can also continue without one and use placeholders.
 
 Do **not** hard-block the interview. If they add a dossier mid-interview, re-scan and use it.
 
@@ -51,15 +51,16 @@ Ask in order (`references/interview-standard.md`):
 
 ### Agency Client
 
-Read `references/agency-client-direct.md`. Collect at least:
+Read `references/agency-client-direct.md` (**Client = human**, **Campaign = company/brand**). Collect in this order:
 
-- Client **display name** and **folder slug** (see slug rules in that reference)
-- Campaign **display name** and **folder slug**
-- Tools / services in scope → **annotate** against the full default catalog (for rationale and routing). Do **not** shrink the tree from this list.
-- **Dossier:** if a root dossier `.md`/`.docx` exists, read it and use it for names, firmographics, tools, and CONTEXT fill. If none exists, run **dossier suggest** once (do not block).
-- Do **not** ask about `archived-campaigns/` unless the user describes a white-label multi-agency scenario (out of scope for Direct).
+1. **Client (human)** — display name + folder slug; optional relationship (owner, retainer signer, primary contact). **Ask this even when a company dossier is present.** Never default the client folder to the company / dossier name.
+2. **Campaign (company / brand)** — display name + folder slug. If a root `*dossier*` exists, **pre-fill campaign** suggestions from the dossier; confirm with the user.
+3. Tools / services in scope → **annotate** against the full default catalog (for rationale and routing). Do **not** shrink the tree from this list.
+4. **Dossier:** if present, use for **campaign** firmographics / CONTEXT fill only. If none exists, run **dossier suggest** once (do not block).
+5. **Billing / retainer:** if the user mentions retainer, subscription, or ongoing monthly work, put that in goal/outcome prose — **do not** create a campaign folder named Retainer / Subscription / Monthly unless they explicitly name a distinct engagement that way.
+6. Do **not** ask about `archived-campaigns/` unless the user describes a white-label multi-agency scenario (out of scope for Direct).
 
-In the proposal tree, show both display names and folder paths (e.g. client `Acme Dental` → folder `Acme-Dental/`). Include any root dossier in the tree note (stays at root and/or copied into `01-intake/1.1-docs/` at write).
+In the proposal tree, show both display names and folder paths (e.g. client `Jordan Lee` → `Jordan-Lee/`; campaign `Columbia Land Clearing` → `Jordan-Lee/Columbia-Land-Clearing/`). Include any root dossier in the tree note (stays at root and copied into `{campaign}/01-intake/1.1-docs/` at write).
 
 Always plan stages: `01-intake`, `02-deliverables`, `03-decisions`, `04-archives`, plus the **full default nested catalog**. After showing the full tree, ask **“Omit any of these modules?”** If they omit, renumber remaining modules sequentially within each stage, then re-propose.
 

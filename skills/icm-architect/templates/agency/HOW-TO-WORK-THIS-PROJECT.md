@@ -2,10 +2,10 @@
 
 ## What was scaffolded
 
-Direct Agency Client tree for **{{CLIENT_NAME}}** / **{{CAMPAIGN_NAME}}**:
+Direct Agency Client tree for **{{CLIENT_NAME}}** (person) / **{{CAMPAIGN_NAME}}** (company/brand):
 
-- Client router: `CLIENT-CONTEXT.md`
-- Campaign router: `CAMPAIGN-CONTEXT.md`
+- Client router: `CLIENT-CONTEXT.md` (person-level campaign index)
+- Campaign router: `CAMPAIGN-CONTEXT.md` (company engagement)
 - Stages: `01-intake`, `02-deliverables`, `03-decisions`, `04-archives`
 - Modules: see campaign context (full catalog by default; numbers reflect any omit/renumber)
 - Canonical rules: `PROJECT-RULES.mdc`
@@ -20,7 +20,7 @@ Direct Agency Client tree for **{{CLIENT_NAME}}** / **{{CAMPAIGN_NAME}}**:
 
 {{WHY_STAGES_BLURB}}
 
-Nested modules are the Agency Direct catalog (docs, audit, logo, photos, links, press, reports, schema, articles, GBP, social, communications, traces, troubleshooting). Empty folders are placeholders for assets that arrive later. Tools named in the interview annotate routing — they do not invent off-catalog folders.
+**Client vs campaign:** the outer folder is the **human** account holder; the inner folder is the **company/brand** being marketed. Nested modules are the Agency Direct catalog (docs, audit, logo, photos, links, press, reports, schema, articles, GBP, social, communications, traces, troubleshooting). Empty folders are placeholders for assets that arrive later. Tools named in the interview annotate routing — they do not invent off-catalog folders.
 
 ## First-task checklist
 

@@ -2,8 +2,10 @@
 
 ## Campaign
 
-- **Client:** {{CLIENT_NAME}}
-- **Campaign:** {{CAMPAIGN_NAME}}
+- **Client (person):** {{CLIENT_NAME}}
+- **Campaign (company / brand):** {{CAMPAIGN_NAME}}
+- **Company legal name:** {{COMPANY_LEGAL_NAME}}
+- **Website:** {{COMPANY_WEBSITE}}
 - **Goal:** {{GOAL}}
 - **Desired outcome:** {{OUTCOME}}
 - **Tools / services:** {{TOOLS_SERVICES}}
@@ -35,3 +37,5 @@
 ## Rules
 
 Canonical rules: `PROJECT-RULES.mdc`. Harness entry files are thin pointers only.
+
+**Semantics reminder:** Client = human account holder; Campaign = company/brand being marketed. Billing models (retainer, subscription) belong in Goal/Outcome — not as folder names.

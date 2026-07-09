@@ -13,6 +13,8 @@ disable-model-invocation: true
 
 Scaffold an Interpretable Context Methodology (ICM) workspace through an adaptive interview. Two modes: **WorkFlows** (ops/automation stages) and **Agency Client Direct** (`Client -> Campaign`). White-label `Client -> Agency -> Campaign` is out of scope.
 
+**Agency semantics:** **Client = human** (owner/signer); **Campaign = company/brand** being marketed. Dossiers seed the campaign, not the client folder. Retainer/subscription = goal/outcome prose — not a campaign slug.
+
 **Hard gates:** greenfield only; **propose → confirm → write** (never scaffold before explicit create approval).
 
 ## Progressive disclosure
@@ -77,7 +79,7 @@ Offer once (`references/go-deeper-guidance.md`). Include Clief Notes pointer. Do
 
 Show **tree + file list + short rationale**. Include harness files from `references/harness-map.md`. Root all paths under the chosen location.
 
-**Agency:** always `01-intake` … `04-archives` plus the **full default module catalog**; then ask “omit any?”; renumber remaining modules sequentially (see `agency-client-direct.md`).  
+**Agency:** human client folder → company/brand campaign folder; always `01-intake` … `04-archives` plus the **full default module catalog**; then ask “omit any?”; renumber remaining modules sequentially (see `agency-client-direct.md`). Ask for the **human client before** proposing paths; dossier pre-fills **campaign only**.  
 **WorkFlows:** 3–7 numbered stages from goal; allow rename at confirm.
 
 ### 5. Confirm
@@ -92,7 +94,7 @@ Only after confirm:
 2. Fill templates; replace placeholders; no leftover `{{`.
 3. Write harness thin entrypoints (ICM CONTEXT + campaign/project PROJECT-RULES stay canonical).
 4. Write the handoff file HOW-TO-WORK-THIS-PROJECT.md with teaching blurb + next-steps + attribution.
-5. **Agency + root dossier:** copy the dossier into `01-intake/1.1-docs/` (keep the original at scaffold root unless the user asked to move it). Use dossier content when filling CONTEXT routers.
+5. **Agency + root dossier:** copy the dossier into `{Human-Client}/{Company-Campaign}/01-intake/1.1-docs/` (keep the original at scaffold root unless the user asked to move it). Use dossier content for **campaign** CONTEXT fill — not to name the human client folder.
 
 ### 7. Handoff → Done
 

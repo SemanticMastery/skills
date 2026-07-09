@@ -38,7 +38,8 @@ Get-ChildItem -Recurse -File | Select-String -Pattern 'Users\\[^\\]+\\|Users/[^/
 
 - [ ] Empty dir → Agency + Cursor → full catalog proposed → omit optional → renumber → confirm → files match final proposal; no `{{` leftovers; handoff cites Clief Notes
 - [ ] Empty dir → Agency → dossier suggest offered when no dossier present (non-blocking)
-- [ ] Root `*dossier*.md` or `*dossier*.docx` only → preflight proceeds (not refuse); dossier used for context; copy into `01-intake/1.1-docs/` at write
+- [ ] Root `*dossier*.md` or `*dossier*.docx` only → preflight proceeds (not refuse); agent asks **human client** before paths; dossier pre-fills **campaign** only; copy into `{Person}/{Company}/01-intake/1.1-docs/` at write
+- [ ] Agency with company dossier + “monthly retainer” → propose `{Person}/{Company}/`, **not** `{Company}/Marketing-Retainer/`
 - [ ] Empty dir → WorkFlows + confirm-time rename → scaffold uses confirmed names
 - [ ] Confirm-time module omit/edit → re-propose with sequential numbers → write matches second proposal
 - [ ] Substantial non-empty (non-dossier) → refuse writes

@@ -2,9 +2,31 @@
 
 White-label `Client -> Agency -> Campaign` is **out of scope**. This skill only scaffolds **Direct**.
 
+## Client vs Campaign semantics (normative)
+
+| Layer | Entity | Folder role |
+|-------|--------|-------------|
+| **Client** | **Human** — owner, signer, retainer / account relationship | `{Human-Client-Name}/` + `CLIENT-CONTEXT.md` = **campaign index** for that person |
+| **Campaign** | **Company / brand / engagement** being marketed | `{Company-Or-Brand-Name}/` + `CAMPAIGN-CONTEXT.md` + `01`–`04` = where work lives |
+
+```text
+{Human-Client-Name}/
+  CLIENT-CONTEXT.md              ← person-level router; lists company campaigns
+  {Company-Or-Brand-Name}/       ← one campaign = one company engagement
+    CAMPAIGN-CONTEXT.md
+    01-intake/ … 04-archives/
+```
+
+**Hard rules:**
+
+- Never treat the company / brand / dossier legal name as the **client** folder.
+- Never invent a campaign folder from a **billing model** (retainer, subscription, monthly, one-off). Put that in `{{GOAL}}` / `{{OUTCOME}}` / campaign notes.
+- Example pair: client `Jordan Lee` → `Jordan-Lee/`; campaign `Columbia Land Clearing` → `Jordan-Lee/Columbia-Land-Clearing/`.
+- Bad example: `Columbia-Land-Clearing/Marketing-Retainer/` (company as client + retainer as campaign).
+
 ## Always create
 
-Under `{Client-Name}/{Campaign-Name}/`:
+Under `{Human-Client-Folder}/{Company-Campaign-Folder}/`:
 
 ```text
 01-intake/
@@ -16,7 +38,7 @@ PROJECT-RULES.mdc
 HOW-TO-WORK-THIS-PROJECT.md
 ```
 
-Under `{Client-Name}/`:
+Under `{Human-Client-Folder}/`:
 
 ```text
 CLIENT-CONTEXT.md
@@ -59,7 +81,7 @@ Empty folders are intentional. Local SEO / local marketing campaigns usually nee
 
 | Module slug | Purpose |
 |-------------|---------|
-| `docs` | Contracts, briefs, SOWs, onboarding docs, client dossier |
+| `docs` | Contracts, briefs, SOWs, onboarding docs, business dossier |
 | `audit` | SEO/site/local audits |
 | `logo` | Brand marks / logo assets |
 | `photos` | Photo / media intake |
@@ -151,32 +173,37 @@ Do **not** use tools/services to shrink the default tree. Shrinking happens only
 - `One-Off-Orders/`
 - Agency layer folders
 - Freeform module names not in the catalog (unless user explicitly confirms an add)
+- Campaign folders named for billing models (`Retainer`, `Subscription`, `Monthly`, etc.) unless the user explicitly names a distinct engagement that way
 
 ## Client-level defaults
 
-- Default: client folder + `CLIENT-CONTEXT.md` as **campaign index only**
+- Default: human client folder + `CLIENT-CONTEXT.md` as **campaign index only** (lists company/brand campaigns)
 - **Do not suggest** `archived-campaigns/` under the client unless the user describes a **white-label** multi-agency scenario (out of scope for Direct scaffolding). Never place `archived-campaigns/` under a campaign folder.
 
 ## Business dossier (recommended)
 
-A root **business dossier** (`*dossier*.md` or `*dossier*.docx`) is the preferred way to seed client/campaign CONTEXT.
+A root **business dossier** (`*dossier*.md` or `*dossier*.docx`) seeds the **campaign (company/brand)** — firmographics, GBP, services, website. It does **not** define the human client.
 
-- **If present at scaffold root:** greenfield preflight **allows** it (not a refuse trigger). Read it for display names, firmographics, tools/services, and CONTEXT fill. At write, **copy** into `01-intake/1.1-docs/` and keep the original at root unless the user asked to move it.
+- **If present at scaffold root:** greenfield preflight **allows** it (not a refuse trigger). Read it to **pre-fill campaign** display name, slug, firmographics, tools/services, and `CAMPAIGN-CONTEXT` fill. **Do not** infer the client folder from the dossier filename or legal business name.
 - **If missing:** suggest once that the user run a **business-dossier** skill (or drop an existing dossier into the folder) before or during the interview. Do not block the interview.
+- **Owner / signer in dossier:** if the dossier names a human owner or contact, you may **suggest** that as the client — still confirm with the user. If no owner is listed, **ask** for the human client; never substitute the company name.
+- At write: **copy** into `{Human}/{Company}/01-intake/1.1-docs/` and keep the original at scaffold root unless the user asked to move it.
 - Detection: filename contains `dossier` (case-insensitive); extensions `.md` or `.docx` only for this exception.
 
-See `setup-interview.md` Phase B.
+See `setup-interview.md` Phase B and Phase D.
 
 ## Display names vs folder slugs
 
-Collect **both** for client and campaign:
+Collect **both** for client (human) and campaign (company/brand):
 
 | Placeholder | Use for |
 |-------------|---------|
-| `{{CLIENT_NAME}}` / `{{CAMPAIGN_NAME}}` | Titles, prose, handoff |
+| `{{CLIENT_NAME}}` / `{{CAMPAIGN_NAME}}` | Titles, prose, handoff (`CLIENT_NAME` = person; `CAMPAIGN_NAME` = company/brand) |
 | `{{CLIENT_FOLDER}}` / `{{CAMPAIGN_FOLDER}}` | Real directory names and Path columns |
+| `{{CLIENT_RELATIONSHIP}}` | Optional: owner, retainer signer, primary contact |
+| `{{COMPANY_LEGAL_NAME}}` / `{{COMPANY_WEBSITE}}` | Optional campaign fields from dossier |
 
-**Slug rules:** no spaces; prefer `Title-Case-With-Hyphens` or `lowercase-with-hyphens`; strip characters unsafe for folders. Proposal trees must show the folder path, not only the display name.
+**Slug rules:** no spaces; prefer `Title-Case-With-Hyphens` or `lowercase-with-hyphens`; strip characters unsafe for folders. Person slugs: `Jordan-Lee`. Company slugs: `Columbia-Land-Clearing`. Proposal trees must show the folder path, not only the display name.
 
 ## Templates
 
@@ -187,7 +214,7 @@ Collect **both** for client and campaign:
 | `PROJECT-RULES.mdc` | `templates/agency/PROJECT-RULES.mdc` |
 | `HOW-TO-WORK-THIS-PROJECT.md` | `templates/agency/HOW-TO-WORK-THIS-PROJECT.md` |
 
-Placeholders: `{{CLIENT_NAME}}`, `{{CAMPAIGN_NAME}}`, `{{CLIENT_FOLDER}}`, `{{CAMPAIGN_FOLDER}}`, `{{GOAL}}`, `{{OUTCOME}}`, `{{TOOLS_SERVICES}}`, `{{MODULE_LIST}}`, `{{TASK_ROUTING_TABLE}}`, `{{WHY_STAGES_BLURB}}`, `{{HARNESS_NOTE}}`.
+Placeholders: `{{CLIENT_NAME}}`, `{{CAMPAIGN_NAME}}`, `{{CLIENT_FOLDER}}`, `{{CAMPAIGN_FOLDER}}`, `{{CLIENT_RELATIONSHIP}}`, `{{COMPANY_LEGAL_NAME}}`, `{{COMPANY_WEBSITE}}`, `{{GOAL}}`, `{{OUTCOME}}`, `{{TOOLS_SERVICES}}`, `{{MODULE_LIST}}`, `{{TASK_ROUTING_TABLE}}`, `{{WHY_STAGES_BLURB}}`, `{{HARNESS_NOTE}}`.
 
 Fill `{{MODULE_LIST}}` from the **confirmed** (post-omit, post-renumber) tree.  
 Fill `{{WHY_STAGES_BLURB}}` with a short, interview-specific rationale (why these stages/modules for this goal) — same substance as go-deeper, compressed for the handoff.
