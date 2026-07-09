@@ -98,7 +98,7 @@ Only after confirm:
 
 ### 7. Handoff → Done
 
-Point the user at the written HOW-TO-WORK-THIS-PROJECT.md handoff. It must include: why-these-stages, first-task checklist, [Clief Notes](https://www.skool.com/cliefnotes), harness notes.
+Point the user at the written HOW-TO-WORK-THIS-PROJECT.md handoff. It must include: why-these-stages, first-task checklist, [Clief Notes](https://www.skool.com/cliefnotes/about?ref=a8a5ace9f3c746e79bf6885aa53eb3ee), harness notes.
 
 ## Out of scope (v1)
 

@@ -66,4 +66,4 @@ Confirm these exist under the install folder:
 
 ## 5) Attribution
 
-ICM by Jake Van Clief — [Interpreted Context Methodology](https://github.com/RinDig/Interpreted-Context-Methdology). Deeper study: [Clief Notes](https://www.skool.com/cliefnotes).
+ICM by Jake Van Clief — [Interpreted Context Methodology](https://github.com/RinDig/Interpreted-Context-Methdology). Deeper study: [Clief Notes](https://www.skool.com/cliefnotes/about?ref=a8a5ace9f3c746e79bf6885aa53eb3ee).

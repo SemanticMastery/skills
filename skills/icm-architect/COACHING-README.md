@@ -7,7 +7,7 @@
 
 1. Students install per `INSTALL.md` (zip or private repo) into a **new empty project** `.cursor/skills/icm-architect/`.
 2. Confirm `SKILL.md` is visible to Cursor.
-3. Reminder: deeper ICM learning → [Clief Notes](https://www.skool.com/cliefnotes) (Jake Van Clief).
+3. Reminder: deeper ICM learning → [Clief Notes](https://www.skool.com/cliefnotes/about?ref=a8a5ace9f3c746e79bf6885aa53eb3ee) (Jake Van Clief).
 
 ## Minute 0–2 — Frame
 
@@ -37,7 +37,7 @@
 ## Minute 16–20 — Where to go deeper
 
 - Skill teaches why *these* stages for *this* project.
-- Full methodology: [Clief Notes](https://www.skool.com/cliefnotes) + [ICM repo](https://github.com/RinDig/Interpreted-Context-Methdology).
+- Full methodology: [Clief Notes](https://www.skool.com/cliefnotes/about?ref=a8a5ace9f3c746e79bf6885aa53eb3ee) + [ICM repo](https://github.com/RinDig/Interpreted-Context-Methdology).
 - Next Thursday: richer harness mapping / packaging polish.
 
 ## Facilitator checklist
