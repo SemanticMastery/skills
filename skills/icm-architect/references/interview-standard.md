@@ -15,10 +15,10 @@ Ask in this order. Do not invent a different sequence. Branch-specific follow-up
 ## After shared spine (order is mandatory)
 
 1. **Branch follow-ups first** (so stages/modules are known before any teaching pass):
-   - Agency → `agency-client-direct.md` (client/campaign display names + folder slugs, services → modules, optional archived-campaigns)
+   - Agency → `agency-client-direct.md` (client/campaign display names + folder slugs; tools annotate the full default catalog — no light subset; use root dossier if present / suggest if missing; no `archived-campaigns/` unless white-label)
    - WorkFlows → `workflows-mode.md` (stage derivation from goal/outcome)
 2. **Then** offer **go deeper** (`go-deeper-guidance.md`) using the concrete stages/modules you are about to propose. Default is Standard (skip if user declines).
-3. **Then** Propose.
+3. **Then** Propose (Agency: full default tree → “Omit any of these?” → renumber if needed → re-propose).
 
 Do not offer go-deeper before branch follow-ups — you cannot explain why *these* stages/modules until they exist.
 

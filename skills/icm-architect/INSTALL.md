@@ -46,11 +46,11 @@ Confirm these exist under the install folder:
 
 ## 3) First run
 
-1. Open a **greenfield** project folder (empty, or only `.git` and/or a single README).
+1. Open a **greenfield** project folder (empty, or only `.git` and/or a single README, and/or a business dossier `*dossier*.md` / `*dossier*.docx`).
 2. Invoke `/icm-architect` (or: "scaffold ICM", "new project architecture", "set up ICM folders").
-3. Answer the Standard interview (location → type → harness → goal → outcome → tools/services).
+3. Answer the Standard interview (location → type → harness → goal → outcome → tools/services). For Agency, a root dossier is recommended — the skill will suggest one if missing.
 4. Optionally **go deeper** for why-these-stages (not a full ICM course).
-5. Review the proposed tree + file list + short rationale.
+5. Review the proposed tree + file list + short rationale (Agency: full catalog → omit any? → renumber).
 6. Explicitly approve create (e.g. `Create it` / `Confirmed — scaffold`). "Looks good" alone is not enough.
 7. After write, open `HOW-TO-WORK-THIS-PROJECT.md` for next steps and Clief Notes link.
 
@@ -59,6 +59,7 @@ Confirm these exist under the install folder:
 - **Never scaffold before confirm.** Propose → confirm → write.
 - **Greenfield only.** Substantial existing content → refuse writes; migration deferred.
 - **Trivial non-empty** (only `.git` and/or one README) → soft-warn, may proceed.
+- **Business dossier exception:** root `*dossier*.md` / `*dossier*.docx` (alone or with trivial starters) is allowed; scaffold alongside it and use it for campaign context.
 
 ## 5) Attribution
 

@@ -1,6 +1,6 @@
 # Go-deeper guidance
 
-Offer once after **branch follow-ups** are complete (Agency modules or WorkFlows stages known) and **before** showing the propose block.
+Offer once after **branch follow-ups** are complete (Agency: full default catalog known, or WorkFlows stages known) and **before** showing the propose block.
 
 ## Offer script (adapt tone)
 
@@ -14,7 +14,7 @@ Offer once after **branch follow-ups** are complete (Agency modules or WorkFlows
 1. **One job per stage** — each top-level stage folder should have a single clear job tied to their goal/outcome.
 2. **Layered context** — routers (CONTEXT / CLIENT-CONTEXT / CAMPAIGN-CONTEXT) point agents at the right stage; stage files hold local Inputs / Process / Outputs.
 3. **Plain-text edit surfaces** — markdown/mdc so humans and agents can edit without proprietary lock-in.
-4. **Why this list** — map their stated goal, outcome, and tools/services to the specific stages or Agency modules you are about to propose. Be concrete ("02-deliverables/2.4-schema because you said schema markup is in scope"), not generic.
+4. **Why this list** — for Agency, explain why the **full default catalog** fits local SEO / agency work (placeholders now, assets later), then annotate which modules their tools/services land in. Be concrete ("2.3-reports for BrightLocal/RankPrompt"; "2.7-social-posts for Instagram"). Do not imply unused modules were dropped unless the user already omitted them.
 
 ## Attribution (required)
 

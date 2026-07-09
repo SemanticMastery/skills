@@ -14,15 +14,27 @@ Tell the user before scanning or writing:
    - Ask location (here vs named subfolder) as question 1 of the interview, **or** if already known, use it.
    - If named subfolder: all paths are under `{workspace}/{subfolder}/`.
 2. List top-level entries in the scaffold root (create the named subfolder only after confirm — for preflight, check parent + whether the named folder already exists).
-3. Classify:
+3. Detect **business dossier** files at the scaffold root:
+   - Treat as dossiers: top-level `*.md` or `*.docx` whose **filename** contains `dossier` (case-insensitive), e.g. `Columbia-Land-Clearing-Dossier.md`, `client-dossier.docx`.
+   - Dossiers are **allowed** greenfield companions — they do **not** trigger refuse.
+4. Classify:
 
 | Condition | Action |
 |-----------|--------|
-| Empty (no files/folders, or only empty dirs you did not create) | Proceed |
-| Only `.git` and/or a **single** `README` / `README.md` | Soft-warn: "Target isn't empty but only has trivial starter files; OK to continue?" — then may proceed |
-| Any other substantial content (code, multiple docs, existing ICM tree, etc.) | **Refuse writes.** Explain migration is out of scope for v1. Stop. |
+| Empty (no files/folders, or only empty dirs you did not create) | Proceed; if Agency is chosen (or likely), run **dossier suggest** below |
+| Only `.git` and/or a **single** `README` / `README.md` | Soft-warn: "Target isn't empty but only has trivial starter files; OK to continue?" — then may proceed; run **dossier suggest** if no dossier present |
+| Only allowed companions: `.git` and/or single README **and/or** one or more business dossier `.md`/`.docx` (and nothing else substantial) | **Proceed.** Note the dossier path(s); plan to use them for client/campaign context and copy into `01-intake/1.1-docs/` at write (Agency). Soft-ack: "Found dossier — OK to scaffold alongside it." |
+| Any other substantial content (code, multiple non-dossier docs, existing ICM tree, etc.) | **Refuse writes.** Explain migration is out of scope for v1. Stop. |
 
 Do not write scaffold files if the refuse path triggers.
+
+### Dossier suggest (when none present)
+
+Run once after preflight (and again briefly when the user picks **Agency Client**, if still missing):
+
+> A business dossier (`.md` or `.docx`) in this folder gives the scaffold real firmographics and campaign context for CONTEXT routers. If you have a **business-dossier** skill (or an existing dossier), add that file to this project root before or during the interview — then tell me the filename. You can also continue without one and use placeholders.
+
+Do **not** hard-block the interview. If they add a dossier mid-interview, re-scan and use it.
 
 ## Phase C — Shared interview spine
 
@@ -43,12 +55,13 @@ Read `references/agency-client-direct.md`. Collect at least:
 
 - Client **display name** and **folder slug** (see slug rules in that reference)
 - Campaign **display name** and **folder slug**
-- Services / deliverables in scope → map to module catalog (do not invent off-catalog folders)
-- Opt-in: `archived-campaigns/` under client? Default **no**
+- Tools / services in scope → **annotate** against the full default catalog (for rationale and routing). Do **not** shrink the tree from this list.
+- **Dossier:** if a root dossier `.md`/`.docx` exists, read it and use it for names, firmographics, tools, and CONTEXT fill. If none exists, run **dossier suggest** once (do not block).
+- Do **not** ask about `archived-campaigns/` unless the user describes a white-label multi-agency scenario (out of scope for Direct).
 
-In the proposal tree, show both display names and folder paths (e.g. client `Acme Dental` → folder `Acme-Dental/`).
+In the proposal tree, show both display names and folder paths (e.g. client `Acme Dental` → folder `Acme-Dental/`). Include any root dossier in the tree note (stays at root and/or copied into `01-intake/1.1-docs/` at write).
 
-Always plan stages: `01-intake`, `02-deliverables`, `03-decisions`, `04-archives`. Nested children only from catalog selections.
+Always plan stages: `01-intake`, `02-deliverables`, `03-decisions`, `04-archives`, plus the **full default nested catalog**. After showing the full tree, ask **“Omit any of these modules?”** If they omit, renumber remaining modules sequentially within each stage, then re-propose.
 
 ### WorkFlows
 

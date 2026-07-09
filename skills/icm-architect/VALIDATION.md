@@ -36,12 +36,15 @@ Get-ChildItem -Recurse -File | Select-String -Pattern 'Users\\[^\\]+\\|Users/[^/
 
 ## Behavioral smoke (manual)
 
-- [ ] Empty dir → Agency + Cursor → confirm → files match proposal; no `{{` leftovers; handoff cites Clief Notes
+- [ ] Empty dir → Agency + Cursor → full catalog proposed → omit optional → renumber → confirm → files match final proposal; no `{{` leftovers; handoff cites Clief Notes
+- [ ] Empty dir → Agency → dossier suggest offered when no dossier present (non-blocking)
+- [ ] Root `*dossier*.md` or `*dossier*.docx` only → preflight proceeds (not refuse); dossier used for context; copy into `01-intake/1.1-docs/` at write
 - [ ] Empty dir → WorkFlows + confirm-time rename → scaffold uses confirmed names
-- [ ] Confirm-time module edit → re-propose → write matches second proposal
-- [ ] Substantial non-empty → refuse writes
+- [ ] Confirm-time module omit/edit → re-propose with sequential numbers → write matches second proposal
+- [ ] Substantial non-empty (non-dossier) → refuse writes
 - [ ] Trivial `.git`/README → soft-warn, may proceed
 - [ ] Claude harness → thin `CLAUDE.md` pointer; handoff notes best-effort
+- [ ] Agency does not suggest `archived-campaigns/` unless white-label scenario described
 
 ## Zip layout
 

@@ -17,7 +17,7 @@
 | `03-decisions/` | Record decisions and communications worth keeping |
 | `04-archives/` | Store inactive or troubleshooting material |
 
-## Selected modules
+## Modules
 
 {{MODULE_LIST}}
 
@@ -27,9 +27,9 @@
 
 | Example task | Route to |
 |--------------|----------|
-| New intake asset | `01-intake/` (and selected `1.x` module if any) |
-| Ship a deliverable | `02-deliverables/` (and selected `2.x` module) |
-| Log a decision | `03-decisions/` |
+| New intake asset | Matching `01-intake/1.x-*` module |
+| Ship a deliverable | Matching `02-deliverables/2.x-*` module |
+| Log a decision | `03-decisions/` (comms or traces module) |
 | Park a failed experiment | `04-archives/troubleshooting/` (if present) else `04-archives/` |
 
 ## Rules

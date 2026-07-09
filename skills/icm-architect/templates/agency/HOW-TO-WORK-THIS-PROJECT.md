@@ -7,7 +7,7 @@ Direct Agency Client tree for **{{CLIENT_NAME}}** / **{{CAMPAIGN_NAME}}**:
 - Client router: `CLIENT-CONTEXT.md`
 - Campaign router: `CAMPAIGN-CONTEXT.md`
 - Stages: `01-intake`, `02-deliverables`, `03-decisions`, `04-archives`
-- Selected modules: see campaign context
+- Modules: see campaign context (full catalog by default; numbers reflect any omit/renumber)
 - Canonical rules: `PROJECT-RULES.mdc`
 - Harness: {{HARNESS_NOTE}}
 
@@ -20,13 +20,13 @@ Direct Agency Client tree for **{{CLIENT_NAME}}** / **{{CAMPAIGN_NAME}}**:
 
 {{WHY_STAGES_BLURB}}
 
-Nested modules (if any) map to the services you named in the interview so agents route tasks without inventing folders.
+Nested modules are the Agency Direct catalog (docs, audit, logo, photos, links, press, reports, schema, articles, GBP, social, communications, traces, troubleshooting). Empty folders are placeholders for assets that arrive later. Tools named in the interview annotate routing — they do not invent off-catalog folders.
 
 ## First-task checklist
 
 1. Skim `CAMPAIGN-CONTEXT.md` task routing table.
-2. Drop real intake materials into `01-intake/` (and modules if present).
-3. Start the first deliverable under the matching `02-deliverables/` module.
+2. Drop real intake materials into the matching `01-intake/1.x-*` modules.
+3. Start the first deliverable under the matching `02-deliverables/2.x-*` module.
 4. Log important choices under `03-decisions/` as you go.
 5. Keep harness files as pointers — edit CONTEXT / PROJECT-RULES for real guidance.
 

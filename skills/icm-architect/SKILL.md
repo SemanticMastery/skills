@@ -42,6 +42,8 @@ Say early: you will interview, optionally go deeper, propose a full tree + file 
 Follow `setup-interview.md` Phase B (greenfield matrix).
 
 - Trivial (`.git` and/or single README) → soft-warn, may proceed.
+- Business dossier(s) at scaffold root (`*dossier*.md` / `*dossier*.docx`) alone or with trivial starters → **allowed**; proceed and use for context.
+- No dossier present → suggest adding one (business-dossier skill or existing file); do not block.
 - Substantial other content → **refuse writes**; migration deferred. Stop.
 
 ### 2. Interview
@@ -65,7 +67,7 @@ Offer once (`references/go-deeper-guidance.md`). Include Clief Notes pointer. Do
 
 Show **tree + file list + short rationale**. Include harness files from `references/harness-map.md`. Root all paths under the chosen location.
 
-**Agency:** always `01-intake` … `04-archives`; nested modules only from catalog.  
+**Agency:** always `01-intake` … `04-archives` plus the **full default module catalog**; then ask “omit any?”; renumber remaining modules sequentially (see `agency-client-direct.md`).  
 **WorkFlows:** 3–7 numbered stages from goal; allow rename at confirm.
 
 ### 5. Confirm
@@ -80,6 +82,7 @@ Only after confirm:
 2. Fill templates; replace placeholders; no leftover `{{`.
 3. Write harness thin entrypoints (ICM CONTEXT + campaign/project PROJECT-RULES stay canonical).
 4. Write the handoff file HOW-TO-WORK-THIS-PROJECT.md with teaching blurb + next-steps + attribution.
+5. **Agency + root dossier:** copy the dossier into `01-intake/1.1-docs/` (keep the original at scaffold root unless the user asked to move it). Use dossier content when filling CONTEXT routers.
 
 ### 7. Handoff → Done
 

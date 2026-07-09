@@ -17,13 +17,14 @@
 
 ## Minute 2–10 — Demo A: Agency Client (Standard)
 
-1. Invoke `/icm-architect` in an empty folder.
-2. Location: here. Type: Agency Client. Harness: Cursor.
-3. Goal/outcome/services: e.g. local SEO client, schema + GBP posts + audit.
-4. Decline go-deeper (or do a 30-second why-stages).
-5. Review proposal: `01`-`04` + selected modules.
-6. Say **`Create it`** (not only "looks good").
-7. Open `HOW-TO-WORK-THIS-PROJECT.md` + `CAMPAIGN-CONTEXT.md`.
+1. Optional: drop a `*dossier*.md` in the folder first (or let the skill suggest one).
+2. Invoke `/icm-architect` in that folder (empty or dossier-only is OK).
+3. Location: here. Type: Agency Client. Harness: Cursor.
+4. Goal/outcome/services: e.g. local SEO client (tools annotate modules; tree stays full by default).
+5. Decline go-deeper (or do a 30-second why-stages).
+6. Review proposal: full `01`-`04` catalog → optionally omit one module to show renumber → confirm.
+7. Say **`Create it`** (not only "looks good").
+8. Open `HOW-TO-WORK-THIS-PROJECT.md` + `CAMPAIGN-CONTEXT.md` (+ dossier under `1.1-docs` if used).
 
 ## Minute 10–16 — Demo B: WorkFlows
 
