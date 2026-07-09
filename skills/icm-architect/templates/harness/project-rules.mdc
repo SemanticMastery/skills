@@ -1,0 +1,17 @@
+---
+description: Thin Cursor pointer into ICM PROJECT-RULES + CONTEXT for {{PROJECT_OR_CAMPAIGN_NAME}}
+globs:
+alwaysApply: true
+---
+
+# Cursor rules pointer
+
+Canonical ICM rules: `{{PROJECT_RULES_PATH}}`
+
+Campaign/project router: `{{CONTEXT_PATH}}`
+
+Handoff: `HOW-TO-WORK-THIS-PROJECT.md`
+
+Do not duplicate the full tree here. Update the canonical PROJECT-RULES / CONTEXT files instead.
+
+{{HARNESS_NOTE}}

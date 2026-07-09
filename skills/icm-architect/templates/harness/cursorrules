@@ -1,0 +1,9 @@
+# Legacy .cursorrules stub for {{PROJECT_OR_CAMPAIGN_NAME}}
+
+Prefer `.cursor/rules/project-rules.mdc` + `AGENTS.md` for Cursor.
+
+Canonical ICM:
+- {{CONTEXT_PATH}}
+- {{PROJECT_RULES_PATH}}
+
+{{HARNESS_NOTE}}

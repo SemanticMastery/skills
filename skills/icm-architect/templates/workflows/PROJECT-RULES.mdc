@@ -1,0 +1,28 @@
+---
+description: Canonical ICM project rules for {{PROJECT_NAME}}
+globs:
+alwaysApply: true
+---
+
+# Project rules — {{PROJECT_NAME}}
+
+## Context layers
+
+1. Project router: `CONTEXT.md`
+2. Stage folders — one job each; local `CONTEXT.md` with Inputs / Process / Outputs
+3. This file: durable rules; keep harness entry files thin
+
+## Working rules
+
+- One job per stage folder; do not merge unrelated work into a single stage.
+- Prefer plain markdown / mdc edit surfaces.
+- Update `CONTEXT.md` task routing when stages change.
+- Before restructuring stages, propose the new tree and wait for explicit create approval.
+
+## Goal reminder
+
+{{GOAL}}
+
+## Outcome reminder
+
+{{OUTCOME}}

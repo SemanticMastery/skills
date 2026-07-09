@@ -1,0 +1,33 @@
+---
+description: Canonical ICM project rules for {{CAMPAIGN_NAME}} ({{CLIENT_NAME}})
+globs:
+alwaysApply: true
+---
+
+# Project rules — {{CAMPAIGN_NAME}}
+
+## Hierarchy
+
+Direct mode only: **Client → Campaign**. No Agency layer in this workspace.
+
+## Context layers
+
+1. Client router: `../CLIENT-CONTEXT.md` (campaign index)
+2. Campaign router: `CAMPAIGN-CONTEXT.md` (task routing)
+3. Stage folders: `01-intake` … `04-archives` — one job each
+4. This file: durable rules; keep harness files thin
+
+## Working rules
+
+- Prefer editing plain markdown / mdc over opaque binaries.
+- Put work products in the matching stage/module; do not leave drafts only in chat.
+- Before large folder changes, propose a plan and wait for explicit approval.
+- Do not create off-catalog module folders without human confirmation.
+
+## Goal reminder
+
+{{GOAL}}
+
+## Outcome reminder
+
+{{OUTCOME}}
