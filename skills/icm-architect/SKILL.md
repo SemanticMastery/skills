@@ -31,6 +31,16 @@ Scaffold an Interpretable Context Methodology (ICM) workspace through an adaptiv
 
 Resolve paths relative to this skill folder (authoring: `skills/icm-architect/`; install: `.cursor/skills/icm-architect/`).
 
+## Publish / GitHub (agents: read this before hunting remotes)
+
+| Role | Location |
+|------|----------|
+| **Authoring source of truth** | This package under the local `icm-architect` project: `skills/icm-architect/` (also mirrored to `C:\Users\bradl\.cursor\skills\icm-architect\`). That authoring git repo often has **no remote** — do not search for one. |
+| **Canonical GitHub publish target** | Private catalog **[SemanticMastery/skills](https://github.com/SemanticMastery/skills)** → path **`skills/icm-architect/`** on branch **`master`**. |
+| **Student install from GitHub** | Copy `skills/icm-architect/` from that catalog into `<project>/.cursor/skills/icm-architect/`. |
+
+When the user asks to **commit and push** skill updates: (1) commit in the authoring repo if they want a local history snapshot; (2) sync/copy this skill folder into a clone of `SemanticMastery/skills` at `skills/icm-architect/` and **push `master` there**. Do not invent alternate orgs/repos. Details: `INSTALL.md` + authoring repo `docs/student-distribution.md`.
+
 ## Procedure (run top to bottom)
 
 ### 0. Set expectations

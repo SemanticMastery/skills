@@ -9,6 +9,9 @@ Shareable Cursor skill for scaffolding Interpretable Context Methodology (ICM) p
 | **Authoring (this repo)** | `skills/icm-architect/` |
 | **Student install (Cursor)** | `<project>/.cursor/skills/icm-architect/` |
 | **Claude Code adapter** | `<project>/.claude/skills/icm-architect/` (same package layout) |
+| **GitHub catalog (push here)** | [SemanticMastery/skills](https://github.com/SemanticMastery/skills) → `skills/icm-architect/` (`master`) |
+
+**Agent note:** The local authoring `icm-architect` git repo may have **no remote**. Publishing means copying this skill folder into `SemanticMastery/skills` at `skills/icm-architect/` and pushing `master` — not searching for a remote on the authoring repo.
 
 The zip ships the **skill root** (files that live inside `icm-architect/`), not an extra `skills/` prefix. After expand/copy you must have:
 
