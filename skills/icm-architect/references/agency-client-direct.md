@@ -214,9 +214,11 @@ Collect **both** for client (human) and campaign (company/brand):
 | `PROJECT-RULES.mdc` | `templates/agency/PROJECT-RULES.mdc` |
 | `HOW-TO-WORK-THIS-PROJECT.md` | `templates/agency/HOW-TO-WORK-THIS-PROJECT.md` |
 
-Placeholders: `{{CLIENT_NAME}}`, `{{CAMPAIGN_NAME}}`, `{{CLIENT_FOLDER}}`, `{{CAMPAIGN_FOLDER}}`, `{{CLIENT_RELATIONSHIP}}`, `{{COMPANY_LEGAL_NAME}}`, `{{COMPANY_WEBSITE}}`, `{{GOAL}}`, `{{OUTCOME}}`, `{{TOOLS_SERVICES}}`, `{{MODULE_LIST}}`, `{{TASK_ROUTING_TABLE}}`, `{{WHY_STAGES_BLURB}}`, `{{HARNESS_NOTE}}`.
+Placeholders: `{{CLIENT_NAME}}`, `{{CAMPAIGN_NAME}}`, `{{CLIENT_FOLDER}}`, `{{CAMPAIGN_FOLDER}}`, `{{CLIENT_RELATIONSHIP}}`, `{{COMPANY_LEGAL_NAME}}`, `{{COMPANY_WEBSITE}}`, `{{GOAL}}`, `{{OUTCOME}}`, `{{TOOLS_SERVICES}}`, `{{MODULE_LIST}}`, `{{TASK_ROUTING_TABLE}}`, `{{FOLDER_TREE}}`, `{{WHY_STAGES_BLURB}}`, `{{HARNESS_NOTE}}`.
 
 Fill `{{MODULE_LIST}}` from the **confirmed** (post-omit, post-renumber) tree.  
+Fill `{{FOLDER_TREE}}` with the **exact** confirmed propose/confirm tree (person folder → campaign folder → `01`–`04` modules). Use a `text` code block with `├──` / `└──` lines; include harness files and key CONTEXT paths.
+
 Fill `{{WHY_STAGES_BLURB}}` with a short, interview-specific rationale (why these stages/modules for this goal) — same substance as go-deeper, compressed for the handoff.
 
 After write: verify no leftover `{{` in created files.

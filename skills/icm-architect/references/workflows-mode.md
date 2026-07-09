@@ -56,4 +56,6 @@ Explain why *this* stage list for *this* goal; Clief Notes for principles (`attr
 
 ## Placeholders (root templates)
 
-`{{PROJECT_NAME}}`, `{{GOAL}}`, `{{OUTCOME}}`, `{{TOOLS_SERVICES}}`, `{{STAGE_TABLE}}`, `{{TASK_ROUTING_TABLE}}`, `{{HARNESS_NOTE}}`, `{{WHY_STAGES_BLURB}}`.
+`{{PROJECT_NAME}}`, `{{GOAL}}`, `{{OUTCOME}}`, `{{TOOLS_SERVICES}}`, `{{STAGE_TABLE}}`, `{{TASK_ROUTING_TABLE}}`, `{{FOLDER_TREE}}`, `{{HARNESS_NOTE}}`, `{{WHY_STAGES_BLURB}}`.
+
+Fill `{{FOLDER_TREE}}` with the **exact** confirmed propose/confirm tree (project root → stages → notable `data/` / `scripts/` subfolders and seed files). Use a `text` code block with `├──` / `└──` lines; include harness files and per-stage `CONTEXT.md` paths.

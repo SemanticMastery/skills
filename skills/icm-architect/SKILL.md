@@ -93,12 +93,12 @@ Only after confirm:
 1. Create folders from the confirmed tree.
 2. Fill templates; replace placeholders; no leftover `{{`.
 3. Write harness thin entrypoints (ICM CONTEXT + campaign/project PROJECT-RULES stay canonical).
-4. Write the handoff file HOW-TO-WORK-THIS-PROJECT.md with teaching blurb + next-steps + attribution.
+4. Write the handoff file HOW-TO-WORK-THIS-PROJECT.md with the **confirmed folder tree diagram** (same `text` tree from propose/confirm), teaching blurb + next-steps + attribution.
 5. **Agency + root dossier:** copy the dossier into `{Human-Client}/{Company-Campaign}/01-intake/1.1-docs/` (keep the original at scaffold root unless the user asked to move it). Use dossier content for **campaign** CONTEXT fill — not to name the human client folder.
 
 ### 7. Handoff → Done
 
-Point the user at the written HOW-TO-WORK-THIS-PROJECT.md handoff. It must include: why-these-stages, first-task checklist, [Clief Notes](https://www.skool.com/cliefnotes/about?ref=a8a5ace9f3c746e79bf6885aa53eb3ee), harness notes.
+Point the user at the written HOW-TO-WORK-THIS-PROJECT.md handoff. It must include: **folder tree diagram**, why-these-stages, first-task checklist, [Clief Notes](https://www.skool.com/cliefnotes/about?ref=a8a5ace9f3c746e79bf6885aa53eb3ee), harness notes.
 
 ## Out of scope (v1)
 

@@ -9,6 +9,14 @@ WorkFlows ICM tree for **{{PROJECT_NAME}}**:
 - Stages: see `CONTEXT.md`
 - Harness: {{HARNESS_NOTE}}
 
+## Folder structure
+
+Visual map of the scaffolded tree (read top-down: routers and harness at root, then numbered stages):
+
+```text
+{{FOLDER_TREE}}
+```
+
 ## Why these stages
 
 {{WHY_STAGES_BLURB}}

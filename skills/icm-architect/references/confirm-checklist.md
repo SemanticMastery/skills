@@ -50,7 +50,7 @@ If the user changes a stage name, module, path, harness, or omits/adds modules:
 1. Create directories from the **confirmed** tree.
 2. Copy templates; replace all `{{PLACEHOLDERS}}`.
 3. Write harness files per `harness-map.md`.
-4. Write `HOW-TO-WORK-THIS-PROJECT.md` with attribution (`attribution.md`).
+4. Write `HOW-TO-WORK-THIS-PROJECT.md` with the **confirmed folder tree** in `{{FOLDER_TREE}}` (same `text` diagram from the propose/confirm block — include key files, harness paths, stages/modules, and notable `data/` or `scripts/` subfolders) plus attribution (`attribution.md`).
 5. Scan written files for leftover `{{` — fix any misses before declaring done.
 6. Summarize what was created (paths only; do not dump full file bodies in chat).
 

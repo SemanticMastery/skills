@@ -11,6 +11,14 @@ Direct Agency Client tree for **{{CLIENT_NAME}}** (person) / **{{CAMPAIGN_NAME}}
 - Canonical rules: `PROJECT-RULES.mdc`
 - Harness: {{HARNESS_NOTE}}
 
+## Folder structure
+
+Visual map of the scaffolded tree (read top-down: person-level client → company campaign → stages/modules):
+
+```text
+{{FOLDER_TREE}}
+```
+
 ## Why these stages
 
 - **01-intake** — one job: gather inputs before production.

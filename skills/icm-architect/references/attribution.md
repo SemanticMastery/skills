@@ -32,4 +32,5 @@ For deeper learning, join [Clief Notes](https://www.skool.com/cliefnotes/about?r
 
 - Re-teach the full ICM paper inside the skill.
 - Omit Jake Van Clief / Clief Notes from `HOW-TO-WORK-THIS-PROJECT.md`.
+- Omit the confirmed folder tree diagram from `HOW-TO-WORK-THIS-PROJECT.md` (`{{FOLDER_TREE}}` section).
 - Claim white-label `Client -> Agency -> Campaign` as part of this skill (that lives in Golden Image).
