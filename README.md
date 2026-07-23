@@ -2,7 +2,10 @@
 
 Private catalog of agent skills and **workflows** (multi-skill bundles) for [Semantic Mastery](https://semanticmastery.com) coaching and fulfillment.
 
-**Organization:** [SemanticMastery on GitHub](https://github.com/SemanticMastery)
+**Organization:** [SemanticMastery on GitHub](https://github.com/SemanticMastery)  
+**Local clone path:** `C:\Users\bradl\1-Projects\semantic-mastery-skills` (this folder — not under `icm-authoring/dist/`)
+
+ICM skill **authoring** lives in `1-Projects/icm-authoring/`. Local Schema **planning notes** live in `workflows/local-schema/.authoring/` (gitignored; not published). This catalog is the shared GitHub publish tree only.
 
 ## Layout
 
@@ -26,7 +29,7 @@ Students and mastermind members:
 
 | ID | Display name | Folder | Description |
 |----|--------------|--------|-------------|
-| `local-schema` | **Local Schema Generator** | [workflows/local-schema/](workflows/local-schema/) | Local SEO JSON-LD: `schema-markup-generator`, `knowsabout-entity-research`, `business-dossier`, plus dossier compose scripts |
+| `local-schema` | **Local Schema Generator** | [workflows/local-schema/](workflows/local-schema/) | Local SEO JSON-LD: `schema-markup-generator` **9.12.0**, `knowsabout-entity-research`, `business-dossier`, plus dossier compose scripts (zip: `local-schema-20260723.zip`) |
 
 ## Releases
 
@@ -35,4 +38,9 @@ Students and mastermind members:
 
 ## Canonical editing
 
-Bradley's day-to-day canonical copies remain under the synced `.cursor/skills/` tree (and authoring repos such as `icm-architect`). Published skills/workflows here are **snapshots** built for distribution unless noted otherwise in the skill or workflow README.
+| Product | Day-to-day authoring | Publish into this catalog at |
+|---------|----------------------|------------------------------|
+| ICM (setup / architect / migrate) | `1-Projects/icm-authoring/skills/` | `skills/<name>/` |
+| Local Schema Generator | `~/.cursor/skills/` (+ notes in `workflows/local-schema/.authoring/`) | `workflows/local-schema/` |
+
+Live installs remain under the synced `.cursor/skills/` tree. Snapshots here are for distribution / GitHub.

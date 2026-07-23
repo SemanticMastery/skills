@@ -14,7 +14,8 @@ $staging = Join-Path $env:TEMP "sl-schema-bundle-$date"
 if (Test-Path $staging) { Remove-Item -Recurse -Force $staging }
 New-Item -ItemType Directory -Force -Path $staging | Out-Null
 
-$excludeDirs = @(".git", "node_modules", "dist")
+# .authoring = private planning notes / student workbooks — never ship
+$excludeDirs = @(".git", "node_modules", "dist", ".authoring")
 Get-ChildItem -Path $BundleRoot -Force | Where-Object {
   $_.Name -notin $excludeDirs
 } | ForEach-Object {

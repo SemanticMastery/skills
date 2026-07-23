@@ -1,7 +1,8 @@
 # Local Schema Generator
 
 **Workflow ID:** `local-schema` (folder: `workflows/local-schema/`)  
-**Repo:** [SemanticMastery/skills](https://github.com/SemanticMastery/skills)
+**Repo:** [SemanticMastery/skills](https://github.com/SemanticMastery/skills)  
+**Bundle date:** 2026-07-23 · **`schema-markup-generator`:** 9.12.0
 
 A **coaching bundle** for local SEO structured data: three agent skills plus the minimal Node scripts needed to run the contractor dossier pipeline.
 
@@ -9,10 +10,12 @@ A **coaching bundle** for local SEO structured data: three agent skills plus the
 
 | Component | Purpose |
 |-----------|---------|
-| `schema-markup-generator` | JSON-LD for FAQ, HowTo, Article, Product, LocalBusiness — with dossier and knowsabout prefights |
+| `schema-markup-generator` **9.12.0** | JSON-LD for FAQ, HowTo, Article, Product, LocalBusiness — dossier, sameAs, logo/image/geo, and knowsabout prefights |
 | `knowsabout-entity-research` | Entity CSV research (Wikipedia / Wikidata / Grokipedia) |
 | `business-dossier` | Glen Patel TSCR business dossier (Markdown + DOCX) |
 | `scripts/seo/` | `compose-business-dossier.mjs` and SerpAPI/Firecrawl pre-gather |
+
+See **[CHANGES.md](CHANGES.md)** for the 9.12.0 intake-gate updates (sameAs + media/geo; website stays on `url` only).
 
 ## Quick start (mastermind)
 

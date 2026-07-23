@@ -99,7 +99,7 @@ Validation flow:
 }
 ```
 
-Wrap the JSON-LD in `<script type="application/ld+json">...</script>` and validate it before deployment.
+Wrap the JSON-LD in `<script type="application/ld+json">...</script>` before writing to `*.jsonld` on disk (mandatory for client deliverables — see [jsonld-script-wrapper.md](jsonld-script-wrapper.md)). Strip the wrapper when pasting into Schema.org Validator.
 
 ## Schema Type Quick Reference
 

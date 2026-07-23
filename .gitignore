@@ -5,3 +5,7 @@ node_modules/
 **/Thumbs.db
 **/dist/*.zip
 *.log
+
+# Private authoring notes / student workbooks (not for GitHub or student zips)
+**/.authoring/
+*.xlsx

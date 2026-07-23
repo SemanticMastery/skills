@@ -16,10 +16,10 @@ Mirrors **Step 0 → `business-dossier`**: schema-markup-generator **must explic
 
 ## Resolve `project_dir`
 
-- Client project folder **root** (cwd or user-provided absolute path).
-- **Canonical CSV path:** `{project_dir}/resources/schema/knowsabout/{slug}-knowsabout.csv`
-- **Legacy fallback (read-only):** `{project_dir}/resources/schema/{slug}-knowsabout.csv` then `{project_dir}/resources/{slug}-knowsabout.csv` — migrate to `knowsabout/` on refresh.
-- **Layout:** [schema-artifact-layout.md](schema-artifact-layout.md). Copy [SCHEMA-LAYOUT.template.md](SCHEMA-LAYOUT.template.md) → `{project_dir}/resources/schema/SCHEMA-LAYOUT.md` on first run if missing.
+- **Campaign folder root** (cwd or user-provided absolute path).
+- **Canonical CSV path:** `{project_dir}/02-deliverables/2.4-schema/knowsabout/{slug}-knowsabout.csv`
+- **Legacy fallback (read-only):** `{project_dir}/resources/schema/knowsabout/{slug}-knowsabout.csv` → `{project_dir}/resources/schema/{slug}-knowsabout.csv` → `{project_dir}/resources/{slug}-knowsabout.csv` — migrate to `02-deliverables/2.4-schema/knowsabout/` on refresh.
+- **Layout:** [schema-artifact-layout.md](schema-artifact-layout.md). Copy [SCHEMA-LAYOUT.template.md](SCHEMA-LAYOUT.template.md) → `{project_dir}/02-deliverables/2.4-schema/SCHEMA-LAYOUT.md` on first run if missing.
 
 ## Build the slug checklist
 
@@ -28,8 +28,8 @@ From Step 2 page-role mapping, list every **service** and **location** slug in s
 | Source (priority) | How to get slugs |
 |-------------------|------------------|
 | User message | Explicit URLs or slugs (e.g. `/tree-removal`, "all service pages") |
-| On-page crawl CSV | `audit/crawl-report/onpage-crawl-*.csv` — filter money-page URLs; slug = path segment |
-| Sitemap / implementation doc | e.g. `resources/schema/*-implementation.md` or `SCHEMA-LAYOUT.md` slug tables |
+| On-page crawl CSV | `01-intake/1.2-audit/` or `audit/crawl-report/onpage-crawl-*.csv` — filter money-page URLs; slug = path segment |
+| Sitemap / implementation doc | e.g. `02-deliverables/2.4-schema/*-implementation.md` or `SCHEMA-LAYOUT.md` slug tables |
 | Single-page request | One slug from canonical path (`tree-trimming` from `/tree-trimming`) |
 
 Normalize: lowercase, hyphenated (`mount-storm`, `plant-health-care`). That string is `{slug}` in the filename.
@@ -41,13 +41,15 @@ Use `Glob` or `ctx_execute` — do not assume files exist.
 **Canonical:**
 
 ```
-{project_dir}/resources/schema/knowsabout/{slug}-knowsabout.csv
-{project_dir}/resources/schema/knowsabout/*-knowsabout.csv
+{project_dir}/02-deliverables/2.4-schema/knowsabout/{slug}-knowsabout.csv
+{project_dir}/02-deliverables/2.4-schema/knowsabout/*-knowsabout.csv
 ```
 
 **Legacy (if migrating old projects):**
 
 ```
+{project_dir}/resources/schema/knowsabout/{slug}-knowsabout.csv
+{project_dir}/resources/schema/knowsabout/*-knowsabout.csv
 {project_dir}/resources/schema/{slug}-knowsabout.csv
 {project_dir}/resources/schema/*-knowsabout.csv
 {project_dir}/resources/{slug}-knowsabout.csv
@@ -68,10 +70,10 @@ For **each** slug in the checklist:
 
 When the invoke list is non-empty:
 
-1. **Read and follow** `../knowsabout-entity-research/SKILL.md` in full for this session (same as explicitly running `/knowsabout-entity-research`).
+1. **Read and follow** `C:\Users\bradl\.cursor\skills\knowsabout-entity-research\SKILL.md` in full for this session (same as explicitly running `/knowsabout-entity-research`).
 2. Pass each seed: H1/service name + page role (`service` vs `location`) + `project_dir`.
 3. Use `scripts/resolve-entity-urls.mjs` per that skill (paced Wikipedia/Wikidata/Grokipedia).
-4. Write `{project_dir}/resources/schema/knowsabout/{slug}-knowsabout.csv` and update `knowsabout-batch-manifest.csv` on batch runs.
+4. Write `{project_dir}/02-deliverables/2.4-schema/knowsabout/{slug}-knowsabout.csv` and update `knowsabout-batch-manifest.csv` on batch runs.
 5. **Wait** until every invoke-list slug has a CSV on disk before Step 4 JSON-LD.
 
 **Forbidden:**
@@ -88,7 +90,7 @@ When the invoke list is non-empty:
 
 1. Re-glob canonical (and legacy) paths for each slug — confirm files exist.
 2. Spot-check: header row present; Grokipedia column not entirely `-` (unless user waived).
-3. Continue schema-markup-generator **Step 4** — write JSON-LD under `services/` or `locations/` per [schema-artifact-layout.md](schema-artifact-layout.md); map CSV rows to `WebPage.about` per [schema-templates.md § Service page](schema-templates.md#service-page-simple-silo-contractor-sites--validated-pattern).
+3. Continue schema-markup-generator **Step 4** — write JSON-LD under `02-deliverables/2.4-schema/services/` or `locations/` per [schema-artifact-layout.md](schema-artifact-layout.md); map CSV rows to `WebPage.about` per [schema-templates.md § Service page](schema-templates.md#service-page-simple-silo-contractor-sites--validated-pattern).
 
 ## Slug → seed term hints
 
@@ -97,15 +99,15 @@ When the invoke list is non-empty:
 | Service | H1 or service name + "service" if ambiguous (e.g. `Tree Removal Service`, `plant health care service`) |
 | Location | `{City}, West Virginia` in resolver **stdin JSON** (e.g. `Cabins, West Virginia`) — never `--names` with commas |
 
-**Location slugs:** from sitemap / `*-implementation.md` / `SCHEMA-LAYOUT.md` / onpage crawl — one `{slug}-knowsabout.csv` each. Client-specific seeds and opensearch fixes: **`{project_dir}/resources/schema/field-learnings.md`** (not the global skill file).
+**Location slugs:** from sitemap / `*-implementation.md` / `SCHEMA-LAYOUT.md` / onpage crawl — one `{slug}-knowsabout.csv` each. Client-specific seeds and opensearch fixes: **`{project_dir}/02-deliverables/2.4-schema/field-learnings.md`** (legacy read: `resources/schema/field-learnings.md`).
 
 ## Resolver invocation (Step 2b handoff)
 
 When invoking **knowsabout-entity-research**:
 
 1. `Glob` missing CSV at canonical + legacy paths.
-2. Read `knowsabout-entity-research` SKILL.md + project `resources/schema/field-learnings.md` (if present) + global [field-learnings.md](../../knowsabout-entity-research/references/field-learnings.md).
-3. Run `resolve-entity-urls.mjs` with **`--stdin`** and **`--overrides resources/schema/entity-url-overrides.json`** when that file exists. Temps under `resources/schema/_tmp/`.
+2. Read `knowsabout-entity-research` SKILL.md + project `02-deliverables/2.4-schema/field-learnings.md` (if present; legacy: `resources/schema/field-learnings.md`) + global [field-learnings.md](../../knowsabout-entity-research/references/field-learnings.md).
+3. Run `resolve-entity-urls.mjs` with **`--stdin`** and **`--overrides 02-deliverables/2.4-schema/entity-url-overrides.json`** when that file exists. Temps under `02-deliverables/2.4-schema/_tmp/`.
 4. Merge results; write JSON-LD under `services/` or `locations/`; do not inline `Thing` entities from memory.
 
 ## Integration
@@ -122,7 +124,7 @@ When invoking **knowsabout-entity-research**:
 Step 2 identified service/location page(s)?
   → no → skip Step 2b → Step 3
   → yes → build slug checklist
-      → for each slug: glob knowsabout/{slug}-knowsabout.csv (+ legacy paths)
+      → for each slug: glob 02-deliverables/2.4-schema/knowsabout/{slug}-knowsabout.csv (+ legacy paths)
           → all present + complete → Step 3
           → any missing/incomplete → READ knowsabout-entity-research SKILL.md → run to completion
               → re-glob all slugs → Step 3

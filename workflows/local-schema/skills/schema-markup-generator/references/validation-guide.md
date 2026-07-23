@@ -22,7 +22,10 @@ Compact reference for validating, testing, troubleshooting, and maintaining stru
 | Dynamic-only injection | Schema absent from source/rendered test | Ensure crawler-visible JSON-LD is present. |
 | `addressCountry` on `State` in `areaServed` | `"containedInPlace": { "@type": "State", "name": "Texas", "addressCountry": "US" }` | Remove `addressCountry` from nested places. Keep it only on business `address` (`PostalAddress`). Use `containedInPlace` with `@type` + `name` only. |
 | `BreadcrumbList` on Simple Silo site | Breadcrumbs on `domain.com/tree-removal` (flat URLs) | **Omit** `BreadcrumbList`. Use only on **Complex Silo** sites with nested paths (`/services/tree-removal`). See [silo-and-page-patterns.md](silo-and-page-patterns.md). |
-| `knowsAbout` on `Service` or `WebPage` | Topic `Thing` list under `knowsAbout` on service page | Move topics to **`WebPage.about`** array. Use `knowsAbout` only on `Person` / `Organization` (e.g. homepage `#corporation`). |
+| `knowsAbout` on `Service` or `WebPage` | Topic `Thing` list under `knowsAbout` on service page | Move topics to **`WebPage.about`** array. Use `knowsAbout` only on `Person` / `Organization` (e.g. homepage `#corporation`, franchisor `#localbusiness`, or sparse-site **`LocalBusiness.knowsAbout`**). |
+| `about` on `LocalBusiness` / `HomeAndConstructionBusiness` | `"about": [ Service, City, … ]` on homepage local business | **`about` is CreativeWork-only** (`WebPage`, etc.). Use **`makesOffer`** + sibling **`Service`** in `@graph`, **`knowsAbout`** for topics, **`areaServed`** for places. See [sparse-site-homepage-patterns.md](sparse-site-homepage-patterns.md). |
+| `worksFor` target type `Thing` | `"worksFor": { "@id": "https://domain/#corporation" }` only | Add **`@type`** (`Corporation`, `Organization`, or `LocalBusiness`) plus `@id` and `name`. See [franchisor-page-patterns.md](franchisor-page-patterns.md). |
+| Cross-graph `@id` without `@type` | `mainEntity` / `about` / `provider` as bare `@id` | Include expected **`@type`** on reference objects so validators resolve Organization subtypes. |
 
 ## Required and Recommended Properties
 

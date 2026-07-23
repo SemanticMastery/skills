@@ -65,14 +65,28 @@ Use `@graph` with **two** entities:
 
 | Node | `@type` | `@id` suffix | Holds |
 |------|---------|--------------|-------|
-| Legal entity | `Corporation` (preferred for for-profit contractors over generic `Organization`) | `#corporation` | `legalName`, `foundingDate`, `founder`, `logo`, `sameAs` |
-| Local presence | `LocalBusiness` subtype (e.g. `HomeAndConstructionBusiness`) | **Dedicated ID URI** if provided; else `#localbusiness` | `geo`, `hasMap`, hours, `areaServed`, `aggregateRating` |
+| Legal entity | `Corporation` (preferred for for-profit contractors over generic `Organization`) | `#corporation` | `legalName`, `foundingDate`, `founder`, `logo` (after **Step 0c**), `sameAs` (after **Step 0b**) |
+| Local presence | `LocalBusiness` subtype (e.g. `HomeAndConstructionBusiness`) | **Dedicated ID URI** if provided; else `#localbusiness` | `geo` + `image` (after **Step 0c**), `hasMap`, hours, `areaServed`, `aggregateRating` |
 
 Link: `"parentOrganization": { "@id": "https://[domain]/#corporation" }` on the `LocalBusiness` node.
 
 **Dedicated ID URI:** When the client publishes a standalone entity page (e.g. `https://…/id.html`), that URL is `@id` on this node and on **every** `provider` / `mainEntity` / `about` reference site-wide. See [dedicated-id-uri.md](dedicated-id-uri.md). Do not use `[domain]/#localbusiness` on child pages when a dedicated URI is already in use.
 
 Deploy homepage `@graph` **site-wide** (or on every page) so `provider` / `@id` references resolve.
+
+### Homepage (sparse site — few money pages)
+
+When the campaign has **no dedicated service or city URLs** and the user wants offerings + service-area + topic entities on the homepage, extend the `@graph` to **three** nodes. Full rules: **[sparse-site-homepage-patterns.md](sparse-site-homepage-patterns.md)**.
+
+| Node | Holds |
+|------|--------|
+| `Corporation` | unchanged |
+| `LocalBusiness` subtype | `makesOffer` → `Offer.itemOffered` → `#…-service`; **`knowsAbout`** → topic `Thing` list; **`areaServed`** → places with entity `sameAs` |
+| `Service` (sibling) | Primary offering; `provider` → local business `@id` |
+
+**Validator-critical:** **`about` is not valid on `LocalBusiness` / `HomeAndConstructionBusiness`.** Do not reuse the service-page `WebPage.about` pattern on the local business node — [validator.schema.org](https://validator.schema.org/) rejects it. Geography belongs in **`areaServed`** only.
+
+Run **`resolve-entity-urls.mjs`** for every `knowsAbout` / `areaServed` entity (Grokipedia included) even when Step 2b CSV preflight is skipped.
 
 ### Service page (Simple Silo)
 
@@ -142,6 +156,16 @@ Same as Simple Silo, **plus** `BreadcrumbList` when URL depth and on-page breadc
 
 City URL is the location landing for that GBP; include full `LocalBusiness` subtype on that page, not duplicated on homepage.
 
+### Franchisor sites (franchise sales + franchisee support)
+
+When the client is a **franchisor** (not a field contractor at HQ), use **[franchisor-page-patterns.md](franchisor-page-patterns.md)** instead of contractor defaults for:
+
+- Homepage `LocalBusiness` subtype and `knowsAbout`
+- `Service.provider` → `#corporation` vs `#localbusiness` by page role
+- `AboutPage`, `ContactPage`, and CMS script-wrapper deliverables
+
+Read `{project}/02-deliverables/2.4-schema/field-learnings.md` when present for client-specific slug/provider table (legacy read: `resources/schema/field-learnings.md`).
+
 ---
 
 ## `@id` conventions (stable across site)
@@ -154,6 +178,9 @@ City URL is the location landing for that GBP; include full `LocalBusiness` subt
 | Service (per page) | `https://[domain]/[slug]#service` |
 | WebPage (per page) | `https://[domain]/[slug]#webpage` |
 | Service catalog (location page) | `https://[domain]/[city-slug]#service-catalog` |
+| About page (per page) | `https://[domain]/[slug]#webpage` |
+| Person (about page) | `https://[domain]/[slug]#[person-slug]` |
+| Contact point (contact page) | `https://[domain]/[slug]#contactpoint` |
 | Breadcrumb (complex silo only) | `https://[domain]/[path]#breadcrumb` |
 
 ---

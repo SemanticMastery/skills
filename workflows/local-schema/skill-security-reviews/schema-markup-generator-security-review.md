@@ -1,6 +1,6 @@
 # Security Review: schema-markup-generator (student bundle)
 
-**Review date:** 2026-06-04  
+**Review date:** 2026-07-23 (re-check for 9.12.0)  
 **Bundle:** Local Schema Generator (`local-schema`)  
 **Verdict:** **APPROVE** (with operational caveats below)
 
@@ -8,7 +8,7 @@
 
 ## Scope
 
-Shipped path: `skills/schema-markup-generator/` (13 markdown files in student bundle; excludes instructor migration prompt).
+Shipped path: `skills/schema-markup-generator/` (17 markdown files in student bundle; excludes instructor migration prompt). Intake gates 0b/0c are prompt-only (no new scripts or network surface).
 
 ## Package contents
 

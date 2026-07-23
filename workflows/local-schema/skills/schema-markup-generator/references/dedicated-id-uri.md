@@ -26,7 +26,7 @@ When a client publishes a **dedicated ID page** (or any standalone entity URI) f
 | Existing `homepage.jsonld` | Read `HomeAndConstructionBusiness` / `LocalBusiness` `@id` — treat as source of truth |
 | `homepage-implementation.md` or handoff | “ID page (LocalBusiness `@id`)” row |
 | Dossier `[V] DIGITAL ECOSYSTEM` or user message | ID page URL in `sameAs` or stated as entity URI |
-| User / Bradley in session | Record in `{project}/resources/schema/*-implementation.md` `@id` map |
+| User / Bradley in session | Record in `{project}/02-deliverables/2.4-schema/*-implementation.md` `@id` map (legacy: `resources/schema/`) |
 
 If homepage JSON-LD and handoff disagree, **stop** and reconcile before generating service or location JSON-LD.
 

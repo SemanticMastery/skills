@@ -126,6 +126,18 @@ These skills use `disable-model-invocation: true`:
 
 `schema-markup-generator` **will stop** at preflight steps and tell you to invoke the other skills — it will not silently run them.
 
+### Local homepage intake gates (v9.12.0+)
+
+For LocalBusiness / Corporation work, the schema skill **stops and asks** before generating JSON-LD:
+
+| Step | Ask | Acceptable answers |
+|------|-----|--------------------|
+| **0b** | `sameAs` URL list | Paste external profile URLs, or say **"use dossier only"** |
+| **0c** | Logo, primary image, geo | Paste values, **"extract from GBP/site"**, or **"omit media and geo"** |
+
+- Official website belongs on schema **`url`** — it is **not** auto-added to `sameAs`.
+- FAQ-only / non-local runs skip these gates.
+
 ---
 
 ## 7. Verify — FAQ-only path (no dossier, no CSV)

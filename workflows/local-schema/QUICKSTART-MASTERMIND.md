@@ -1,9 +1,12 @@
 # Local Schema Generator — Mastermind quickstart
 
 **Workflow ID:** `local-schema`  
+**Bundle:** `local-schema-20260723.zip` · **`schema-markup-generator` 9.12.0**  
 **Today:** use the zip only. GitHub repo access comes later.
 
 Full details: [INSTALL.md](INSTALL.md)
+
+**Upgrading from an older zip:** overwrite the three skill folders under `~/.cursor/skills/` (especially `schema-markup-generator`) and restart Cursor so intake gates 0b/0c load.
 
 ---
 
@@ -13,7 +16,7 @@ Three agent skills + dossier scripts:
 
 | Install folder name | Purpose |
 |---------------------|---------|
-| `schema-markup-generator` | JSON-LD (FAQ, service pages, LocalBusiness, etc.) |
+| `schema-markup-generator` **9.12.0** | JSON-LD (FAQ, service pages, LocalBusiness, etc.) — asks for `sameAs` + logo/image/geo before local homepage schema |
 | `knowsabout-entity-research` | Entity CSV for service/location pages |
 | `business-dossier` | Glen Patel TSCR business dossier (optional; needs API keys) |
 

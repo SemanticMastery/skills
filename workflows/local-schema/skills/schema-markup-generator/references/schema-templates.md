@@ -273,6 +273,8 @@ On **WebPage**, use **`about` as an array**: first item = service `@id`; remaini
 
 `Corporation` + `LocalBusiness` subtype in `@graph`. See [silo-and-page-patterns.md](silo-and-page-patterns.md).
 
+**Sparse site (few pages):** add a third `@graph` node — `Service` — and link via `LocalBusiness.makesOffer`. **Do not** use `about` on `LocalBusiness` (validator rejects). See [sparse-site-homepage-patterns.md](sparse-site-homepage-patterns.md).
+
 ## Location page (Simple Silo, single GBP) — validated pattern
 
 **Reference implementation:** Box Tree Care `location-leander-tx.jsonld`.
