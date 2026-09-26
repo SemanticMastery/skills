@@ -23,7 +23,7 @@ The zip ships the **skill root** (files that live inside `icm-architect/`), not 
 
 **From zip:** Expand so `SKILL.md` is at `.cursor/skills/icm-architect/SKILL.md`.
 
-**From private GitHub:** Clone or copy the skill tree into `.cursor/skills/icm-architect/`.
+**From this catalog:** Clone [SemanticMastery/skills](https://github.com/SemanticMastery/skills) and copy `skills/icm-architect/` into `.cursor/skills/icm-architect/`.
 
 **From this authoring repo (developers):** Copy `skills/icm-architect/` → `.cursor/skills/icm-architect/`.
 

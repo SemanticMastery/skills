@@ -2,7 +2,7 @@
 
 **Workflow ID:** `local-schema`  
 **Bundle:** `local-schema-20260723.zip` · **`schema-markup-generator` 9.12.0**  
-**Today:** use the zip only. GitHub repo access comes later.
+**Catalog:** clone [SemanticMastery/skills](https://github.com/SemanticMastery/skills) and open `workflows/local-schema/`. The zip still installs the same three skills; see [INSTALL.md](INSTALL.md).
 
 Full details: [INSTALL.md](INSTALL.md)
 
