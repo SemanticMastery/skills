@@ -5,7 +5,7 @@ Private catalog of agent skills and **workflows** (multi-skill bundles) for [Sem
 **Organization:** [SemanticMastery on GitHub](https://github.com/SemanticMastery)  
 **Local clone path:** `C:\Users\bradl\1-Projects\semantic-mastery-skills` (this folder — not under `icm-authoring/dist/`)
 
-ICM skill **authoring** lives in `1-Projects/icm-authoring/`. Local Schema **planning notes** live in `workflows/local-schema/.authoring/` (gitignored; not published). This catalog is the shared GitHub publish tree only.
+ICM skill **authoring** lives in `1-Projects/icm-authoring/`. Local Schema **planning notes** live in `workflows/local-schema/.authoring/` (gitignored; not published). This catalog is the shared GitHub publish tree only. The live interview Worker is not in this catalog.
 
 ## Layout
 
