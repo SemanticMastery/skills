@@ -4,17 +4,20 @@ Use this layout for all new campaign work. Copy to `{project_dir}/02-deliverable
 
 **`project_dir`** = campaign folder root (e.g. `Blue-Wash-Cleaning/`).
 
+**Intake prerequisites (Ops / Golden Image ICM):** always resolve local-business inputs from `{project_dir}/01-intake/1.1-docs/` first (`*Dossier.md`, optional EntityMap / Product-Documentation). See [dossier-preflight.md](dossier-preflight.md). Schema **outputs** still write under `02-deliverables/2.4-schema/` below.
+
 ## Directory map
 
 | Path | Contents |
 |------|----------|
 | `{project}/02-deliverables/2.4-schema/` | **Root:** `homepage.jsonld`, `aboutpage.jsonld`, `contactpage.jsonld`, `homepage-implementation.md`, `aboutpage-implementation.md`, `contactpage-implementation.md`, `services-implementation.md`, `locations-implementation.md`, `field-learnings.md`, `entity-url-overrides.json`, `knowsabout-batch-manifest.csv`, `SCHEMA-LAYOUT.md` |
-| `{project}/02-deliverables/2.4-schema/knowsabout/` | `{slug}-knowsabout.csv` — topic entities for `WebPage.about` |
+| `{project}/02-deliverables/2.4-schema/knowsabout/` | `{slug}-knowsabout.csv` — topic entities for `WebPage.about`; `{slug}-geo-triggers.csv` — ContentMaxima Count ≥ 40 terms (location pages, Step 2c) |
+| `{project}/02-deliverables/2.4-schema/contentmaxima/` | Official `*_matrix.xlsx` or reverse-engineered `*_algorithm_trigger_words.csv` per city |
 | `{project}/02-deliverables/2.4-schema/services/` | `service-{slug}.jsonld` |
 | `{project}/02-deliverables/2.4-schema/locations/` | `location-{slug}.jsonld` |
 | `{project}/02-deliverables/2.4-schema/_tmp/` | Ephemeral resolver files — **delete after CSV merge** |
 
-Create subfolders if missing (`knowsabout`, `services`, `locations`, `_tmp`). Add `.gitkeep` in `_tmp` only if the folder would otherwise be empty in git.
+Create subfolders if missing (`knowsabout`, `contentmaxima`, `services`, `locations`, `_tmp`). Add `.gitkeep` in `_tmp` only if the folder would otherwise be empty in git.
 
 ## File format (`*.jsonld`)
 
@@ -25,6 +28,8 @@ All client deliverables must be **CMS copy-paste ready**: wrap JSON-LD in `<scri
 | Artifact | Path |
 |----------|------|
 | Entity CSV | `{project_dir}/02-deliverables/2.4-schema/knowsabout/{slug}-knowsabout.csv` |
+| Geo-trigger CSV | `{project_dir}/02-deliverables/2.4-schema/knowsabout/{slug}-geo-triggers.csv` |
+| ContentMaxima matrix | `{project_dir}/02-deliverables/2.4-schema/contentmaxima/*_matrix.xlsx` (or `*_algorithm_trigger_words.csv`) |
 | Service JSON-LD | `{project_dir}/02-deliverables/2.4-schema/services/service-{slug}.jsonld` |
 | Location JSON-LD | `{project_dir}/02-deliverables/2.4-schema/locations/location-{slug}.jsonld` |
 | Homepage JSON-LD | `{project_dir}/02-deliverables/2.4-schema/homepage.jsonld` |
@@ -62,6 +67,9 @@ When globbing or reading existing projects, check in order:
 ```
 {project_dir}/02-deliverables/2.4-schema/knowsabout/*-knowsabout.csv
 {project_dir}/02-deliverables/2.4-schema/knowsabout/{slug}-knowsabout.csv
+{project_dir}/02-deliverables/2.4-schema/knowsabout/{slug}-geo-triggers.csv
+{project_dir}/02-deliverables/2.4-schema/contentmaxima/*matrix.xlsx
+{project_dir}/02-deliverables/2.4-schema/contentmaxima/*algorithm_trigger_words.csv
 ```
 
 **Legacy (if migrating old projects):**
@@ -82,10 +90,12 @@ Use project-relative paths, e.g. `02-deliverables/2.4-schema/knowsabout/tree-rem
 
 - **New files and folders:** hyphenated slugs (e.g. `Blue-Wash-Cleaning-Dossier.md`, `tree-removal-knowsabout.csv`, `service-tree-removal.jsonld`).
 - **Fixed page artifacts (not slug-based):** `homepage.jsonld`, `aboutpage.jsonld`, `contactpage.jsonld` and paired handoffs `homepage-implementation.md`, `aboutpage-implementation.md`, `contactpage-implementation.md` — one JSON-LD + one implementation file per page type regardless of URL slug (`/about-us/`, `/contact/`, etc.).
-- **Legacy reads:** spaced filenames (e.g. `Woodlawn Tree Service Dossier.md`) and slug-prefixed about/contact files (`about-{slug}.jsonld`, `contact-{slug}.jsonld`, `about-{slug}-implementation.md`, `contact-{slug}-implementation.md`) remain valid fallbacks until migrated.
+- **Legacy reads:** spaced filenames (e.g. `Example Tree Care Dossier.md`) and slug-prefixed about/contact files (`about-{slug}.jsonld`, `contact-{slug}.jsonld`, `about-{slug}-implementation.md`, `contact-{slug}-implementation.md`) remain valid fallbacks until migrated.
 
 ## Related
 
 - [entity-csv-preflight.md](entity-csv-preflight.md) — Step 2b
+- [contentmaxima-location-preflight.md](contentmaxima-location-preflight.md) — Step 2c
+- [client-facing-copy.md](client-facing-copy.md) — no skill/tooling strings in `*.jsonld` descriptions
 - [dossier-preflight.md](dossier-preflight.md) — dossier at `01-intake/1.1-docs/`
 - `knowsabout-entity-research` SKILL.md — CSV + resolver workflow

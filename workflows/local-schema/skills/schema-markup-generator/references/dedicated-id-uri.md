@@ -6,7 +6,7 @@ When a client publishes a **dedicated ID page** (or any standalone entity URI) f
 
 | Signal | Example |
 |--------|---------|
-| User or dossier specifies an ID page URL | `https://s3.amazonaws.com/slstacks/woodlawntrees/id.html` |
+| User or dossier specifies an ID page URL | `https://example.com/id.html` |
 | Homepage `LocalBusiness` already uses an external `@id` | Same URI on the published `HomeAndConstructionBusiness` node |
 | Session mandate: “ID page is the entity URI” | Use that URL everywhere — do not invent `#localbusiness` on the marketing domain |
 

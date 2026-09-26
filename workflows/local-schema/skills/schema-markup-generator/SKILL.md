@@ -1,16 +1,16 @@
 ---
 name: schema-markup-generator
 description: 'Use when the user asks to "generate schema"; creates JSON-LD for FAQ, HowTo, Article, Product, and LocalBusiness rich-result candidates. Schema标记/结构化数据'
-version: "9.12.0"
+version: "9.15.1"
 license: Apache-2.0
 compatibility: "Claude Code, skills.sh, ClawHub, Vercel Labs, Cursor, Windsurf, Codex CLI, Amp, Gemini CLI, Kimi Code, Qwen Code, CodeBuddy"
 homepage: "https://github.com/aaron-he-zhu/seo-geo-claude-skills"
-when_to_use: "Use when generating JSON-LD structured data, Schema.org markup, or rich snippet markup for a page. On service/location pages, Step 2b invokes knowsabout-entity-research when 02-deliverables/2.4-schema/knowsabout/{slug}-knowsabout.csv is missing (legacy resources/schema/ paths supported for read)."
+when_to_use: "Use when generating JSON-LD structured data, Schema.org markup, or rich snippet markup for a page. On Ops/Golden Image ICM campaigns, Step 0 always lists 01-intake/1.1-docs/ for the dossier before asking NAPW. On location pages, Step 2c soft-stops to offer contentmaxima Matrix (Count ≥ 40 geo triggers). On service/location pages, Step 2b invokes knowsabout-entity-research when 02-deliverables/2.4-schema/knowsabout/{slug}-knowsabout.csv is missing (legacy resources/schema/ paths supported for read)."
 argument-hint: "<page URL or content type>"
 allowed-tools: WebFetch
 metadata:
   author: aaron-he-zhu
-  version: "9.12.0"
+  version: "9.15.1"
   geo-relevance: "medium"
   tags:
     - seo
@@ -53,6 +53,8 @@ metadata:
 
 Creates Schema.org JSON-LD so search engines can understand page entities and eligible rich-result features.
 
+**Package:** `schema-markup-generator-v9.15.1.zip` (same version as frontmatter `version` / `metadata.version`).
+
 ## What This Skill Does
 
 Selects schema types, generates valid JSON-LD, handles nested/multi-type markup, and identifies rich result eligibility.
@@ -71,7 +73,7 @@ Review and improve this schema markup: [existing schema]
 
 **Expected output**: a ready-to-use asset or implementation-ready transformation plus a short handoff summary ready for `memory/content/`.
 
-- **Reads**: the brief, target keywords, entity inputs, quality constraints, and prior decisions from [CLAUDE.md](https://github.com/aaron-he-zhu/seo-geo-claude-skills/blob/main/CLAUDE.md) and the shared [State Model](https://github.com/aaron-he-zhu/seo-geo-claude-skills/blob/main/references/state-model.md) when available. For local/contractor markup, **`{Business-Name}-Dossier.md`** in `01-intake/1.1-docs/` (legacy: `*Dossier.md` at campaign root — see [references/dossier-preflight.md](references/dossier-preflight.md)).
+- **Reads**: the brief, target keywords, entity inputs, quality constraints, and prior decisions from [CLAUDE.md](https://github.com/aaron-he-zhu/seo-geo-claude-skills/blob/main/CLAUDE.md) and the shared [State Model](https://github.com/aaron-he-zhu/seo-geo-claude-skills/blob/main/references/state-model.md) when available. For local/contractor markup on Ops / Golden Image ICM campaigns, **always list `{project_dir}/01-intake/1.1-docs/` first** for **`{Business-Name}-Dossier.md`** (and related intake files); legacy `*Dossier.md` at campaign root only after that folder listing confirms absence — see [references/dossier-preflight.md](references/dossier-preflight.md).
 - **Writes**: a user-facing content, metadata, or schema deliverable plus a reusable summary that can be stored under `memory/content/`.
 - **Promotes**: approved angles, messaging choices, missing evidence, and publish blockers to `memory/hot-cache.md` and `memory/open-loops.md`; propose durable decisions as pending-decision items.
 - **Primary next skill**: use the `Next Best Skill` below when the asset is ready for review or deployment.
@@ -90,14 +92,15 @@ Optional web crawler integration can extract page content and existing schema af
 
 When a user requests schema markup:
 
-0. **Business dossier preflight** (local / contractor sites — mandatory) — See **[references/dossier-preflight.md](references/dossier-preflight.md)**. Glob `*Dossier.md` in `{project_dir}/01-intake/1.1-docs/` first; if none, glob `*Dossier.md` at campaign root (legacy). If found and user did not ask to refresh, **skip** dossier generation and load NAP, owner, services, and socials from `[II]`–[VII]` via context-mode (not raw file dumps). If **no** current dossier (or user requested refresh): **stop** and ask once for Company Name, Address, Phone, Website, and **Google Maps / GBP share URL** — do **not** auto-run `business-dossier` or guess GBP from brand/crawl. After Bradley confirms NAPW + GBP URL, invoke **`business-dossier`** explicitly (`C:\Users\bradl\.cursor\skills\business-dossier\SKILL.md`); wait for `{Business-Name}-Dossier.md` in `01-intake/1.1-docs/` with `section_validation.ok: true` before continuing. Do not generate `LocalBusiness` / `Corporation` homepage graphs without a verified dossier.
-0b. **`sameAs` intake** (local / contractor — mandatory gate) — See **[references/sameas-intake.md](references/sameas-intake.md)**. After Step 0, **before** generating any `LocalBusiness` / `Corporation` JSON-LD, ask whether the user has a URL list for **`sameAs`**. Use the mandatory prompt in that reference (verbatim). **Stop** until they paste URLs, say **"use dossier only"**, or already supplied an equivalent answer in the initiating message / this session. A current dossier alone does **not** skip this ask. Merge user URLs → dossier `[V]` → session-mandated links (e.g. ID page, GBP share); never invent directory URLs. Apply the merged array on both `Corporation` and `LocalBusiness` unless the user requests otherwise. **Skip** Step 0b for non-local-only schema (FAQ, Article, etc.).
-0c. **Logo / image / geo intake** (local / contractor — mandatory gate) — See **[references/media-geo-intake.md](references/media-geo-intake.md)**. After Step 0b, **before** generating any `LocalBusiness` / `Corporation` JSON-LD, ask whether the user wants to provide **logo URL**, **primary photo/image URL**, and/or **geo coordinates**. Use the mandatory prompt in that reference (verbatim). **Stop** until they paste values, say **"extract from GBP/site"**, say **"omit media and geo"**, or already supplied an equivalent answer in the initiating message / this session. Never invent lat/long or media URLs; never silently scrape them in unless the user chose extract. Place `logo` on `Corporation`, `image` + `geo` on the LocalBusiness subtype. **Skip** Step 0c for non-local-only schema (FAQ, Article, etc.). When 0b and 0c are both outstanding, both prompts may appear in one turn — still stop until each is answered.
+0. **Business dossier preflight** (local / contractor sites — mandatory) — See **[references/dossier-preflight.md](references/dossier-preflight.md)**. On Semantic Links Ops / Golden Image ICM campaigns: **always list `{project_dir}/01-intake/1.1-docs/` by absolute path first** (hard gate — never conclude “no dossier” from a campaign-root recursive glob alone; SharePoint / Files On-Demand false negatives). Match `*Dossier.md` there; also note related intake files in that folder (`*EntityMap*`, `Product-Documentation.md`) when present. Only if `1.1-docs/` listing has no dossier, fall back to campaign-root `*Dossier.md` (legacy). If found and user did not ask to refresh, **skip** dossier generation and load NAP, owner, services, and socials from `[II]`–[VII]` via context-mode (not raw file dumps). If **no** current dossier after the `1.1-docs/` listing (or user requested refresh): **stop** and ask once for Company Name, Address, Phone, Website, and **Google Maps / GBP URL** (share, maps.app, or CID) — do **not** auto-run `business-dossier` or guess GBP from brand/crawl. After Bradley confirms NAPW + GBP URL, invoke **`business-dossier`** explicitly (`business-dossier/SKILL.md`); wait for `{Business-Name}-Dossier.md` in `01-intake/1.1-docs/` with `section_validation.ok: true` before continuing. Do not generate `LocalBusiness` / `Corporation` homepage graphs without a verified dossier.
+0b. **`sameAs` intake** (local / contractor — mandatory gate) — See **[references/sameas-intake.md](references/sameas-intake.md)**. After Step 0, **before** generating any `LocalBusiness` / `Corporation` JSON-LD, ask whether the user has a URL list for **`sameAs`**. Use the mandatory prompt in that reference (verbatim). **Stop** until they paste URLs, say **"use dossier only"**, or already supplied an equivalent answer in the initiating message / this session. A current dossier alone does **not** skip this ask. Merge user URLs → dossier `[V]` → session-mandated links (e.g. ID page, GBP CID URL); never invent directory URLs. Maps identity must be `https://www.google.com/maps?cid={CID}`. Apply the merged array on both `Corporation` and `LocalBusiness` unless the user requests otherwise. **Skip** Step 0b for non-local-only schema (FAQ, Article, etc.).
+0c. **Logo / image / geo intake** (local / contractor — mandatory gate) — See **[references/media-geo-intake.md](references/media-geo-intake.md)**. After Step 0b, **before** generating any `LocalBusiness` / `Corporation` JSON-LD, ask whether the user wants to provide **logo URL**, **primary photo/image URL**, and/or **geo coordinates**. Use the mandatory prompt in that reference (verbatim). **Stop** until they paste values, say **"extract from GBP/site"**, or say **"omit media and geo"**. **"Proceed"**, **"generate schema"**, and **"dossier is ready"** do **not** skip Step 0c. If 0c was asked earlier in this session and never answered with one of those three, **ask again and stop**. After a dossier lands mid-thread, re-run 0c (or confirm the prior qualifying answer) — do not infer omit. Never invent lat/long or media URLs; never silently scrape them in unless the user chose extract. Place `logo` on `Corporation`, `image` + `geo` on the LocalBusiness subtype. **Skip** Step 0c only for non-local-only schema (FAQ, Article, etc.). When 0b and 0c are both outstanding, both prompts may appear in one turn — still stop until each is answered.
 1. **Identify silo architecture** — Simple vs Complex (see [references/silo-and-page-patterns.md](references/silo-and-page-patterns.md)). Simple Silo = all pages top-level (`/tree-removal`); **omit `BreadcrumbList`**. Complex Silo = nested paths (`/services/tree-removal`); add `BreadcrumbList` only when URL depth and visible breadcrumbs match.
 2. **Identify page role** — homepage (location landing?), service page, city/location page, etc. Map to the page-type matrix in the silo reference (Corporation + LocalBusiness on single-GBP homepage; WebPage + Service on Simple Silo service pages).
-2b. **Entity CSV preflight** (service & location pages — mandatory) — See **[references/entity-csv-preflight.md](references/entity-csv-preflight.md)** and **[references/schema-artifact-layout.md](references/schema-artifact-layout.md)**. For each in-scope slug, glob `{project_dir}/02-deliverables/2.4-schema/knowsabout/{slug}-knowsabout.csv` (legacy: `resources/schema/` paths — read-only). If **any** required file is missing (or Grokipedia column is entirely `-` without user waiver), **stop** and invoke **`knowsabout-entity-research`** explicitly (`C:\Users\bradl\.cursor\skills\knowsabout-entity-research\SKILL.md`); wait until CSVs exist on disk before Step 4. **Skip** 2b for homepage-only, FAQ, Article, and other non-topic-entity pages. Create `SCHEMA-LAYOUT.md` from template in `02-deliverables/2.4-schema/` on first client run if missing.
+2c. **ContentMaxima geo-trigger preflight** (location pages — soft stop) — See **[references/contentmaxima-location-preflight.md](references/contentmaxima-location-preflight.md)**. After Step 2, **before** Step 2b, if any dedicated location / city page is in scope: glob `{project_dir}/02-deliverables/2.4-schema/contentmaxima/` and `knowsabout/{slug}-geo-triggers.csv`. If a matrix (or extracted CSV) already exists for that city, extract and continue. If missing, **stop** and use the verbatim prompt in that reference. Qualifying answers only: **run matrix**, a pasted `*_matrix.xlsx` / algorithm-trigger CSV path, or **skip matrix**. “Proceed” / “generate schema” do **not** skip. If **run matrix**, read and follow **`contentmaxima`** (`contentmaxima/SKILL.md (if installed)`) — keyword `"{City}, {State}"`, one run per location page, output under `02-deliverables/2.4-schema/contentmaxima/`. Then run `scripts/extract-geo-triggers.mjs` (Count ≥ 40) and pass those terms as extra location seeds to Step 2b. High-impact POIs go on location **`WebPage.about`**, not `areaServed` (stadiums, zoos, airports, museums). **Skip** 2c for homepage-only, service-only, FAQ, Article, and other non-location runs.
+2b. **Entity CSV preflight** (service & location pages — mandatory) — See **[references/entity-csv-preflight.md](references/entity-csv-preflight.md)** and **[references/schema-artifact-layout.md](references/schema-artifact-layout.md)**. For each in-scope slug, glob `{project_dir}/02-deliverables/2.4-schema/knowsabout/{slug}-knowsabout.csv` (legacy: `resources/schema/` paths — read-only). If **any** required file is missing (or Grokipedia column is entirely `-` without user waiver), **stop** and invoke **`knowsabout-entity-research`** explicitly (`knowsabout-entity-research/SKILL.md (if installed)`); wait until CSVs exist on disk before Step 4. For location slugs, merge `{slug}-geo-triggers.csv` terms as extra seeds (resolve new names only when the knowsabout CSV already exists). **Skip** 2b for homepage-only, FAQ, Article, and other non-topic-entity pages. Create `SCHEMA-LAYOUT.md` from template in `02-deliverables/2.4-schema/` on first client run if missing.
 3. **Identify Content Type and Rich Result Opportunity** — map the page to the best schema type(s) per CORE-EEAT `O05`; check FAQ, HowTo, Product, Review, Article, Video, and related eligibility.
-4. **Generate Schema Markup** — output JSON-LD with required properties, optional enhancements, rich-result preview, and visible-content alignment notes. For service/location pages, **read** completed `*-knowsabout.csv` files — do not invent `WebPage.about` entities inline. **Write every `*.jsonld` deliverable** wrapped in `<script type="application/ld+json">` … `</script>` for CMS copy-paste (mandatory — see [jsonld-script-wrapper.md](references/jsonld-script-wrapper.md)); omit wrapper only if user requests raw JSON.
+4. **Generate Schema Markup** — output JSON-LD with required properties, optional enhancements, rich-result preview, and visible-content alignment notes. For service/location pages, **read** completed `*-knowsabout.csv` files — do not invent `WebPage.about` entities inline. Map Relevance → `description` as **public copy only** ([client-facing-copy.md](references/client-facing-copy.md)). **Write every `*.jsonld` deliverable** wrapped in `<script type="application/ld+json">` … `</script>` for CMS copy-paste (mandatory — see [jsonld-script-wrapper.md](references/jsonld-script-wrapper.md)); omit wrapper only if user requests raw JSON.
 5. **Provide Implementation and Validation** — write paired `*-implementation.md` handoffs (About → `aboutpage-implementation.md`, Contact → `contactpage-implementation.md`; see [schema-artifact-layout.md](references/schema-artifact-layout.md)), show placement options, validation steps (Schema.org Validator, Rich Results Test), monitoring, and final checklist.
 
 ### LocalBusiness — mandatory rules (always apply)
@@ -116,13 +119,24 @@ See **[references/dedicated-id-uri.md](references/dedicated-id-uri.md)**. Resolv
 - **DO NOT** set `addressCountry` on `State`, `City`, `Country`, or any nested object inside `areaServed`. Schema.org does not define `addressCountry` on `State`; [validator.schema.org](https://validator.schema.org/) warns: *"addressCountry is not recognized for an object of type State."*
 - Country for the whole entity is expressed once on `address`; nested places need only `name` (and `@type`).
 
-**`areaServed` as City list (preferred pattern)**
+**`areaServed` types (validator-critical)**
+
+See **[references/areaserved-types.md](references/areaserved-types.md)**. [Schema.org `areaServed`](https://schema.org/areaServed) accepts only `AdministrativeArea`, `GeoShape`, `Place`, or `Text`.
+
+- **DO** use `City` for incorporated cities (optionally with Wikipedia `sameAs`).
+- **DO** use `Place` for districts, planning sections, and neighborhoods — with official `name` + Wikipedia/Wikidata `sameAs`.
+- **DO NOT** use `@type: "Neighborhood"` — it is **not** a Schema.org type (`schema.org/Neighborhood` 404). The validator rejects it.
+- **DO NOT** invent other place subtypes (`Town`, `District`, `Borough`, …). If it is not a city, it is a `Place`.
+- **DO NOT** set `addressCountry` on nested `areaServed` places.
+
+City pattern:
 
 ```json
 "areaServed": [
   {
     "@type": "City",
     "name": "[City]",
+    "sameAs": "https://en.wikipedia.org/wiki/[City_article]",
     "containedInPlace": {
       "@type": "State",
       "name": "[State]"
@@ -131,9 +145,25 @@ See **[references/dedicated-id-uri.md](references/dedicated-id-uri.md)**. Resolv
 ]
 ```
 
-Do not add `addressCountry`, `addressRegion`, or other postal fields to `containedInPlace.State`.
+District / neighborhood pattern (`Place`, never `Neighborhood`):
 
-Before handoff, confirm no `addressCountry` appears outside `address` when `areaServed` uses City/State nesting.
+```json
+{
+  "@type": "Place",
+  "name": "[Official area name]",
+  "sameAs": "https://en.wikipedia.org/wiki/[Article]",
+  "containedInPlace": {
+    "@type": "City",
+    "name": "[City]",
+    "containedInPlace": {
+      "@type": "State",
+      "name": "[State]"
+    }
+  }
+}
+```
+
+Before handoff: confirm every `areaServed` `@type` is in the allowlist and no `addressCountry` appears outside `address`.
 
 **`sameAs` (intake + placement)**
 
@@ -144,8 +174,15 @@ Before handoff, confirm no `addressCountry` appears outside `address` when `area
 **Logo / image / geo (intake + placement)**
 
 - Complete **Step 0c** before adding `logo`, `image`, or `geo` on homepage entity nodes — see [media-geo-intake.md](references/media-geo-intake.md).
+- Qualifying answers only: paste values, **"extract from GBP/site"**, or **"omit media and geo"**. “Proceed” / “generate schema” / “dossier is ready” do **not** skip 0c. If 0c was asked and unanswered, ask again and stop. After a dossier lands mid-thread, re-run 0c or confirm the prior qualifying answer.
 - `logo` → `Corporation`; `image` + `geo` → LocalBusiness subtype; omit any field the user did not provide or explicitly waived.
 - Never ship placeholder `[latitude]` / `[Logo URL]` strings in client `*.jsonld` — omit the property instead.
+
+**`hasMap` + Maps `sameAs` (CID URL — always)**
+
+- `hasMap` and the Google Maps identity in `sameAs` **must** be `https://www.google.com/maps?cid={CID}` (example: `https://www.google.com/maps?cid=14463678168851604553`).
+- Do **not** prefer `maps.app.goo.gl/…` or `share.google/…` — those hide the Company ID.
+- If dossier `[V]` / `[II]` **GBP URL:** is only a share or maps.app URL, run `scripts/resolve-maps-cid.mjs --url "…"` and rewrite to the CID URL before JSON-LD. If CID cannot be resolved, **stop and ask**.
 
 ### Site silo & contractor page patterns (always apply when relevant)
 
@@ -174,7 +211,7 @@ See **[references/silo-and-page-patterns.md](references/silo-and-page-patterns.m
 
 ### Topic entities — CSV source (Step 2b → knowsabout-entity-research)
 
-Service and location pages **require** `{project}/02-deliverables/2.4-schema/knowsabout/{slug}-knowsabout.csv` before JSON-LD (legacy `resources/schema/` paths: read-only). Write service JSON-LD to `02-deliverables/2.4-schema/services/service-{slug}.jsonld` and location JSON-LD to `02-deliverables/2.4-schema/locations/location-{slug}.jsonld`. **Step 2b** ([entity-csv-preflight.md](references/entity-csv-preflight.md)) glob-checks each slug and **invokes** **`knowsabout-entity-research`** when files are missing or Grokipedia-incomplete — same explicit-invocation pattern as Step 0 → **`business-dossier`**. Do not generate `WebPage.about` `Thing` nodes without those CSVs on disk.
+Service and location pages **require** `{project}/02-deliverables/2.4-schema/knowsabout/{slug}-knowsabout.csv` before JSON-LD (legacy `resources/schema/` paths: read-only). Write service JSON-LD to `02-deliverables/2.4-schema/services/service-{slug}.jsonld` and location JSON-LD to `02-deliverables/2.4-schema/locations/location-{slug}.jsonld`. **Step 2c** (location pages) may add `{slug}-geo-triggers.csv` first — merge those terms as extra location seeds. **Step 2b** ([entity-csv-preflight.md](references/entity-csv-preflight.md)) glob-checks each slug and **invokes** **`knowsabout-entity-research`** when files are missing or Grokipedia-incomplete — same explicit-invocation pattern as Step 0 → **`business-dossier`**. Do not generate `WebPage.about` `Thing` nodes without those CSVs on disk. Location high-impact POIs from ContentMaxima belong on **`WebPage.about`**, not `areaServed`.
 
 ### WebPage — `significantLink` (mandatory when `WebPage` is in `@graph`)
 
@@ -189,7 +226,7 @@ Homepage-only graphs without `WebPage` are exempt. See **[references/webpage-sig
 - **`about`** is valid only on **`CreativeWork`** types (`WebPage`, `Article`, `AboutPage`, etc.) — **not** on `Organization`, `LocalBusiness`, or `HomeAndConstructionBusiness`. [validator.schema.org](https://validator.schema.org/) warns if `about` is placed on the homepage local business node. On sparse sites, use **`makesOffer`** + sibling **`Service`** in `@graph` and **`areaServed`** for places — see [sparse-site-homepage-patterns.md](references/sparse-site-homepage-patterns.md).
 - **`knowsAbout`** is valid only on **`Person`** and **`Organization`** (including `LocalBusiness` subtypes) — not on `Service` or `WebPage`.
 - On service pages, put adjacent-topic entities on **`WebPage.about`** as an array: `[{ "@id": "#service" }, …Thing objects]`.
-- Each `Thing`: `name`, `description` (relevance), `@id` (prefer Wikidata), `sameAs` (array of **all non-`-` URLs** from Wikipedia, Wikidata, and **Grokipedia** columns — Grokipedia required when present in CSV).
+- Each `Thing`: `name`, `description` (public relevance only), `@id` (prefer Wikidata), `sameAs` (array of **all non-`-` URLs** from Wikipedia, Wikidata, and **Grokipedia** columns — Grokipedia required when present in CSV). **`description` is client-facing** — never copy skill, ContentMaxima, Count, resolver, or swap notes; see [client-facing-copy.md](references/client-facing-copy.md). Scan every `*.jsonld` for those tokens before handoff.
 - Keep the **`Service`** node lean: no topic list, no `knowsAbout`.
 - Full template: [references/schema-templates.md § Service page](references/schema-templates.md#service-page-simple-silo-contractor-sites--validated-pattern).
 
@@ -223,15 +260,21 @@ On user confirmation, save `memory/content/YYYY-MM-DD-<topic>.md` and promote ke
 
 - [WebPage significantLink](references/webpage-significantlink.md) - Mandatory self-canonical `significantLink` on service/location `WebPage` nodes
 - [Dedicated ID URI](references/dedicated-id-uri.md) - Canonical `LocalBusiness` `@id` when an ID page exists; universal `provider` / `mainEntity` / `about` references
-- [Dossier Preflight](references/dossier-preflight.md) - Step 0 glob/skip, NAPW + GBP URL gate, `business-dossier` handoff, dossier → schema field map
+- [Dossier Preflight](references/dossier-preflight.md) - Step 0 Ops ICM hard gate (`01-intake/1.1-docs/` list-first), NAPW + GBP URL gate, `business-dossier` handoff, dossier → schema field map
 - [sameAs Intake](references/sameas-intake.md) - Step 0b mandatory ask (dossier alone does not skip), URL merge priority, Corporation + LocalBusiness placement
-- [Logo / image / geo intake](references/media-geo-intake.md) - Step 0c mandatory ask for logo, primary image, and geo before LocalBusiness/Corporation JSON-LD
-- [Schema artifact layout](references/schema-artifact-layout.md) - Canonical paths: `02-deliverables/2.4-schema/` (`knowsabout/`, `services/`, `locations/`, `_tmp/`); legacy `resources/schema/` read fallbacks
-- [Entity CSV Preflight](references/entity-csv-preflight.md) - Step 2b glob/skip, `knowsabout-entity-research` handoff when CSV missing
-- [Knowsabout field learnings (global)](C:\Users\bradl\.cursor\skills\knowsabout-entity-research\references\field-learnings.md) - client-neutral patterns; per-client: `{project}/02-deliverables/2.4-schema/field-learnings.md`
+- [Logo / image / geo intake](references/media-geo-intake.md) - Step 0c mandatory ask (paste / extract / omit only — proceed/generate/dossier-ready do not skip) plus CID `hasMap`
+- [Maps CID preflight](scripts/resolve-maps-cid.mjs) - resolve share / maps.app / place URLs to `https://www.google.com/maps?cid={CID}` before `hasMap` / Maps `sameAs`
+- [Schema artifact layout](references/schema-artifact-layout.md) - Canonical paths: `02-deliverables/2.4-schema/` (`knowsabout/`, `contentmaxima/`, `services/`, `locations/`, `_tmp/`); legacy `resources/schema/` read fallbacks
+- [ContentMaxima location preflight](references/contentmaxima-location-preflight.md) - Step 2c soft stop: offer Matrix per city, extract Count ≥ 40 into `WebPage.about` (not POI `areaServed`)
+- [Client-facing copy](references/client-facing-copy.md) - No skill, ContentMaxima, Count, or resolver text in `*.jsonld` strings
+- [Geo-trigger extractor](scripts/extract-geo-triggers.mjs) - XLSX / algorithm-trigger CSV → `{slug}-geo-triggers.csv`
+- [Travel package recall](resources/travel-package-schema.md) - Light note: tour pages use `WebPage` + `BoatTrip`/`TouristTrip`; `TravelAction` is `potentialAction` only
+- [Entity CSV Preflight](references/entity-csv-preflight.md) - Step 2b glob/skip, `knowsabout-entity-research` handoff when CSV missing; location geo-trigger seed merge
+- [Knowsabout field learnings (global)](knowsabout-entity-research/references/field-learnings.md (if installed)) - client-neutral patterns; per-client: `{project}/02-deliverables/2.4-schema/field-learnings.md`
 - [Instructions Detail](https://github.com/aaron-he-zhu/seo-geo-claude-skills/blob/main/build/schema-markup-generator/references/instructions-detail.md) - Full 3-step workflow, schema mapping, implementation guide, FAQ example, and tips
 - [Schema Templates](https://github.com/aaron-he-zhu/seo-geo-claude-skills/blob/main/build/schema-markup-generator/references/schema-templates.md) - Compact starter JSON-LD blocks for common schema types
 - [Schema Decision Tree](https://github.com/aaron-he-zhu/seo-geo-claude-skills/blob/main/build/schema-markup-generator/references/schema-decision-tree.md) - Content-to-schema mapping, industry recommendations, and priority tiers
+- [areaServed types](references/areaserved-types.md) - Allowlist for `areaServed` `@type` (`Place` for districts; never `Neighborhood`)
 - [Validation Guide](references/validation-guide.md) - Common errors, required properties, and testing workflow
 - [Silo & Page Patterns](references/silo-and-page-patterns.md) - Simple vs Complex silo, GBP location landing, Corporation + LocalBusiness, service/location page `@graph`
 - [Sparse-site homepage patterns](references/sparse-site-homepage-patterns.md) - Few-page campaigns: `makesOffer` + `Service` in `@graph`; **`about` invalid on LocalBusiness**; Grokipedia still required
@@ -240,6 +283,7 @@ On user confirmation, save `memory/content/YYYY-MM-DD-<topic>.md` and promote ke
 
 ## Upstream / Next Skills
 
-- **Upstream (when no dossier):** `business-dossier` at `C:\Users\bradl\.cursor\skills\business-dossier\SKILL.md` — run only after user confirms NAPW + GBP URL (see dossier preflight).
-- **Upstream (service/location topic entities):** `knowsabout-entity-research` at `C:\Users\bradl\.cursor\skills\knowsabout-entity-research\SKILL.md` — **blocking** before JSON-LD; requires paced Wikipedia/Wikidata + verified Grokipedia per CSV row.
+- **Upstream (when no dossier):** `business-dossier` at `business-dossier/SKILL.md` — run only after user confirms NAPW + GBP URL (see dossier preflight).
+- **Upstream (location geo triggers, optional):** `contentmaxima` at `contentmaxima/SKILL.md (if installed)` — **Step 2c soft stop**; run Matrix only after **run matrix** (or a pasted file). Keyword `"{City}, {State}"`.
+- **Upstream (service/location topic entities):** `knowsabout-entity-research` at `knowsabout-entity-research/SKILL.md (if installed)` — **blocking** before JSON-LD; requires paced Wikipedia/Wikidata + verified Grokipedia per CSV row. Location runs may receive extra seeds from `{slug}-geo-triggers.csv`.
 - **Primary next:** [technical-seo-checker](https://github.com/aaron-he-zhu/seo-geo-claude-skills/blob/main/optimize/technical-seo-checker/SKILL.md) — verify implementation quality and deployment readiness.

@@ -1,7 +1,7 @@
 # Local Schema Generator — Mastermind quickstart
 
 **Workflow ID:** `local-schema`  
-**Bundle:** `local-schema-20260723.zip` · **`schema-markup-generator` 9.12.0**  
+**Bundle:** `local-schema-20260926.zip` · **`schema-markup-generator` 9.15.1**  
 **Catalog:** clone [SemanticMastery/skills](https://github.com/SemanticMastery/skills) and open `workflows/local-schema/`. The zip still installs the same three skills; see [INSTALL.md](INSTALL.md).
 
 Full details: [INSTALL.md](INSTALL.md)
@@ -16,7 +16,7 @@ Three agent skills + dossier scripts:
 
 | Install folder name | Purpose |
 |---------------------|---------|
-| `schema-markup-generator` **9.12.0** | JSON-LD (FAQ, service pages, LocalBusiness, etc.) — asks for `sameAs` + logo/image/geo before local homepage schema |
+| `schema-markup-generator` **9.15.1** | JSON-LD (FAQ, service pages, LocalBusiness, etc.) — asks for `sameAs` + logo/image/geo before local homepage schema |
 | `knowsabout-entity-research` | Entity CSV for service/location pages |
 | `business-dossier` | Glen Patel TSCR business dossier (optional; needs API keys) |
 

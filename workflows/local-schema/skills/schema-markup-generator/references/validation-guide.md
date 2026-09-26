@@ -21,6 +21,7 @@ Compact reference for validating, testing, troubleshooting, and maintaining stru
 | Multiple values not in array | `"image": "a.jpg", "b.jpg"` | Use an array: `["a.jpg", "b.jpg"]`. |
 | Dynamic-only injection | Schema absent from source/rendered test | Ensure crawler-visible JSON-LD is present. |
 | `addressCountry` on `State` in `areaServed` | `"containedInPlace": { "@type": "State", "name": "Texas", "addressCountry": "US" }` | Remove `addressCountry` from nested places. Keep it only on business `address` (`PostalAddress`). Use `containedInPlace` with `@type` + `name` only. |
+| `Neighborhood` (or other invented type) on `areaServed` | `"@type": "Neighborhood"` | **Not a Schema.org type** (`schema.org/Neighborhood` 404). Use `Place` + official `name` + Wikipedia `sameAs` for districts; `City` for incorporated cities. See [areaserved-types.md](areaserved-types.md). |
 | `BreadcrumbList` on Simple Silo site | Breadcrumbs on `domain.com/tree-removal` (flat URLs) | **Omit** `BreadcrumbList`. Use only on **Complex Silo** sites with nested paths (`/services/tree-removal`). See [silo-and-page-patterns.md](silo-and-page-patterns.md). |
 | `knowsAbout` on `Service` or `WebPage` | Topic `Thing` list under `knowsAbout` on service page | Move topics to **`WebPage.about`** array. Use `knowsAbout` only on `Person` / `Organization` (e.g. homepage `#corporation`, franchisor `#localbusiness`, or sparse-site **`LocalBusiness.knowsAbout`**). |
 | `about` on `LocalBusiness` / `HomeAndConstructionBusiness` | `"about": [ Service, City, … ]` on homepage local business | **`about` is CreativeWork-only** (`WebPage`, etc.). Use **`makesOffer`** + sibling **`Service`** in `@graph`, **`knowsAbout`** for topics, **`areaServed`** for places. See [sparse-site-homepage-patterns.md](sparse-site-homepage-patterns.md). |
@@ -46,6 +47,7 @@ Compact reference for validating, testing, troubleshooting, and maintaining stru
 | Deceptive reviews | Fake, paid, or incentivized reviews | Use only genuine, verifiable review data. |
 | Irrelevant schema | Product schema on generic blog post | Use schema types that match page purpose. |
 | Hidden content | Answers only in JSON-LD | Make marked-up content visible to users. |
+| Skill / tooling bleed in `description` | `ContentMaxima trigger (Count 42)`, `Swapped from…`, `resolver hit…` | Public sentence only. Process notes stay in CSV `Notes` / implementation files. See [client-facing-copy.md](client-facing-copy.md). |
 | Promotional FAQ | `Why is [Brand] best?` | Use neutral, informational questions. |
 
 ## Testing Workflow

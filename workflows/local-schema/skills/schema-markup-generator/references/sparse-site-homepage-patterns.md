@@ -49,7 +49,7 @@ Service (#house-cleaning-service or #[slug]-service)
 |------|----------|---------|
 | Primary offering | **`makesOffer`** | `Offer` with `url` (booking page if visible) and `itemOffered` → `{ "@id": "[domain]/#…-service" }` |
 | Topic / trade entities | **`knowsAbout`** | Array of `Thing` objects — `name`, `description`, `@id` (Wikidata), `sameAs` (Wikipedia + Wikidata + Grokipedia when verified) |
-| Service geography | **`areaServed`** | `City` / `AdministrativeArea` nodes with entity `sameAs`; nest `containedInPlace` → `State` only (**no** `addressCountry` on nested places) |
+| Service geography | **`areaServed`** | `City` / `AdministrativeArea` / `Place` with entity `sameAs`; **never `Neighborhood`**. Nest `containedInPlace` → `State` only (**no** `addressCountry` on nested places). See [areaserved-types.md](areaserved-types.md) |
 
 ### `Service` (sibling node in `@graph`)
 

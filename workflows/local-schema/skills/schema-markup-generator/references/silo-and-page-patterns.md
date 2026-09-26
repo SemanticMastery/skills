@@ -66,7 +66,7 @@ Use `@graph` with **two** entities:
 | Node | `@type` | `@id` suffix | Holds |
 |------|---------|--------------|-------|
 | Legal entity | `Corporation` (preferred for for-profit contractors over generic `Organization`) | `#corporation` | `legalName`, `foundingDate`, `founder`, `logo` (after **Step 0c**), `sameAs` (after **Step 0b**) |
-| Local presence | `LocalBusiness` subtype (e.g. `HomeAndConstructionBusiness`) | **Dedicated ID URI** if provided; else `#localbusiness` | `geo` + `image` (after **Step 0c**), `hasMap`, hours, `areaServed`, `aggregateRating` |
+| Local presence | `LocalBusiness` subtype (e.g. `HomeAndConstructionBusiness`) | **Dedicated ID URI** if provided; else `#localbusiness` | `geo` + `image` (after **Step 0c**), `hasMap` (`https://www.google.com/maps?cid={CID}`), hours, `areaServed`, `aggregateRating` |
 
 Link: `"parentOrganization": { "@id": "https://[domain]/#corporation" }` on the `LocalBusiness` node.
 
@@ -102,7 +102,7 @@ Use `@graph` with **two** entities — **no** `BreadcrumbList`:
 - `"provider": { "@id": "[LocalBusiness canonical @id]" }` — dedicated ID URI when provided; else `https://[domain]/#localbusiness` (see [dedicated-id-uri.md](dedicated-id-uri.md))
 - `"serviceType"`: short label matching page (e.g. `"Tree Removal"`)
 - `description`, `image`, `url`: match visible page content and meta
-- `areaServed`: City list with `containedInPlace` → `State` only (**no** `addressCountry` on `State` — see LocalBusiness rules in SKILL.md)
+- `areaServed`: `City` and/or `Place` only (never `Neighborhood`) with `containedInPlace` → `State` only (**no** `addressCountry` on `State` — see [areaserved-types.md](areaserved-types.md))
 - **Omit** `offers` / `price` unless current price is visible on the page
 - **Omit** `aggregateRating` unless reviews are visible on that page
 
@@ -141,16 +141,17 @@ Same as Simple Silo, **plus** `BreadcrumbList` when URL depth and on-page breadc
 - `"mainEntity": { "@id": "[LocalBusiness canonical @id]" }` — same URI as homepage `LocalBusiness.@id` and service `provider` (see [dedicated-id-uri.md](dedicated-id-uri.md))
 - `"mentions"`: `{ "@id": "...#[slug]#service-catalog" }` on `WebPage` — **do not use `hasPart`** (`hasPart` only accepts `CreativeWork`, not `ItemList`)
 - Separate `@graph` node: `ItemList` (`#[slug]#service-catalog`) listing every service via `ListItem.item` → `https://[domain]/[service-slug]#service`
-- `"about"`: **array** — `[{ "@id": "[LocalBusiness canonical @id]" }, { "@type": "City", ... }, ...Thing entities from per-city CSV]`
+- `"about"`: **array** — `[{ "@id": "[LocalBusiness canonical @id]" }, { "@type": "City", ... }, ...Thing / Place entities from per-city CSV]`
+- High-impact ContentMaxima terms (Step 2c, Count ≥ 40) belong here as `Place` / a more specific type after URL resolution (`TouristAttraction`, `CivicStructure`, `Airport`, …). **Never** put a stadium, zoo, museum, park, theater, university, or airport in `areaServed`.
 - **DO NOT** use `knowsAbout` on `WebPage` (use `about` for topic entities — same rule as service pages)
 - `"isPartOf"` → `WebSite`; `"primaryImageOfPage"` when hero image is known
 - **Omit** `BreadcrumbList` (Simple Silo)
 
-**Topic entities:** source from per-location CSV (`Entity Name`, relevance, Wikipedia / Wikidata / Grokipedia). Same `Thing` pattern as service pages. Include target `City` in `about` with `containedInPlace` → `State` only.
+**Topic entities:** source from per-location CSV (`Entity Name`, relevance, Wikipedia / Wikidata / Grokipedia), including merged `{slug}-geo-triggers.csv` names from Step 2c. Same `Thing` / `Place` pattern as service pages. Include target `City` in `about` with `containedInPlace` → `State` only. `areaServed` stays on the homepage / Service nodes and only lists cities, districts, or neighborhoods the contractor actually serves ([areaserved-types.md](areaserved-types.md)).
 
 **Deploy homepage** `Corporation` + `LocalBusiness` schema site-wide so the `LocalBusiness` `@id` and per-service `#service` `@id` references resolve.
 
-**Reference implementation:** Box Tree Care `location-leander-tx.jsonld`.
+**Reference implementation:** Example Tree Care `location-leander-tx.jsonld`.
 
 ### Location page (multi-GBP)
 

@@ -2,15 +2,16 @@
 
 Project: `{project_dir}` (campaign folder root)  
 Schema root: `02-deliverables/2.4-schema/`  
-Layout version: **2.0** (ICM deliverable slot; subfolders: `knowsabout/`, `services/`, `locations/`, `_tmp/`)
+Layout version: **2.1** (ICM deliverable slot; subfolders: `knowsabout/`, `contentmaxima/`, `services/`, `locations/`, `_tmp/`)
 
-Full rules: `C:\Users\bradl\.cursor\skills\schema-markup-generator\references\schema-artifact-layout.md`
+Full rules: `references/schema-artifact-layout.md`
 
 ## This project's folders
 
 | Folder | Files |
 |--------|--------|
-| `knowsabout/` | `*-knowsabout.csv` |
+| `knowsabout/` | `*-knowsabout.csv`; location pages also `{slug}-geo-triggers.csv` (Step 2c) |
+| `contentmaxima/` | Official `*_matrix.xlsx` or reverse-engineered `*_algorithm_trigger_words.csv` per city |
 | `services/` | `service-*.jsonld` |
 | `locations/` | `location-*.jsonld` |
 | `_tmp/` | `_entity-names-*.json`, `_resolved-*.json` (delete after each slug) |
@@ -21,7 +22,7 @@ Full rules: `C:\Users\bradl\.cursor\skills\schema-markup-generator\references\sc
 | Role | Slug | CSV | JSON-LD |
 |------|------|-----|---------|
 | Service | | `knowsabout/{slug}-knowsabout.csv` | `services/service-{slug}.jsonld` |
-| Location | | `knowsabout/{slug}-knowsabout.csv` | `locations/location-{slug}.jsonld` |
+| Location | | `knowsabout/{slug}-knowsabout.csv` (+ `{slug}-geo-triggers.csv` after Step 2c) | `locations/location-{slug}.jsonld` |
 
 ## Notes
 

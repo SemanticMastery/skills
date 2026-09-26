@@ -4,6 +4,19 @@
 
 ## Bundle release notes
 
+### 2026-09-26 — `schema-markup-generator` **9.15.1**
+
+Synced from `schema-markup-generator-v9.15.1.zip`:
+
+- **Step 0** lists `01-intake/1.1-docs/` for the dossier before the NAPW ask.
+- **Step 2c** soft-stops on location pages and offers a ContentMaxima matrix when the geo-trigger count is at least 40 (`references/contentmaxima-location-preflight.md`, `scripts/extract-geo-triggers.mjs`).
+- **Maps CID** resolution for `hasMap` (`scripts/resolve-maps-cid.mjs`).
+- **`areaServed` allowlist** so invented place types are not emitted (`references/areaserved-types.md`).
+- **Client-facing copy** rules keep process notes out of JSON-LD strings (`references/client-facing-copy.md`).
+- Travel-package recall notes (`resources/travel-package-schema.md`).
+
+Zip: `dist/local-schema-20260926.zip`
+
 ### 2026-07-23 — `schema-markup-generator` **9.12.0**
 
 Student-feedback hardening for local homepage graphs:

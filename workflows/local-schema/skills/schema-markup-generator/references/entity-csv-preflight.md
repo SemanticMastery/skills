@@ -1,6 +1,6 @@
 # Entity CSV preflight (Step 2b)
 
-Run **after** Steps 0–0b (local/contractor only), **Step 1** (silo), and **Step 2** (page role). Run **before** JSON-LD for any **service** or **location** page that uses `WebPage.about` topic entities.
+Run **after** Steps 0–0b (local/contractor only), **Step 1** (silo), **Step 2** (page role), and **Step 2c** (location geo-trigger preflight, when it applied). Run **before** JSON-LD for any **service** or **location** page that uses `WebPage.about` topic entities.
 
 Mirrors **Step 0 → `business-dossier`**: schema-markup-generator **must explicitly invoke** the companion skill when files are missing — passive routing will not run it (`disable-model-invocation: true` on **knowsabout-entity-research**).
 
@@ -70,7 +70,7 @@ For **each** slug in the checklist:
 
 When the invoke list is non-empty:
 
-1. **Read and follow** `C:\Users\bradl\.cursor\skills\knowsabout-entity-research\SKILL.md` in full for this session (same as explicitly running `/knowsabout-entity-research`).
+1. **Read and follow** `knowsabout-entity-research/SKILL.md (if installed)` in full for this session (same as explicitly running `/knowsabout-entity-research`).
 2. Pass each seed: H1/service name + page role (`service` vs `location`) + `project_dir`.
 3. Use `scripts/resolve-entity-urls.mjs` per that skill (paced Wikipedia/Wikidata/Grokipedia).
 4. Write `{project_dir}/02-deliverables/2.4-schema/knowsabout/{slug}-knowsabout.csv` and update `knowsabout-batch-manifest.csv` on batch runs.
@@ -90,16 +90,27 @@ When the invoke list is non-empty:
 
 1. Re-glob canonical (and legacy) paths for each slug — confirm files exist.
 2. Spot-check: header row present; Grokipedia column not entirely `-` (unless user waived).
-3. Continue schema-markup-generator **Step 4** — write JSON-LD under `02-deliverables/2.4-schema/services/` or `locations/` per [schema-artifact-layout.md](schema-artifact-layout.md); map CSV rows to `WebPage.about` per [schema-templates.md § Service page](schema-templates.md#service-page-simple-silo-contractor-sites--validated-pattern).
+3. Continue schema-markup-generator **Step 4** — write JSON-LD under `02-deliverables/2.4-schema/services/` or `locations/` per [schema-artifact-layout.md](schema-artifact-layout.md); map CSV rows to `WebPage.about` per [schema-templates.md § Service page](schema-templates.md#service-page-simple-silo-contractor-sites--validated-pattern). Copy **Relevance** into `description` only after stripping process text — see [client-facing-copy.md](client-facing-copy.md).
 
 ## Slug → seed term hints
 
 | Page role | Seed term (for knowsabout skill) |
 |-----------|----------------------------------|
 | Service | H1 or service name + "service" if ambiguous (e.g. `Tree Removal Service`, `plant health care service`) |
-| Location | `{City}, West Virginia` in resolver **stdin JSON** (e.g. `Cabins, West Virginia`) — never `--names` with commas |
+| Location | `{City}, {State}` in resolver **stdin JSON** (e.g. `Cabins, West Virginia`) — never `--names` with commas — **plus** Step 2c `{slug}-geo-triggers.csv` terms when that file exists |
 
 **Location slugs:** from sitemap / `*-implementation.md` / `SCHEMA-LAYOUT.md` / onpage crawl — one `{slug}-knowsabout.csv` each. Client-specific seeds and opensearch fixes: **`{project_dir}/02-deliverables/2.4-schema/field-learnings.md`** (legacy read: `resources/schema/field-learnings.md`).
+
+## Step 2c geo-trigger seeds (location slugs only)
+
+When `{project_dir}/02-deliverables/2.4-schema/knowsabout/{slug}-geo-triggers.csv` exists (from [contentmaxima-location-preflight.md](contentmaxima-location-preflight.md)):
+
+1. Read `term` values. Those names are **extra location seeds** for this slug — they become `WebPage.about` Place / Thing rows after URL resolution. Do **not** invent `sameAs`.
+2. If `{slug}-knowsabout.csv` is **missing**, pass the usual location seed **and** the geo-trigger terms into **knowsabout-entity-research**.
+3. If `{slug}-knowsabout.csv` **already exists**, merge new geo names (case-insensitive `Entity Name` match) and resolve **only the new names**. Do not regenerate the whole CSV.
+4. Skip matrix / no geo-trigger CSV → proceed with the usual location seed only. Do not invent POI rows.
+
+POIs (stadium, zoo, museum, airport, park, venue) stay on location `WebPage.about`. Only a city / district / neighborhood the contractor actually serves may go in `areaServed` — see [areaserved-types.md](areaserved-types.md).
 
 ## Resolver invocation (Step 2b handoff)
 
@@ -114,19 +125,22 @@ When invoking **knowsabout-entity-research**:
 
 | Skill | Relationship |
 |-------|----------------|
-| **`knowsabout-entity-research`** | Upstream for service/location `WebPage.about` — produces `knowsabout/{slug}-knowsabout.csv` |
+| **`knowsabout-entity-research`** | Upstream for service/location `WebPage.about` — produces `knowsabout/{slug}-knowsabout.csv`; location runs may receive extra seeds from `{slug}-geo-triggers.csv` |
+| **`contentmaxima`** | Optional Step 2c upstream — Matrix / extractor writes `{slug}-geo-triggers.csv` |
 | **`business-dossier`** | Independent Step 0 gate (NAP/entity); run before 2b on local sites |
-| **`schema-markup-generator`** | Orchestrator — Step 2b calls knowsabout when CSVs missing |
+| **`schema-markup-generator`** | Orchestrator — Step 2c then Step 2b |
 
 ## Quick decision flow
 
 ```text
 Step 2 identified service/location page(s)?
   → no → skip Step 2b → Step 3
-  → yes → build slug checklist
+  → yes → location pages? run/skip Step 2c first
+      → build slug checklist
+      → for each location slug: merge {slug}-geo-triggers.csv terms if present
       → for each slug: glob 02-deliverables/2.4-schema/knowsabout/{slug}-knowsabout.csv (+ legacy paths)
-          → all present + complete → Step 3
-          → any missing/incomplete → READ knowsabout-entity-research SKILL.md → run to completion
+          → all present + complete + no new geo names → Step 3
+          → any missing/incomplete/new geo names → READ knowsabout-entity-research SKILL.md → run (new names only when merging)
               → re-glob all slugs → Step 3
 ```
 
@@ -134,5 +148,6 @@ Step 2 identified service/location page(s)?
 
 - **Step 0** — [dossier-preflight.md](dossier-preflight.md)
 - **Step 0b** — [sameas-intake.md](sameas-intake.md)
+- **Step 2c** — [contentmaxima-location-preflight.md](contentmaxima-location-preflight.md)
 - **Step 2b** — this file (entity CSV / knowsabout)
 - **Paths** — [schema-artifact-layout.md](schema-artifact-layout.md)

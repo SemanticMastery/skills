@@ -18,7 +18,7 @@ Use this wording (do not paraphrase):
 
 > Do you have a list of URLs to reference in the **`sameAs`** attributes of the Local Business schema (and matching **`Corporation`** node on the homepage)?
 >
-> If yes, paste every **external** profile or identity URL you want included — for example: Google Maps / GBP share link, Facebook, LinkedIn, Yelp, BBB, Wikipedia/Wikidata, ID page, industry directories, and any other verified listings. (Do **not** include the official website here — that belongs on the schema **`url`** property only.)
+> If yes, paste every **external** profile or identity URL you want included — for example: Google Maps CID URL (`https://www.google.com/maps?cid=…`), Facebook, LinkedIn, Yelp, BBB, Wikipedia/Wikidata, ID page, industry directories, and any other verified listings. (Do **not** include the official website here — that belongs on the schema **`url`** property only.)
 >
 > If you do not have a list ready, say **"use dossier only"** and I will build `sameAs` from the business dossier `[V] DIGITAL ECOSYSTEM` (external profiles only) plus any URLs you already specified (such as a dedicated ID page `@id`). You can add more URLs later before deploy.
 
@@ -30,14 +30,16 @@ Use this wording (do not paraphrase):
 
 | Source | Examples |
 |--------|----------|
-| User paste | External HTTPS profiles, directories, GBP/Maps, ID page, Wikidata, etc. |
-| Dossier `[V]` | Facebook, LinkedIn, Yelp, BBB, etc. from verified dossier table — **not** the official website row |
-| Prior session inputs | Dedicated ID page URL, GBP Maps share link, Wayfront/listing exports |
+| User paste | External HTTPS profiles, directories, GBP/Maps CID URL, ID page, Wikidata, etc. |
+| Dossier `[V]` | Facebook, LinkedIn, Yelp, BBB, etc. from verified dossier table — **not** the official website row. Google Maps row must be `https://www.google.com/maps?cid={CID}` |
+| Prior session inputs | Dedicated ID page URL, GBP CID URL, Wayfront/listing exports |
 | **Never auto-add** | Official website / homepage URL; URLs guessed from brand search; unverified SerpAPI picks; competitor profiles |
 
 Ask the user to use **absolute `https://` URLs** only. Normalize duplicates; strip tracking query params when safe (`utm_*`, `fbclid`).
 
 **Official website → `url` only:** Put the canonical site on `Corporation.url` and LocalBusiness `url`. **Do not** auto-add it to `sameAs` (redundant with `url`; no meaningful identity benefit). If the user pastes the homepage in their `sameAs` list anyway, drop it from `sameAs` and keep it on `url` only — note that normalization in the handoff.
+
+**Google Maps / GBP identity → CID URL:** `sameAs` must use `https://www.google.com/maps?cid={CID}` (same value as `hasMap`). If the user or dossier `[V]` only has `maps.app.goo.gl` or `share.google`, run `scripts/resolve-maps-cid.mjs` and replace before writing JSON-LD. If CID cannot be resolved, **stop and ask** — do not leave a redirect URL in `sameAs`.
 
 ---
 
@@ -52,6 +54,7 @@ Ask the user to use **absolute `https://` URLs** only. Normalize duplicates; str
 - Official website / homepage URL (belongs on `url` only)
 - Placeholder or example URLs
 - Broken / redirect-only links the user did not verify
+- `maps.app.goo.gl` / `share.google` Maps links (replace with the CID URL; do not ship the redirect)
 - The business `telephone:` or `mailto:` (not valid `sameAs`)
 
 ---

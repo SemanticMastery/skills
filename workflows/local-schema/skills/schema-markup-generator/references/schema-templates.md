@@ -110,20 +110,34 @@ Use `price`, `priceCurrency`, and `availability` only when the page shows curren
 
 ## LocalBusiness
 
-Use a specific subtype when possible, such as `Restaurant`, `Store`, `LegalService`, `Dentist`, `HomeAndConstructionBusiness`, or `AutoRepair`. Include `@id`, name, URL, phone, address, opening hours, and price range only when visible. **`sameAs`:** complete [sameas-intake.md](sameas-intake.md) (Step 0b) before populating — user list + dossier `[V]`, no guessed URLs. **Optional review extension**: reuse the Product review fragment only when local-business reviews are visible, verifiable, and policy-eligible.
+Use a specific subtype when possible, such as `Restaurant`, `Store`, `LegalService`, `Dentist`, `HomeAndConstructionBusiness`, or `AutoRepair`. Include `@id`, name, URL, phone, address, opening hours, and price range only when visible. **`hasMap`:** `https://www.google.com/maps?cid={CID}` only — never `maps.app.goo.gl` or `share.google`. Resolve first with `scripts/resolve-maps-cid.mjs`. **`sameAs`:** complete [sameas-intake.md](sameas-intake.md) (Step 0b) before populating — user list + dossier `[V]`, no guessed URLs; Maps identity in `sameAs` is the same CID URL as `hasMap`. **Optional review extension**: reuse the Product review fragment only when local-business reviews are visible, verifiable, and policy-eligible.
 
 > **MUST — `addressCountry`**: Put `addressCountry` **only** on `address` (`PostalAddress`). Never on `State`, `City`, or `areaServed` nested places — Schema.org validators warn on `State.addressCountry`.
 
-**`areaServed` (City list)** — omit postal properties from nested `State`:
+**`areaServed`** — only types in the Schema.org range (`AdministrativeArea` / `City`, `Place`, `GeoShape`, `Text`). **Never** `@type: "Neighborhood"` (not a Schema.org type). Districts use `Place` + official `name` + Wikipedia `sameAs`. Full rules: [areaserved-types.md](areaserved-types.md). Omit postal properties from nested `State`:
 
 ```json
 "areaServed": [
   {
     "@type": "City",
     "name": "[City]",
+    "sameAs": "https://en.wikipedia.org/wiki/[City_article]",
     "containedInPlace": {
       "@type": "State",
       "name": "[State]"
+    }
+  },
+  {
+    "@type": "Place",
+    "name": "[District or neighborhood]",
+    "sameAs": "https://en.wikipedia.org/wiki/[Article]",
+    "containedInPlace": {
+      "@type": "City",
+      "name": "[City]",
+      "containedInPlace": {
+        "@type": "State",
+        "name": "[State]"
+      }
     }
   }
 ]
@@ -148,13 +162,14 @@ Use a specific subtype when possible, such as `Restaurant`, `Store`, `LegalServi
     "addressCountry": "[Country code]"
   },
   "geo": { "@type": "GeoCoordinates", "latitude": "[latitude]", "longitude": "[longitude]" },
+  "hasMap": "https://www.google.com/maps?cid=[CID]",
   "openingHoursSpecification": [{
     "@type": "OpeningHoursSpecification",
     "dayOfWeek": ["[DayOfWeek]"],
     "opens": "[HH:MM]",
     "closes": "[HH:MM]"
   }],
-  "sameAs": ["[Profile URL]"]
+  "sameAs": ["https://www.google.com/maps?cid=[CID]", "[Profile URL]"]
 }
 ```
 
@@ -175,7 +190,7 @@ Use a specific subtype when possible, such as `Restaurant`, `Store`, `LegalServi
 
 ## Service page (Simple Silo contractor sites) — validated pattern
 
-**Reference implementation:** Box Tree Care `service-tree-removal.jsonld` (validator-clean).
+**Reference implementation:** Example Tree Care `service-tree-removal.jsonld` (validator-clean).
 
 **Simple Silo only** — top-level URL (`/tree-removal`). `@graph` with `WebPage` + `Service`. **Omit `BreadcrumbList`.** See [silo-and-page-patterns.md](silo-and-page-patterns.md).
 
@@ -277,7 +292,7 @@ On **WebPage**, use **`about` as an array**: first item = service `@id`; remaini
 
 ## Location page (Simple Silo, single GBP) — validated pattern
 
-**Reference implementation:** Box Tree Care `location-leander-tx.jsonld`.
+**Reference implementation:** Example Tree Care `location-leander-tx.jsonld`.
 
 **Single GBP only** — top-level URL (`/leander-tx`). `@graph` with **`WebPage` + `ItemList`** (no duplicated `LocalBusiness`). **Omit `BreadcrumbList`.** Link service catalog via `WebPage.mentions` → `#service-catalog` (not `hasPart` — validator rejects `ItemList` as `hasPart` target).
 
@@ -321,7 +336,7 @@ Same rules as service pages: **`WebPage.about` array** (not `knowsAbout`). First
           "@type": "Thing",
           "@id": "[Wikidata or Wikipedia URI]",
           "name": "[Entity]",
-          "description": "[Relevance to this city]",
+          "description": "[Public one-sentence why this entity belongs on the page — no tool names, Count, or resolver notes]",
           "sameAs": ["[Wikipedia]", "[Wikidata]", "[Grokipedia]"]
         }
       ]
