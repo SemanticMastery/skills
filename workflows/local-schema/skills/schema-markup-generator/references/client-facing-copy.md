@@ -2,7 +2,7 @@
 
 JSON-LD that ships to a CMS is **public**. Search engines and the client see every `description`, `name`, and `text` string. Skill instructions, tooling names, and research-process notes stay in handoffs, CSVs `Notes`, and `field-learnings.md` — **never** in `*.jsonld`.
 
-Incident 2026-09-17 (Best Roofing Of Virginia, Newport News): `WebPage.about` descriptions included “ContentMaxima trigger (Count 42)” and resolver swap notes. Those strings came from Step 2c / knowsabout process copy and were invalid as Schema.org `description`.
+Incident 2026-09-17: `WebPage.about` descriptions included “ContentMaxima trigger (Count 42)” and resolver swap notes. Those strings came from Step 2c / knowsabout process copy and were invalid as Schema.org `description`.
 
 ## What may appear in `*.jsonld` strings
 

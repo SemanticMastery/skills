@@ -2,7 +2,7 @@
 
 `areaServed` on `Organization`, `LocalBusiness` subtypes, `Service`, and `ContactPoint` may only use types in the [Schema.org `areaServed` range](https://schema.org/areaServed).
 
-**Incident (Pro Floors Philly, 2026-08-25):** `@type: "Neighborhood"` invalidated the graph. [`schema.org/Neighborhood`](https://schema.org/Neighborhood) is **not a Schema.org type** (HTTP 404). Do not invent place subtypes.
+**Incident (2026-08-25):** `@type: "Neighborhood"` invalidated the graph. [`schema.org/Neighborhood`](https://schema.org/Neighborhood) is **not a Schema.org type** (HTTP 404). Do not invent place subtypes.
 
 ## Allowed `@type` (allowlist)
 
