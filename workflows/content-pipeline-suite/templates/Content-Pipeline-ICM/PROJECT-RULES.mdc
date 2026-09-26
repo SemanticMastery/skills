@@ -1,0 +1,41 @@
+---
+description: Canonical ICM project rules for Content-Pipeline-ICM
+globs:
+alwaysApply: true
+---
+
+# Project rules — Content-Pipeline-ICM
+
+## Context layers
+
+1. Project router: `CONTEXT.md`
+2. Stage folders — one job each; local `CONTEXT.md` with Inputs / Process / Outputs (+ hard-coded Agent prompt where present)
+3. This file: durable rules; keep harness entry files thin
+
+## Template rules
+
+- This tree is a **reusable campaign template**. Duplicate the whole folder per campaign; do not treat a live campaign copy as the only instance of the pipeline.
+- Keep ICM routers, stage CONTEXT files, and hard-coded Agent prompts consistent across copies unless a campaign deliberately forks them.
+- `01-resources/ai-isms.md` is **always included** in the template. Do not delete it from campaign copies.
+- Campaign-supplied research files live in `01-resources/` and must be present before `02-plan` (see root `CONTEXT.md` resource table).
+- `04-publish` stays **platform-generic** in the template. Add CMS/API/MCP details only when deploying a campaign (or when the operator asks to wire a specific platform).
+
+## Working rules
+
+- One job per stage folder; do not merge unrelated work into a single stage.
+- Prefer plain markdown / mdc edit surfaces.
+- Update `CONTEXT.md` task routing when stages change.
+- Before restructuring stages, propose the new tree and wait for explicit create approval.
+- Treat each stage (and each `3.x` under `03-write`) as a folder-agent: execute only that stage's prompt/job unless asked to run the full pipeline.
+- Upstream outputs are contracts: do not invent missing inputs; stop and ask if a prior stage has no usable output.
+- Keep `01-resources` as source-of-truth storage; prefer copies/derivatives in later stages over mutating originals.
+- Draft / edit / polish stages must respect `ai-isms.md` (no banned patterns; never reintroduce them).
+- `04-publish` holds final CMS-ready assets (text + images from `3.5-images`) only.
+
+## Goal reminder
+
+Orchestrate a multi-step content pipeline where each stage folder acts as an independent agent with its own prompt. Each stage produces an output that the next stage consumes—without spawning separate skills per step.
+
+## Outcome reminder
+
+A content plan for either 13 or 26 weeks, then a production workflow that turns planned slots into publish-ready articles.

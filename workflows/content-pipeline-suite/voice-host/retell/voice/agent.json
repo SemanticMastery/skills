@@ -1,0 +1,69 @@
+{
+  "agent_name": "voice-interview",
+  "language": "en-US",
+  "voice_id": "11labs-Joe",
+  "data_storage_setting": "everything",
+  "max_call_duration_ms": 2700000,
+  "end_call_after_silence_ms": 120000,
+  "reminder_trigger_ms": 45000,
+  "reminder_max_count": 1,
+  "interruption_sensitivity": 0.2,
+  "webhook_url": "{{WORKER_URL}}/retell/webhook",
+  "webhook_events": ["call_started", "call_ended", "call_analyzed"],
+  "response_engine": {
+    "type": "retell-llm",
+    "llm_id": "{{LLM_ID}}"
+  },
+  "llm": {
+    "model": "gpt-4.1",
+    "model_temperature": 0,
+    "tool_call_strict_mode": true,
+    "general_prompt": "{{PROMPT}}",
+    "begin_message": "Hi. I am an AI interviewer for {{agency_name}}. This call is recorded and transcribed by an AI interviewer. Your answers create a style profile used to draft marketing content in your voice for {{company_name}} only. This is not a voice clone and not an identification voiceprint. I need a spoken yes before we continue.",
+    "general_tools": [
+      {
+        "type": "custom",
+        "name": "report_consent",
+        "description": "Record whether the spokesperson granted recording consent. Call after they answer the permission question.",
+        "url": "{{WORKER_URL}}/retell/tool",
+        "method": "POST",
+        "timeout_ms": 8000,
+        "max_retry": 0,
+        "speak_during_execution": false,
+        "speak_after_execution": true,
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["granted"],
+          "properties": {
+            "granted": { "type": "boolean" }
+          }
+        }
+      },
+      {
+        "type": "custom",
+        "name": "end_interview",
+        "description": "End the interview after you have already said goodbye. Use complete, paused, tool_error, or consent_withdrawn. Call in the same turn as end_call. Use paused when they need to leave and resume later. Use consent_withdrawn only if they revoke recording or use of their answers.",
+        "url": "{{WORKER_URL}}/retell/tool",
+        "method": "POST",
+        "timeout_ms": 8000,
+        "max_retry": 0,
+        "speak_during_execution": true,
+        "speak_after_execution": false,
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reason"],
+          "properties": {
+            "reason": { "type": "string", "enum": ["complete", "paused", "tool_error", "consent_withdrawn"] }
+          }
+        }
+      },
+      {
+        "type": "end_call",
+        "name": "end_call",
+        "description": "Hang up in the same turn as end_interview, after the spoken goodbye."
+      }
+    ]
+  }
+}

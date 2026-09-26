@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Content Pipeline Run</title>
+  <style>
+    html, body { margin: 0; padding: 0; width: 1920px; height: 1080px; overflow: hidden; }
+    body { background: #f5f4ef; color: #1f1d18; font-family: Charter, "Source Serif Pro", "Iowan Old Style", Georgia, serif; }
+    .page { box-sizing: border-box; width: 1920px; height: 1080px; padding: 40px 48px 32px; display: flex; flex-direction: column; }
+    header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d4d1c5; padding-bottom: 12px; }
+    .kicker { font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: #6b665b; font-family: "Segoe UI", sans-serif; }
+    h1 { margin: 8px 0 0; font-size: 40px; font-weight: 500; letter-spacing: -0.02em; color: #1B365D; }
+    .suite { display: flex; gap: 8px; font-family: "Segoe UI", sans-serif; font-size: 13px; }
+    .chip { padding: 6px 12px; border: 1px solid #d4d1c5; color: #6b665b; }
+    .chip.on { background: #1B365D; color: #f5f4ef; border-color: #1B365D; }
+    .lede { margin: 16px 0 20px; font-size: 18px; color: #6b665b; max-width: 1500px; }
+    .row-label { font-family: "Segoe UI", sans-serif; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #1B365D; margin: 0 0 10px; }
+    .flow { display: flex; align-items: stretch; gap: 0; margin-bottom: 20px; }
+    .step { flex: 1; background: #efeee5; border: 1px solid #d4d1c5; padding: 14px 14px 12px; min-height: 140px; }
+    .step .n { font-family: "Segoe UI", sans-serif; font-size: 12px; color: #1B365D; letter-spacing: 0.08em; }
+    .step h2 { margin: 6px 0 6px; font-size: 19px; font-weight: 500; line-height: 1.2; }
+    .step p { margin: 0; font-size: 14px; line-height: 1.4; color: #6b665b; }
+    .arrow { width: 28px; display: flex; align-items: center; justify-content: center; color: #1B365D; font-size: 22px; flex: 0 0 28px; }
+    .consume { background: #e8e4d4; }
+    .stop { background: #1B365D; color: #f5f4ef; border-color: #1B365D; }
+    .stop p, .stop .n { color: #c9d4e2; }
+    .stop h2 { color: #f5f4ef; }
+    .notes { display: flex; gap: 16px; margin-bottom: 8px; }
+    .note { flex: 1; border: 1px solid #d4d1c5; padding: 14px 16px; }
+    .note h3 { margin: 0 0 6px; font-size: 17px; font-weight: 500; color: #1B365D; }
+    .note p { margin: 0; font-size: 14px; color: #6b665b; line-height: 1.4; }
+    .footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #d4d1c5; padding-top: 14px; font-size: 15px; }
+    .footer strong { color: #1B365D; }
+    .out { color: #6b665b; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <div class="kicker">Semantic Mastery · Content Pipeline</div>
+        <h1>3. Content Pipeline Run</h1>
+      </div>
+      <div class="suite">
+        <span class="chip">Init</span>
+        <span class="chip">Photos</span>
+        <span class="chip on">Run</span>
+        <span class="chip">Pages init</span>
+        <span class="chip">Pages</span>
+        <span class="chip">Interview</span>
+      </div>
+    </header>
+    <p class="lede">Writing team. Produce <strong>one slot</strong> through images. The roadmap and SiteSwarm taxonomy already exist from Init. Missing either file is a hard-stop back to Init — do not write them here.</p>
+
+    <div class="row-label">Gates before produce</div>
+    <div class="notes">
+      <div class="note"><h3>Ready check</h3><p><em>init_complete</em>, eight resources, <em>ai-isms.md</em>, <em>editorial-roadmap.md</em>, and a SiteSwarm taxonomy.</p></div>
+      <div class="note"><h3>gate_mode</h3><p><em>review</em> pauses after every produce stage. <em>auto</em> chains brief → images after a slot is picked.</p></div>
+      <div class="note"><h3>Copywriting model</h3><p>Inherit or pin a Cursor model (Grok 4.6 or ChatGPT-5.6 Terra). Anthropic / Claude is prohibited. External/Zed is optional.</p></div>
+    </div>
+
+    <div class="row-label">One vertical slice</div>
+    <div class="flow">
+      <div class="step consume"><div class="n">00</div><h2>Confirm plan</h2><p>Reuse the existing roadmap and taxonomy. Rebuild or horizon change goes back to Init.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">01</div><h2>Select slot</h2><p>Pick one Post # from the roadmap. Capture week, title, and trigger word. One post per invoke.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">02–05</div><h2>Brief → polish</h2><p>Read each stage CONTEXT.md and execute the Agent prompt verbatim. Voice DNA before draft. External host stays through polish.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">06</div><h2>3.5 Images</h2><p>Match <em>approved/</em> photos by primary topic tag. Misses use Fal. Empty library is a Fal miss, not a hard-stop.</p></div>
+      <div class="arrow">→</div>
+      <div class="step stop"><div class="n">Stop</div><h2>Done for this slot</h2><p>Hard-stop after images. Do not write 04-publish posts or 05-archives. Next post = new slot later.</p></div>
+    </div>
+
+    <div class="footer">
+      <div><strong>Consume only:</strong> Run does not ingest photos, write the roadmap, or invent SiteSwarm tags.</div>
+      <div class="out">Out of scope: CMS push, first photo-library HITL, batching every week in one invoke</div>
+    </div>
+  </div>
+</body>
+</html>

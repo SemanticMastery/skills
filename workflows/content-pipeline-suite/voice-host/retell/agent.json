@@ -1,0 +1,108 @@
+{
+  "agent_name": "owner-interview",
+  "language": "en-US",
+  "voice_id": "11labs-Joe",
+  "data_storage_setting": "everything",
+  "max_call_duration_ms": 3600000,
+  "end_call_after_silence_ms": 600000,
+  "reminder_trigger_ms": 45000,
+  "reminder_max_count": 2,
+  "interruption_sensitivity": 0.2,
+  "webhook_url": "{{WORKER_URL}}/retell/webhook",
+  "webhook_events": ["call_started", "call_ended", "call_analyzed"],
+  "response_engine": {
+    "type": "retell-llm",
+    "llm_id": "{{LLM_ID}}"
+  },
+  "llm": {
+    "model": "gpt-4.1",
+    "model_temperature": 0,
+    "tool_call_strict_mode": true,
+    "general_prompt": "{{PROMPT}}",
+    "begin_message": "Hi. I am an AI interviewer for {{agency_name}}. This owner interview for {{service_title}} at {{company_name}} is recorded and transcribed. I need a spoken yes before we continue.",
+    "general_tools": [
+      {
+        "type": "custom",
+        "name": "report_consent",
+        "description": "Record whether the owner granted recording consent. Call after they answer the permission question.",
+        "url": "{{WORKER_URL}}/retell/tool",
+        "method": "POST",
+        "timeout_ms": 8000,
+        "max_retry": 0,
+        "speak_during_execution": false,
+        "speak_after_execution": true,
+        "parameters": {
+          "type": "object",
+          "required": ["granted"],
+          "properties": {
+            "granted": { "type": "boolean" }
+          }
+        }
+      },
+      {
+        "type": "custom",
+        "name": "get_next_question",
+        "description": "Fetch the next interview question. Do not invent questions. Use only the returned prompt.",
+        "url": "{{WORKER_URL}}/retell/tool",
+        "method": "POST",
+        "timeout_ms": 8000,
+        "max_retry": 0,
+        "speak_during_execution": false,
+        "speak_after_execution": true,
+        "parameters": {
+          "type": "object",
+          "properties": {}
+        }
+      },
+      {
+        "type": "custom",
+        "name": "report_answer",
+        "description": "Store the owner's answer for the question you just spoke, only after they finish the sentence. facts are owner text only. verify is only for Verify questions.",
+        "url": "{{WORKER_URL}}/retell/tool",
+        "method": "POST",
+        "timeout_ms": 8000,
+        "max_retry": 0,
+        "speak_during_execution": false,
+        "speak_after_execution": true,
+        "parameters": {
+          "type": "object",
+          "required": ["question_id", "status"],
+          "properties": {
+            "question_id": { "type": "string" },
+            "status": { "type": "string", "enum": ["answered", "unanswered"] },
+            "owner_words": { "type": "string" },
+            "publish_decision": { "type": "string", "enum": ["public", "framing-only", "internal"] },
+            "verify": { "type": "string" },
+            "facts": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      },
+      {
+        "type": "custom",
+        "name": "end_interview",
+        "description": "End the interview. Use complete only when the host returned done true. Use paused if they must leave with questions remaining. Use tool_error or consent_withdrawn when those are the reason.",
+        "url": "{{WORKER_URL}}/retell/tool",
+        "method": "POST",
+        "timeout_ms": 8000,
+        "max_retry": 0,
+        "speak_during_execution": false,
+        "speak_after_execution": false,
+        "parameters": {
+          "type": "object",
+          "required": ["reason"],
+          "properties": {
+            "reason": { "type": "string", "enum": ["complete", "paused", "tool_error", "consent_withdrawn"] }
+          }
+        }
+      },
+      {
+        "type": "end_call",
+        "name": "end_call",
+        "description": "Hang up after end_interview."
+      }
+    ]
+  }
+}

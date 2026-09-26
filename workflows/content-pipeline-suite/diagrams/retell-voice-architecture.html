@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Retell Voice Architecture</title>
+  <link rel="stylesheet" href="diagram.css" />
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <div class="kicker">Semantic Mastery &middot; Content Pipeline</div>
+        <h1>One Worker, three interview kinds</h1>
+      </div>
+      <div class="suite">
+        <span class="chip">Init</span>
+        <span class="chip">Photos</span>
+        <span class="chip">Run</span>
+        <span class="chip">Pages init</span>
+        <span class="chip">Pages</span>
+        <span class="chip on">Interview</span>
+        <span class="chip on">Stories</span>
+        <span class="chip on">Voice</span>
+      </div>
+    </header>
+    <p class="lede">Owner notes still work without this. Expert series and Voice DNA need it. You deploy <strong>one</strong> Worker &mdash; your Cloudflare account, your Retell key. Three Retell templates on that host: <code>retell/</code>, <code>retell/expert</code>, <code>retell/voice</code>. Do not invent a second host.</p>
+
+    <div class="body">
+
+    <div class="arch">
+      <div class="box you">
+        <h3>1 &middot; The three skills</h3>
+        <div class="who2">your machine</div>
+        <ul>
+          <li><strong>Facts</strong> &mdash; owner-interview pack, then <code>--create-link</code></li>
+          <li><strong>Stories</strong> &mdash; expert series, stable <code>/e/</code> token</li>
+          <li><strong>Voice</strong> &mdash; <code>/v/</code> session, then <code>--land</code></li>
+          <li>You send every link. The skills never DM.</li>
+          <li>Ask before deploy, <code>--apply</code>, overwrite, speaker verify</li>
+        </ul>
+        <div class="varlist">RETELL_API_KEY<br />OWNER_INTERVIEW_HOST_TOKEN<br />OWNER_INTERVIEW_HOST_URL</div>
+      </div>
+      <div class="arrow">&rarr;</div>
+      <div class="box you">
+        <h3>2 &middot; Your Worker</h3>
+        <div class="who2">your cloudflare account</div>
+        <ul>
+          <li>One Worker + SQLite Durable Objects (session, index, series)</li>
+          <li>Owner pack: <strong>one question at a time</strong></li>
+          <li><code>/s/</code> <code>/i/</code> facts &middot; <code>/e/</code> stories &middot; <code>/v/</code> voice</li>
+          <li><code>/admin/*</code> guarded by your host token</li>
+          <li>No CDN scripts on the interview page</li>
+        </ul>
+        <div class="varlist">LINK_EXPIRY_DAYS 7<br />VOICE_LINK_EXPIRY_DAYS 2<br />START_CAP 5</div>
+      </div>
+      <div class="arrow">&rarr;</div>
+      <div class="box">
+        <h3>3 &middot; The spokesperson</h3>
+        <div class="who2">their browser</div>
+        <ul>
+          <li>Opens <code>/s/</code>, <code>/i/</code>, <code>/e/</code>, or <code>/v/</code></li>
+          <li>Typed-name release, then spoken consent</li>
+          <li>Owner: answers + publish taps</li>
+          <li>Expert: stories on a cadence</li>
+          <li>Voice: biographical talk for style</li>
+        </ul>
+      </div>
+      <div class="arrow">&harr;</div>
+      <div class="box vendor">
+        <h3>4 &middot; Retell AI</h3>
+        <div class="who2">vendor &middot; your account</div>
+        <ul>
+          <li>Speech in, speech out. Three agents, one account.</li>
+          <li>Owner tools: consent, next question, answer, end</li>
+          <li>Expert: <code>report_story</code>. Voice: no question pack</li>
+          <li>Lifecycle webhook, HMAC signed</li>
+          <li><code>setup-agent.mjs --template retell/&hellip;</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="row-label" style="margin-top:18px">Deploy in six commands</div>
+    <div class="notes" style="flex:0 0 auto">
+      <div class="note"><h3>Deploy</h3><p><em>npm install</em>, <em>wrangler login</em>, <em>npm run vendor-sdk</em>, <em>wrangler deploy</em>. No account id is committed, so you cannot deploy into the wrong account by accident.</p></div>
+      <div class="note"><h3>Secrets</h3><p><em>wrangler secret put</em> for the Retell key, a host token you invent, and an optional webhook key.</p></div>
+      <div class="note"><h3>Agents</h3><p>Three <em>--apply</em> runs on the same Worker: default, <em>retell/expert</em>, <em>retell/voice</em>. Paste each id into wrangler vars, redeploy.</p></div>
+      <div class="note"><h3>Verify</h3><p><em>--verify</em> diffs live retention against the template and posts a signed self-test. Stale keys fail here, not in front of a client.</p></div>
+    </div>
+
+        </div>
+
+    <div class="footer">
+      <div><strong>Two retention clocks:</strong> your host purges at expiry + RETENTION_DAYS; Retell keeps its own copy. Voice links default to 2 days. Pull before the shorter window.</div>
+      <div class="out">Owner notes still work with no host. Expert and Voice DNA need this one Worker</div>
+    </div>
+  </div>
+</body>
+</html>

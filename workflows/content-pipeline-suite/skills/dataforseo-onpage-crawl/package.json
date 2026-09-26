@@ -1,0 +1,8 @@
+{
+  "name": "dataforseo-onpage-crawl",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
+}

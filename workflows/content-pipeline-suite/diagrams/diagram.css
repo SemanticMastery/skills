@@ -1,0 +1,95 @@
+/* Semantic Mastery coaching diagrams - shared house style.
+   Canvas is a fixed 1920x1080 slide. Serif body, ink #1f1d18, accent #1B365D. */
+
+html, body { margin: 0; padding: 0; width: 1920px; height: 1080px; overflow: hidden; }
+body { background: #f5f4ef; color: #1f1d18; font-family: Charter, "Source Serif Pro", "Iowan Old Style", Georgia, serif; }
+.page { box-sizing: border-box; width: 1920px; height: 1080px; padding: 40px 48px 32px; display: flex; flex-direction: column; }
+
+header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d4d1c5; padding-bottom: 12px; }
+.kicker { font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: #6b665b; font-family: "Segoe UI", sans-serif; }
+h1 { margin: 8px 0 0; font-size: 40px; font-weight: 500; letter-spacing: -0.02em; color: #1B365D; }
+
+.suite { display: flex; gap: 8px; font-family: "Segoe UI", sans-serif; font-size: 13px; }
+.chip { padding: 6px 12px; border: 1px solid #d4d1c5; color: #6b665b; white-space: nowrap; }
+.chip.on { background: #1B365D; color: #f5f4ef; border-color: #1B365D; }
+
+.lede { margin: 16px 0 20px; font-size: 18px; color: #6b665b; max-width: 1500px; }
+.row-label { font-family: "Segoe UI", sans-serif; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #1B365D; margin: 0 0 10px; }
+
+/* Wrapper that spreads rows down the slide instead of stacking them at the top.
+   Rows inside it grow; row labels keep their natural height. */
+.body { flex: 1; display: flex; flex-direction: column; }
+.body .lane, .body .flow, .body .notes, .body .cols, .body .arch { flex: 1; }
+.body .row-label { flex: 0 0 auto; }
+.body .foundation, .body .repair { flex: 0 0 auto; }
+
+.flow { display: flex; align-items: stretch; gap: 0; margin-bottom: 20px; }
+.step { flex: 1; background: #efeee5; border: 1px solid #d4d1c5; padding: 14px 14px 12px; min-height: 140px; }
+.step .n { font-family: "Segoe UI", sans-serif; font-size: 12px; color: #1B365D; letter-spacing: 0.08em; }
+.step h2 { margin: 6px 0 6px; font-size: 19px; font-weight: 500; line-height: 1.2; }
+.step p { margin: 0; font-size: 14px; line-height: 1.4; color: #6b665b; }
+.arrow { width: 28px; display: flex; align-items: center; justify-content: center; color: #1B365D; font-size: 22px; flex: 0 0 28px; }
+
+.consume { background: #e8e4d4; }
+.stop { background: #1B365D; color: #f5f4ef; border-color: #1B365D; }
+.stop p, .stop .n { color: #c9d4e2; }
+.stop h2 { color: #f5f4ef; }
+.hitl { border-color: #1B365D; border-width: 2px; }
+.hitl .n { font-weight: 700; }
+
+.notes { display: flex; gap: 16px; margin-bottom: 8px; }
+.note { flex: 1; border: 1px solid #d4d1c5; padding: 14px 16px; }
+.note h3 { margin: 0 0 6px; font-size: 17px; font-weight: 500; color: #1B365D; }
+.note p { margin: 0; font-size: 14px; color: #6b665b; line-height: 1.4; }
+
+.footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #d4d1c5; padding-top: 14px; font-size: 15px; }
+.footer strong { color: #1B365D; }
+.out { color: #6b665b; }
+
+/* --- Suite map: two tracks over one foundation --- */
+.lane { display: flex; align-items: stretch; gap: 0; margin-bottom: 14px; }
+.lane-tag { flex: 0 0 168px; display: flex; flex-direction: column; justify-content: center; padding-right: 16px; border-right: 2px solid #1B365D; margin-right: 20px; }
+.lane-tag .t { font-family: "Segoe UI", sans-serif; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #1B365D; }
+.lane-tag .s { font-size: 14px; color: #6b665b; margin-top: 4px; line-height: 1.3; }
+.foundation { background: #1B365D; color: #f5f4ef; border: 1px solid #1B365D; padding: 16px 18px; margin-bottom: 16px; display: flex; gap: 28px; align-items: center; }
+.foundation h2 { margin: 0; font-size: 22px; font-weight: 500; color: #f5f4ef; flex: 0 0 340px; }
+.foundation p { margin: 0; font-size: 15px; color: #c9d4e2; line-height: 1.45; }
+.repair { background: #e8e4d4; border: 1px dashed #1B365D; padding: 14px 18px; display: flex; gap: 24px; align-items: center; }
+.repair h2 { margin: 0; font-size: 20px; font-weight: 500; color: #1B365D; flex: 0 0 340px; }
+.repair p { margin: 0; font-size: 14px; color: #6b665b; line-height: 1.45; }
+.repair-pair { display: flex; gap: 16px; }
+.repair-pair .repair { flex: 1; }
+.repair-pair .repair h2 { flex: 0 0 220px; font-size: 18px; }
+.repair-trio { display: flex; gap: 12px; }
+.repair-trio .repair { flex: 1; flex-direction: column; align-items: flex-start; gap: 6px; padding: 12px 14px; }
+.repair-trio .repair h2 { flex: none; font-size: 16px; }
+.repair-trio .repair p { font-size: 13px; }
+
+/* --- Gate chart --- */
+.gates { width: 100%; border-collapse: collapse; font-size: 15px; }
+.gates th { font-family: "Segoe UI", sans-serif; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: #1B365D; text-align: left; padding: 8px 12px; border-bottom: 1px solid #1B365D; }
+.gates td { padding: 7px 12px; border-bottom: 1px solid #d4d1c5; color: #1f1d18; vertical-align: top; line-height: 1.3; }
+.gates td.dim { color: #6b665b; }
+.gates tr:nth-child(even) td { background: #efeee5; }
+.tag { font-family: "Segoe UI", sans-serif; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border: 1px solid #1B365D; color: #1B365D; white-space: nowrap; }
+.tag.hard { background: #1B365D; color: #f5f4ef; }
+
+/* --- Folder anatomy --- */
+.cols { display: flex; gap: 20px; flex: 1; }
+.col { flex: 1; border: 1px solid #d4d1c5; padding: 14px 16px; background: #efeee5; }
+.col.plain { background: transparent; }
+.col h3 { margin: 0 0 10px; font-size: 18px; font-weight: 500; color: #1B365D; }
+.tree { font-family: Consolas, "Cascadia Mono", monospace; font-size: 13.5px; line-height: 1.55; color: #1f1d18; white-space: pre; }
+.tree .who { color: #6b665b; }
+.tree .key { color: #1B365D; font-weight: 600; }
+
+/* --- Architecture --- */
+.arch { display: flex; align-items: stretch; gap: 0; flex: 1; }
+.box { flex: 1; border: 1px solid #d4d1c5; background: #efeee5; padding: 16px; display: flex; flex-direction: column; }
+.box.you { border-color: #1B365D; border-width: 2px; }
+.box.vendor { background: #e8e4d4; }
+.box h3 { margin: 0 0 4px; font-size: 20px; font-weight: 500; color: #1B365D; }
+.box .who2 { font-family: "Segoe UI", sans-serif; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6b665b; margin-bottom: 10px; }
+.box ul { margin: 0; padding-left: 18px; font-size: 14px; color: #6b665b; line-height: 1.5; }
+.box code { font-family: Consolas, monospace; font-size: 13px; color: #1f1d18; }
+.varlist { margin: 10px 0 0; font-family: Consolas, monospace; font-size: 13px; color: #1f1d18; line-height: 1.6; }

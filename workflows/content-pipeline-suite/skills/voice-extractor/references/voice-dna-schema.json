@@ -1,0 +1,209 @@
+{
+  "$schema": "voice-dna-v1",
+  "meta": {
+    "author": "Name or handle of the analyzed writer",
+    "samples_analyzed": 0,
+    "sample_types": ["tweet", "article", "sales_page", "email", "newsletter"],
+    "total_word_count": 0,
+    "confidence": "low | medium | high",
+    "confidence_notes": "Explanation of confidence level based on sample volume and variety"
+  },
+  "structural_dna": {
+    "sentence_length": {
+      "average_words": 0,
+      "range": [0, 0],
+      "pattern": "Description of how sentence length varies (e.g., 'short-short-long build pattern', 'consistent medium', 'erratic with deliberate fragments')"
+    },
+    "fragment_usage": {
+      "frequency": "never | rare | occasional | frequent | signature",
+      "purpose": "Why fragments are used (emphasis, rhythm, punchlines, transitions)",
+      "examples": ["Exact fragments from samples"]
+    },
+    "paragraph_length": {
+      "average_sentences": 0.0,
+      "variation": "consistent | moderate | erratic",
+      "single_sentence_paragraphs": "never | rare | occasional | frequent | signature"
+    },
+    "formatting": {
+      "line_break_density": "dense_blocks | moderate | frequent_breaks | one_thought_per_line",
+      "bold_usage": "never | rare | emphasis_words | headers_only | heavy",
+      "italic_usage": "never | rare | occasional | frequent",
+      "caps_usage": "never | acronyms_only | occasional_emphasis | frequent_emphasis",
+      "bullet_style": "dash | dot | number | arrow | mixed | none",
+      "header_style": "none | minimal | structured | heavy_hierarchy",
+      "emoji_usage": "never | functional_only | moderate | heavy",
+      "special_formatting": ["Any unique formatting habits: blockquotes, code blocks, > arrows, etc."]
+    },
+    "opener_patterns": [
+      {
+        "type": "hook_question | bold_claim | story | stat | curiosity_gap | direct_address | contrarian | observation",
+        "frequency": "primary | secondary | occasional",
+        "example": "Quoted opener from samples"
+      }
+    ],
+    "closer_patterns": [
+      {
+        "type": "cta | summary | open_question | callback | cliffhanger | one_liner | framework_recap",
+        "frequency": "primary | secondary | occasional",
+        "example": "Quoted closer from samples"
+      }
+    ]
+  },
+  "rhythmic_dna": {
+    "cadence": "staccato | flowing | punchy_then_expand | build_and_release | conversational | mixed",
+    "cadence_description": "Natural language description of the reading rhythm this author creates",
+    "punctuation_signature": {
+      "em_dashes": { "per_1000_words": 0.0, "usage": "How and why they use them" },
+      "ellipses": { "per_1000_words": 0.0, "usage": "How and why they use them" },
+      "colons": { "per_1000_words": 0.0, "usage": "How and why they use them" },
+      "semicolons": { "per_1000_words": 0.0, "usage": "How and why they use them" },
+      "exclamations": { "per_1000_words": 0.0, "usage": "How and why they use them" },
+      "parentheticals": { "per_1000_words": 0.0, "usage": "How and why they use them" }
+    },
+    "repetition_patterns": {
+      "anaphora": { "present": false, "examples": [] },
+      "epistrophe": { "present": false, "examples": [] },
+      "structural_repetition": { "present": false, "examples": [] }
+    },
+    "transition_style": "explicit_connectors | implicit_flow | abrupt_cuts | line_break_transitions | mixed",
+    "transition_examples": ["Quoted transitions from samples"],
+    "sentence_rhythm_signature": "Description of how this author sequences sentence lengths for effect (Gary Provost principle). Quote a representative passage that demonstrates their rhythm."
+  },
+  "emotional_dna": {
+    "tone_dimensions": {
+      "formal_casual": { "score": 0, "scale": "1=academic, 5=texting a friend", "evidence": "Quote demonstrating this level" },
+      "serious_playful": { "score": 0, "scale": "1=grave, 5=irreverent", "evidence": "" },
+      "respectful_irreverent": { "score": 0, "scale": "1=deferential, 5=provocative", "evidence": "" },
+      "enthusiastic_reserved": { "score": 0, "scale": "1=restrained, 5=fired up", "evidence": "" },
+      "warm_detached": { "score": 0, "scale": "1=clinical, 5=intimate", "evidence": "" }
+    },
+    "emotional_range": "narrow | moderate | wide",
+    "confidence_register": "hedging | balanced | assertive | declarative",
+    "confidence_examples": {
+      "hedging": ["Quoted hedging if present"],
+      "asserting": ["Quoted assertions"]
+    },
+    "humor": {
+      "style": "none | dry | self_deprecating | absurdist | sarcastic | deadpan | observational | mixed",
+      "frequency": "never | rare | occasional | frequent | constant",
+      "examples": ["Quoted humor from samples"]
+    },
+    "vulnerability": "never | rare | occasional | frequent",
+    "vulnerability_examples": ["Quoted vulnerability if present"]
+  },
+  "semantic_dna": {
+    "reading_level_grade": 0.0,
+    "signature_phrases": ["Exact recurring expressions unique to this author"],
+    "power_words": ["Specific verbs and nouns the author gravitates toward"],
+    "banned_words": ["Words this author never uses, including AI-isms"],
+    "jargon": {
+      "level": "none | light | moderate | heavy",
+      "domain": "tech | finance | marketing | fitness | etc.",
+      "examples": ["Actual jargon terms from samples"]
+    },
+    "filler_words": {
+      "usage": "none | low | moderate | heavy",
+      "specific": ["just", "really", "actually", "etc."]
+    },
+    "contraction_style": "always | mostly | mixed | rarely | never",
+    "pronoun_preference": "I_heavy | you_heavy | we_heavy | they_heavy | balanced",
+    "metaphor_patterns": {
+      "frequency": "never | rare | occasional | frequent",
+      "source_domains": ["Where metaphors come from: warfare, tech, sports, cooking, nature, etc."],
+      "examples": ["Quoted metaphors from samples"]
+    },
+    "profanity": {
+      "level": 0,
+      "scale": "0=never, 5=constant",
+      "examples": ["If applicable"]
+    }
+  },
+  "hook_architecture": {
+    "primary_hook_types": [
+      {
+        "type": "curiosity_gap | bold_claim | pain_point | question | stat | story | contrast | pattern_interrupt | social_proof | direct_challenge",
+        "frequency_pct": 0,
+        "mechanism": "How this hook type creates engagement",
+        "examples": ["Quoted hooks from samples"]
+      }
+    ],
+    "hook_length": "one_word | one_sentence | two_to_three_sentences | full_paragraph",
+    "re_engagement_hooks": {
+      "uses_mid_content_hooks": false,
+      "types": ["How the author re-captures attention mid-piece"],
+      "examples": []
+    },
+    "pattern_interrupts": {
+      "frequency": "never | rare | occasional | frequent",
+      "types": ["Unexpected format shifts, tonal pivots, direct address breaks"],
+      "examples": []
+    }
+  },
+  "persuasion_architecture": {
+    "primary_framework": {
+      "name": "AIDA | PAS | FAB | BAB | storytelling | problem_solution | contrarian_reframe | value_ladder | none_detected",
+      "confidence": "low | medium | high",
+      "evidence": "How the framework manifests in the samples"
+    },
+    "secondary_frameworks": ["Other frameworks detected"],
+    "proof_patterns": {
+      "types_used": ["social_proof | data_stats | personal_story | authority_citation | demonstration | case_study | analogy"],
+      "primary_proof_type": "The most frequently used proof mechanism",
+      "examples": ["Quoted proof from samples"]
+    },
+    "objection_handling": {
+      "style": "preemptive | reactive | embedded | absent",
+      "mechanism": "How objections are addressed (e.g., 'acknowledges then reframes', 'dismisses with data')",
+      "examples": []
+    },
+    "cta_patterns": {
+      "style": "direct_command | soft_suggestion | implied | embedded_in_value | absent",
+      "placement": "end_only | throughout | after_proof | absent",
+      "language": ["Actual CTA phrases from samples"],
+      "examples": []
+    },
+    "urgency_scarcity": {
+      "usage": "never | subtle | moderate | heavy",
+      "mechanism": "How urgency is created (FOMO, timing, competitive advantage, etc.)",
+      "examples": []
+    },
+    "value_positioning": "How the author frames their value proposition"
+  },
+  "anti_patterns": {
+    "never_does": ["Specific things this author never does, evidenced by absence across all samples"],
+    "forbidden_words": ["Words/phrases completely absent from their vocabulary"],
+    "forbidden_structures": ["Structural patterns they avoid entirely"],
+    "forbidden_tones": ["Tonal registers they never hit"],
+    "ai_patterns_to_suppress": [
+      "Specific AI writing patterns that would break this voice.",
+      "e.g., 'Never use transitional phrases like Furthermore/Moreover/Additionally'",
+      "e.g., 'Never open with In today's fast-paced world'",
+      "e.g., 'Never use the word delve'",
+      "e.g., 'Never list exactly 3 points when the content calls for 2 or 5'"
+    ]
+  },
+  "voice_instructions": {
+    "summary": "2-3 sentence natural language instruction that captures the essence of this voice. Paste this into any AI system prompt to activate the voice.",
+    "do_rules": [
+      "Imperative, actionable rules for replicating this voice.",
+      "Each rule is specific enough that a model with no access to the original samples could follow it.",
+      "e.g., 'Start 60% of pieces with a curiosity gap: state something surprising, then explain.'",
+      "e.g., 'Use single-sentence paragraphs after key revelations for emphasis.'",
+      "e.g., 'Average 14 words per sentence. Drop to 3-5 word fragments after making a big point.'"
+    ],
+    "never_rules": [
+      "Things the AI must never do when writing in this voice.",
+      "Derived from anti_patterns and ai_patterns_to_suppress.",
+      "e.g., 'Never use semicolons.'",
+      "e.g., 'Never open with a question.'",
+      "e.g., 'Never use more than one exclamation mark per piece.'"
+    ],
+    "calibration_rewrites": [
+      {
+        "generic_ai_version": "A sentence written in default AI style",
+        "in_this_voice": "The same sentence rewritten in this author's exact voice",
+        "what_changed": "Brief explanation of what makes the rewrite sound like the author"
+      }
+    ]
+  }
+}

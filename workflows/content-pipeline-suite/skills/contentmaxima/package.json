@@ -1,0 +1,11 @@
+{
+  "name": "contentmaxima-cursor-skill",
+  "private": true,
+  "type": "module",
+  "description": "Standalone Cursor port of the ContentMaxima SEO/content skill",
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "openai": "^4.104.0",
+    "playwright": "^1.52.0"
+  }
+}

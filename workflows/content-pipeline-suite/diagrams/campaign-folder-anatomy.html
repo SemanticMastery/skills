@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Campaign Folder Anatomy</title>
+  <link rel="stylesheet" href="diagram.css" />
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <div class="kicker">Semantic Mastery &middot; Content Pipeline</div>
+        <h1>What lives where, and who writes it</h1>
+      </div>
+      <div class="suite">
+        <span class="chip">Init</span>
+        <span class="chip">Photos</span>
+        <span class="chip">Run</span>
+        <span class="chip">Pages init</span>
+        <span class="chip">Pages</span>
+        <span class="chip">Interview</span>
+        <span class="chip">Stories</span>
+        <span class="chip">Voice</span>
+      </div>
+    </header>
+    <p class="lede">One campaign folder. Every skill writes into its own lane and reads from the ones upstream. If you can name the folder, you can name the skill that owns it &mdash; and that is how you debug a stuck run.</p>
+
+    <div class="body">
+
+    <div class="cols">
+      <div class="col">
+        <h3>06-content-pipeline/ &mdash; the tree</h3>
+        <div class="tree"><span class="key">01-resources/</span>          <span class="who">init writes</span>
+  matrix/ personas/      <span class="who">keyword research</span>
+  paa/ fanout/           <span class="who">question research</span>
+  dossier/ onpage/       <span class="who">business + site</span>
+  Product-Documentation.md
+  *icp*.md
+  ai-isms.md
+  <span class="key">image-library/</span>       <span class="who">photo-library</span>
+    inbox/ review/
+    <span class="key">approved/</span>          <span class="who">run reads this</span>
+    classify.mjs         <span class="who">you edit</span>
+    library-manifest.json
+
+<span class="key">02-plan/</span>               <span class="who">init writes</span>
+  editorial-roadmap.md
+  siteswarm-tag-taxonomy.md
+
+<span class="key">03-write/</span>              <span class="who">run writes</span>
+  3.1-brief/ 3.2-draft/
+  3.3-edit/ 3.4-polish/
+  3.5-images/
+
+<span class="key">pages/</span>                 <span class="who">pages-init scaffolds</span>
+  matrix/{slug}/         <span class="who">one Matrix per page</span>
+  p.1-brief/ p.2-draft/  <span class="who">pages writes</span>
+  p.3-edit/ p.4-polish/
+
+04-publish/ 05-archives/ <span class="who">not this suite</span>
+
+<span class="key">scripts/</span>               <span class="who">seeded for writers</span>
+  match-library.mjs
+  fal-generate.mjs</div>
+      </div>
+
+      <div class="col plain">
+        <h3>Manifests &mdash; the real source of truth</h3>
+        <div class="tree"><span class="key">content-pipeline-init-manifest.json</span>
+  status: init_complete | init_partial
+          awaiting_horizon | awaiting_plan
+          awaiting_taxonomy
+  plan.horizon_weeks, resource classes
+
+<span class="key">content-pipeline-run-manifest.json</span>
+  gate_mode, copywriting_model
+  current slot, per-stage status
+  next_action
+
+<span class="key">pipeline-pages-manifest.json</span>
+  setup.status: setup_complete
+  page decisions + seeds + matrix paths
+  runs[slug].matrix_terms, pd_coverage
+
+<span class="key">library-manifest.json</span>
+  every photo id, status, approved_tags</div>
+        <p class="note" style="margin-top:16px; border:0; padding:0; font-size:14.5px; color:#6b665b; line-height:1.5">Stage prose in a <em>CONTEXT.md</em> is the writing instruction. Progress lives in the manifest. After a context reset, the manifest is what tells the agent where it stopped &mdash; which is why no skill records progress by editing prose.</p>
+      </div>
+
+      <div class="col plain">
+        <h3>Ownership, in one table</h3>
+        <table class="gates" style="font-size:14px">
+          <tr><th>Folder</th><th>Written by</th><th>Read by</th></tr>
+          <tr><td>01-resources/</td><td class="dim">init</td><td class="dim">everything</td></tr>
+          <tr><td>image-library/</td><td class="dim">photo-library</td><td class="dim">run (3.5)</td></tr>
+          <tr><td>02-plan/</td><td class="dim">init</td><td class="dim">run, photo-library</td></tr>
+          <tr><td>03-write/</td><td class="dim">run</td><td class="dim">you</td></tr>
+          <tr><td>pages/matrix/</td><td class="dim">pages-init</td><td class="dim">pages</td></tr>
+          <tr><td>pages/p.*/</td><td class="dim">pages</td><td class="dim">you</td></tr>
+          <tr><td>01-intake/1.1-docs/</td><td class="dim">owner-interview</td><td class="dim">product-documentation</td></tr>
+          <tr><td>04-archives/planning/</td><td class="dim">any skill</td><td class="dim">the next session</td></tr>
+        </table>
+        <p style="margin-top:14px; font-size:14.5px; color:#6b665b; line-height:1.5"><strong style="color:#1B365D">Two rules worth memorizing.</strong> Resources are copied in, never edited in place &mdash; originals stay in <em>01-intake/</em>. And each campaign owns its own <em>classify.mjs</em>, because one business's &ldquo;keep this photo&rdquo; is another's off-topic.</p>
+      </div>
+    </div>
+
+        </div>
+
+    <div class="footer">
+      <div><strong>Debugging shortcut:</strong> read the manifest before you read the chat history. It knows the truth; the transcript only remembers it.</div>
+      <div class="out">04-publish and 05-archives exist in the template but no skill in this suite writes them</div>
+    </div>
+  </div>
+</body>
+</html>

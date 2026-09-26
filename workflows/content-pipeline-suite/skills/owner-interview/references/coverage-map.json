@@ -1,0 +1,45 @@
+{
+  "label_rule": "A field is Unknown when any line in it matches ^(?:[^:\\n]{1,40}:\\s*)?Unknown\\b. Lines starting with \"Unverified company claim\", \"Inference —\", or \"Conflict —\" set those labels. Otherwise the field is cited. A row is covered when any mapped field is not Unknown. framing-only text covers. The Internal — not for publication marker prevents the R20 block (the field is not Unknown) but does not count in the score.",
+  "unknown_pattern": "^(?:[^:\\n]{1,40}:\\s*)?Unknown\\b",
+  "unverified_prefix": "Unverified company claim",
+  "inference_prefix": "Inference —",
+  "conflict_prefix": "Conflict —",
+  "internal_marker": "Internal — not for publication",
+  "timeline_pattern": "\\b(?:\\d+\\s*(?:min(?:ute)?s?|hours?|hrs?|days?|weeks?|months?|years?)|same[- ]day|next[- ]day|annually|quarterly|monthly|weekly|seasonal|cadence|every\\s+\\d+)\\b",
+  "grid_rows": [
+    {
+      "row": "What the service is",
+      "fields": ["Description", "Scope and Inclusions"]
+    },
+    {
+      "row": "How it is delivered",
+      "fields": ["Delivery Process"]
+    },
+    {
+      "row": "Techniques or tools",
+      "fields": ["Delivery Process", "Differentiators"]
+    },
+    {
+      "row": "What the customer can expect",
+      "fields": ["Outcomes and Benefits", "Credentials and Proof"]
+    },
+    {
+      "row": "Timeline",
+      "fields": ["Delivery Process", "Constraints and Exclusions"],
+      "delivery_process_requires": "timeline_pattern"
+    },
+    {
+      "row": "Average cost or pricing",
+      "fields": ["Pricing, Packaging, and CTA"]
+    },
+    {
+      "row": "FAQs",
+      "fields": [],
+      "paa": {
+        "dir": "01-resources/paa",
+        "basename_glob": "paa-*",
+        "match": "slug_or_slugified_seed"
+      }
+    }
+  ]
+}

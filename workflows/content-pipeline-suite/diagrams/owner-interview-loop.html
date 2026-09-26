@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Owner Interview Loop</title>
+  <link rel="stylesheet" href="diagram.css" />
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <div class="kicker">Semantic Mastery &middot; Content Pipeline</div>
+        <h1>6. Owner Interview &mdash; the repair loop</h1>
+      </div>
+      <div class="suite">
+        <span class="chip">Init</span>
+        <span class="chip">Photos</span>
+        <span class="chip">Run</span>
+        <span class="chip">Pages init</span>
+        <span class="chip">Pages</span>
+        <span class="chip on">Interview</span>
+        <span class="chip">Stories</span>
+      </div>
+    </header>
+    <p class="lede">Not a step in a line. This is what you run when the page evidence gate says <strong>block</strong>. A blocked page is not a prompting problem &mdash; it means nobody has told you how this business actually delivers the service, so there is nothing honest to write.</p>
+
+    <div class="body">
+
+    <div class="row-label">Where it enters</div>
+    <div class="flow">
+      <div class="step consume"><div class="n">Trigger</div><h2>pd-coverage: block</h2><p>Too many grid rows are Unknown, Unverified, or in Conflict. No run row is created. The message names this skill and the scope slug.</p></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step"><div class="n">01</div><h2>Gaps</h2><p>Typed gap list per offering or company-wide, pulled from product documentation, briefs, crawl, and any live-page text you paste in.</p></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step"><div class="n">02</div><h2>Pack</h2><p>You draft the wording from the gaps plus the industry seed. The script validates, caps, orders, and renders a JSON + Markdown pair.</p></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step hitl"><div class="n">03 &middot; you</div><h2>Interview</h2><p>Call, filled pack, chat, or your own hosted voice agent. Asked in pack order. No invented questions, no paraphrasing toward specificity.</p></div>
+    </div>
+
+    <div class="flow">
+      <div class="step hitl"><div class="n">04 &middot; you</div><h2>Record</h2><p>You confirm the note-to-question mapping before a single answer is written. Unmapped notes are kept but never compiled.</p></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step"><div class="n">05</div><h2>Compile plan</h2><p>A tagged refresh diff. This skill stops here &mdash; it does not write product documentation itself.</p></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step hitl"><div class="n">06 &middot; you</div><h2>PD refresh</h2><p><em>product-documentation</em> owns the overwrite and the source precedence. You confirm before it lands. The record gets a <em>PD-SRC</em> id back.</p></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step"><div class="n">07</div><h2>Re-sync</h2><p>Init's <em>sync-resources</em> copies the refreshed doc into <em>01-resources/</em> so produce reads the new truth.</p></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step stop"><div class="n">Back</div><h2>Page passes</h2><p>Re-run the evidence gate on that slug and continue. The claim now has a citable first-party source.</p></div>
+    </div>
+
+    <div class="row-label">Why the loop is this strict</div>
+    <div class="notes">
+      <div class="note"><h3>Record state machine</h3><p><em>open &rarr; captured &rarr; compiled &rarr; superseded</em>. Illegal transitions exit with an error rather than guessing.</p></div>
+      <div class="note"><h3>No free-text parser</h3><p>There is deliberately no <em>--from-notes</em>. Automatic note parsing is exactly where invented facts get in.</p></div>
+      <div class="note"><h3>Seeds ask, never assert</h3><p>An industry seed suggests questions to ask. It never states a fact about this business.</p></div>
+      <div class="note"><h3>Waiving is on the record</h3><p>You may waive a block and write anyway. The waiver is persisted with your name, so it is a decision, not an accident.</p></div>
+    </div>
+
+        </div>
+
+    <div class="footer">
+      <div><strong>The point:</strong> turn &ldquo;we could not verify that&rdquo; into a sentence the owner actually said, with a source id attached.</div>
+      <div class="out">Out of scope: visitor copy, self-serve forms, customer research, a second PD writer</div>
+    </div>
+  </div>
+</body>
+</html>

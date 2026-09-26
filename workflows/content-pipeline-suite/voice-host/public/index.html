@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{page_title}}</title>
+  <link rel="stylesheet" href="/app.css" />
+</head>
+<body>
+  <main data-session-id="{{session_id}}" data-agent-kind="{{agent_kind}}" data-released="{{released}}">
+    <p id="page-state">{{page_state}}</p>
+    <h1 id="service">{{service_title}}</h1>
+    <p id="notice">{{notice}}</p>
+    <div id="release" hidden>
+      <label for="release-name">Type your name to confirm</label>
+      <input id="release-name" name="release-name" type="text" autocomplete="name" />
+      <button type="button" id="release-confirm">Confirm</button>
+    </div>
+    {{start_button}}
+    <p id="live" hidden>Live</p>
+    <p id="status"></p>
+    <p id="phase"></p>
+    <p id="card"></p>
+    <div id="taps" hidden>
+      <p id="publish-lead">When asked how we may use what you just said:</p>
+      <ul id="publish-legend">
+        <li><strong>Public</strong> — we may put it on the website as you said it.</li>
+        <li><strong>Framing-only</strong> — we may use the idea in general language, without specific numbers, brands, or names.</li>
+        <li><strong>Internal</strong> — we keep it in the interview record only. It will not appear on the website.</li>
+      </ul>
+      <div id="tap-buttons">
+        <button type="button" data-tap="public">Public</button>
+        <button type="button" data-tap="framing-only">Framing-only</button>
+        <button type="button" data-tap="internal">Internal</button>
+      </div>
+    </div>
+  </main>
+  <script src="/retell-client.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

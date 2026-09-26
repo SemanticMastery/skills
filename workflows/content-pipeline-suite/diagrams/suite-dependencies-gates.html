@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Suite Dependencies and Gates</title>
+  <link rel="stylesheet" href="diagram.css" />
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <div class="kicker">Semantic Mastery &middot; Content Pipeline</div>
+        <h1>Every gate, and what clears it</h1>
+      </div>
+      <div class="suite">
+        <span class="chip">Init</span>
+        <span class="chip">Photos</span>
+        <span class="chip">Run</span>
+        <span class="chip">Pages init</span>
+        <span class="chip">Pages</span>
+        <span class="chip">Interview</span>
+        <span class="chip">Stories</span>
+        <span class="chip">Voice</span>
+      </div>
+    </header>
+    <p class="lede">These skills stop on purpose. A stop is not a bug and it is not something to prompt your way around &mdash; it means a real input is missing. This is the whole list, in the order you will hit them.</p>
+
+    <div class="body">
+
+    <table class="gates">
+      <tr>
+        <th style="width:180px">Skill</th>
+        <th style="width:120px">Kind</th>
+        <th style="width:330px">Stops when</th>
+        <th>What clears it</th>
+      </tr>
+      <tr>
+        <td>every skill</td>
+        <td><span class="tag hard">hard</span></td>
+        <td>No <code>campaign_dir</code> named at invoke</td>
+        <td class="dim">Give the absolute campaign path. The agent confirms it in chat before it writes anything.</td>
+      </tr>
+      <tr>
+        <td>content-pipeline-init</td>
+        <td><span class="tag hard">hard</span></td>
+        <td>Matrix, personas, PAA, or fanout missing &mdash; the keyword gate</td>
+        <td class="dim">You supply seed keywords, plus a location for PAA. The agent may not infer keywords from campaign docs or the dossier.</td>
+      </tr>
+      <tr>
+        <td>content-pipeline-init</td>
+        <td><span class="tag">ask</span></td>
+        <td>No roadmap yet and no horizon chosen</td>
+        <td class="dim">Pick 13 weeks (39 posts) or 26 weeks (78). Never invented for you.</td>
+      </tr>
+      <tr>
+        <td>content-pipeline-init</td>
+        <td><span class="tag">approve</span></td>
+        <td>A paid API is about to run (Grok dossier compose, DataForSEO crawl)</td>
+        <td class="dim">Explicit approval in that session. Silence is not consent.</td>
+      </tr>
+      <tr>
+        <td>content-pipeline-photo-library</td>
+        <td><span class="tag hard">hard</span></td>
+        <td>No <code>02-plan/siteswarm-tag-taxonomy.md</code></td>
+        <td class="dim">Finish init steps 6&ndash;7. Classify needs a real tag allowlist; invented tags are refused.</td>
+      </tr>
+      <tr>
+        <td>content-pipeline-photo-library</td>
+        <td><span class="tag hard">hard</span></td>
+        <td>Campaign <code>image-library/classify.mjs</code> missing or still the unedited template</td>
+        <td class="dim">Copy the template, write this business's KEEP / OFF_TOPIC lists, set <code>CLASSIFIER_READY = true</code>. Two campaigns never share a prompt.</td>
+      </tr>
+      <tr>
+        <td>content-pipeline-photo-library</td>
+        <td><span class="tag hard">HITL</span></td>
+        <td>Photos sit in <code>review/</code></td>
+        <td class="dim">You approve, reject, or retag each id. The agent never self-approves, even in <em>auto</em> gate mode.</td>
+      </tr>
+      <tr>
+        <td>content-pipeline-run</td>
+        <td><span class="tag hard">hard</span></td>
+        <td>Init not <em>init_complete</em>, or roadmap / taxonomy missing</td>
+        <td class="dim">Go back to init. Run will not write a roadmap or invent tags to unblock itself.</td>
+      </tr>
+      <tr>
+        <td>content-pipeline-run<br>content-pipeline-pages</td>
+        <td><span class="tag hard">refuse</span></td>
+        <td>Copy stage would run on Claude / any Anthropic model, including <em>inherit</em> on a Claude chat</td>
+        <td class="dim">Switch the chat to Grok 4.6 or ChatGPT-5.6 Terra, or pin a non-Anthropic id. There is no override.</td>
+      </tr>
+      <tr>
+        <td>pipeline-pages-init</td>
+        <td><span class="tag hard">HITL</span></td>
+        <td>Crawl-only or catalog-only pages are still flagged</td>
+        <td class="dim">Decide include / skip / defer on each leftover, then approve the list.</td>
+      </tr>
+      <tr>
+        <td>pipeline-pages-init</td>
+        <td><span class="tag hard">HITL</span></td>
+        <td>Status is <em>awaiting_seed_confirm</em></td>
+        <td class="dim">Confirm the commercial-intent seed table. No Content Maxima run happens before this.</td>
+      </tr>
+      <tr>
+        <td>content-pipeline-pages</td>
+        <td><span class="tag hard">hard</span></td>
+        <td>Evidence gate returns <strong>block</strong> &mdash; too much of the grid is Unknown</td>
+        <td class="dim">Run <strong>owner-interview</strong>, refresh product documentation, re-sync. Or waive it in chat and own the decision on the record.</td>
+      </tr>
+      <tr>
+        <td>content-pipeline-pages</td>
+        <td><span class="tag hard">hard</span></td>
+        <td>No Matrix terms recorded for the slug</td>
+        <td class="dim">List the terms for this page, or authorize the Count 40+ default. No brief is written before this.</td>
+      </tr>
+      <tr>
+        <td>owner-interview</td>
+        <td><span class="tag hard">HITL</span></td>
+        <td>Notes are not yet mapped to question IDs</td>
+        <td class="dim">Confirm the mapping table in chat. Unmapped notes are recorded but never compiled.</td>
+      </tr>
+      <tr>
+        <td>owner-interview</td>
+        <td><span class="tag">approve</span></td>
+        <td>About to create or send a voice link</td>
+        <td class="dim">Explicit yes. Printing a link is not sending it &mdash; delivery is always your act.</td>
+      </tr>
+      <tr>
+        <td>expert-interview</td>
+        <td><span class="tag">approve</span></td>
+        <td>Worker deploy, Retell <code>--apply</code>, first agency calendar settings, or sending an invite</td>
+        <td class="dim">Ask before each. Same voice host as owner-interview (<code>retell/expert</code>). The skill never DMs the spokesperson.</td>
+      </tr>
+      <tr>
+        <td>voice-interview</td>
+        <td><span class="tag">approve</span></td>
+        <td>Worker deploy, Retell <code>--apply</code>, Voice DNA overwrite, under-floor accept, or speaker verification at land</td>
+        <td class="dim">Ask before each. Same voice host (<code>retell/voice</code>, <code>/v/</code>). Companion <code>voice-extractor</code> is a separate install. The skill never DMs the interviewee.</td>
+      </tr>
+    </table>
+
+        </div>
+
+    <div class="footer">
+      <div><strong>gate_mode is separate:</strong> <em>review</em> pauses after each produce stage, <em>auto</em> chains them. Neither one turns off the gates above.</div>
+      <div class="out">Every skill also stops after its last stage &mdash; publishing and archiving are outside the suite</div>
+    </div>
+  </div>
+</body>
+</html>

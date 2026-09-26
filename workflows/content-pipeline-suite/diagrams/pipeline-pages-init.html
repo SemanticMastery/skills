@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Pipeline Pages Init</title>
+  <link rel="stylesheet" href="diagram.css" />
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <div class="kicker">Semantic Mastery &middot; Content Pipeline</div>
+        <h1>4. Pipeline Pages Init</h1>
+      </div>
+      <div class="suite">
+        <span class="chip">Init</span>
+        <span class="chip">Photos</span>
+        <span class="chip">Run</span>
+        <span class="chip on">Pages init</span>
+        <span class="chip">Pages</span>
+        <span class="chip">Interview</span>
+      </div>
+    </header>
+    <p class="lede">Setup operator. Decide <strong>which service pages exist</strong> and get one Content Maxima Matrix for each. This is the pages-side sibling of Init &mdash; it reads the research pack Init already built and never gathers its own.</p>
+
+    <div class="body">
+
+    <div class="row-label">Inputs it requires</div>
+    <div class="notes">
+      <div class="note"><h3>On-page crawl</h3><p><em>01-resources/onpage-crawl-*.csv</em> &mdash; what the site actually publishes today.</p></div>
+      <div class="note"><h3>Product documentation</h3><p><em>01-resources/Product-Documentation.md</em> &mdash; the offering catalog and the evidence grid behind it.</p></div>
+      <div class="note"><h3>Content Maxima access</h3><p>Your own login. Official <em>Tools/Matrix.ts</em> through Playwright. A login block is reported, never worked around.</p></div>
+    </div>
+
+    <div class="row-label">Setup sequence</div>
+    <div class="flow">
+      <div class="step"><div class="n">01</div><h2>Scaffold</h2><p>Copy-if-missing <em>pages/</em> with the four stage prompts, plus a starter manifest. Never overwrites an existing CONTEXT.md.</p></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step"><div class="n">02</div><h2>Extract</h2><p>Reconcile crawl against catalog into three buckets: both, crawl-only, catalog-only. Stops before any Matrix.</p></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step hitl"><div class="n">03 &middot; you</div><h2>Reconcile</h2><p>The <em>both</em> set is the default include. Every leftover waits on your include / skip / defer call.</p></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step hitl"><div class="n">04 &middot; you</div><h2>Confirm seeds</h2><p>Approve the commercial-intent seed for each page. Status is <em>awaiting_seed_confirm</em> until you do.</p></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step"><div class="n">05</div><h2>Matrix loop</h2><p>One approved page at a time. Resume skips a slug whose matrix folder is already filled.</p></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step stop"><div class="n">06</div><h2>setup_complete</h2><p>Manifest marked, routing row proposed. Hand one slug to content-pipeline-pages.</p></div>
+    </div>
+
+    <div class="row-label">The three buckets, and why leftovers matter</div>
+    <div class="notes">
+      <div class="note"><h3>both</h3><p>A live URL <em>and</em> a catalog offering. Default include &mdash; this is the page you rewrite.</p></div>
+      <div class="note"><h3>crawl-only</h3><p>A live page with no offering behind it. Usually a retired service or a stray URL. Skipping it is often correct.</p></div>
+      <div class="note"><h3>catalog-only</h3><p>An offering with no page yet. This is new revenue you can launch &mdash; or a service they stopped selling. Only the owner knows.</p></div>
+      <div class="note"><h3>Seeds are derived</h3><p>Slug or offering name, plus <em>&nbsp;service</em> unless the last word is already service, services, treatment, response, plan, or plans.</p></div>
+    </div>
+
+        </div>
+
+    <div class="footer">
+      <div><strong>Two stops on purpose:</strong> Matrix runs cost time and hit a real login, so nothing runs until the page list and the seed table are both yours.</div>
+      <div class="out">Out of scope: page copy, blog produce, images, CMS push, location pages</div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,76 @@
+body {
+  font-family: Georgia, "Times New Roman", serif;
+  margin: 2rem auto;
+  max-width: 40rem;
+  line-height: 1.5;
+}
+#service {
+  margin: 0 0 0.4rem;
+  font-size: 1.65rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+button {
+  margin-right: 0.5rem;
+  padding: 0.4rem 0.8rem;
+}
+#taps[hidden] {
+  display: none;
+}
+#taps {
+  margin-top: 1.25rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #ccc;
+  background: #f7f7f4;
+}
+#publish-lead {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+#publish-legend {
+  margin: 0 0 0.85rem;
+  padding-left: 1.2rem;
+}
+#publish-legend li {
+  margin-bottom: 0.4rem;
+}
+#tap-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+#live {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+#live[hidden] {
+  display: none;
+}
+#live::before {
+  content: "";
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: #128a3e;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+#phase {
+  min-height: 1.5em;
+  color: #333;
+}
+#status {
+  min-height: 1.5em;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}

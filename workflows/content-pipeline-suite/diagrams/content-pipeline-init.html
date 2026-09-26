@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Content Pipeline Init</title>
+  <style>
+    @page { size: 1920px 1080px; margin: 0; }
+    html, body { margin: 0; padding: 0; width: 1920px; height: 1080px; overflow: hidden; }
+    body {
+      background: #f5f4ef;
+      color: #1f1d18;
+      font-family: Charter, "Source Serif Pro", "Iowan Old Style", Georgia, serif;
+    }
+    .page { box-sizing: border-box; width: 1920px; height: 1080px; padding: 40px 48px 32px; display: flex; flex-direction: column; }
+    header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d4d1c5; padding-bottom: 12px; }
+    .kicker { font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: #6b665b; font-family: "Segoe UI", sans-serif; }
+    h1 { margin: 8px 0 0; font-size: 40px; font-weight: 500; letter-spacing: -0.02em; color: #1B365D; }
+    .suite { display: flex; gap: 8px; font-family: "Segoe UI", sans-serif; font-size: 13px; }
+    .chip { padding: 6px 12px; border: 1px solid #d4d1c5; color: #6b665b; }
+    .chip.on { background: #1B365D; color: #f5f4ef; border-color: #1B365D; }
+    .lede { margin: 16px 0 20px; font-size: 18px; color: #6b665b; max-width: 1400px; }
+    .row-label { font-family: "Segoe UI", sans-serif; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #1B365D; margin: 0 0 10px; }
+    .flow { display: flex; align-items: stretch; gap: 0; margin-bottom: 22px; }
+    .step {
+      flex: 1;
+      background: #efeee5;
+      border: 1px solid #d4d1c5;
+      padding: 14px 14px 12px;
+      min-height: 132px;
+    }
+    .step .n { font-family: "Segoe UI", sans-serif; font-size: 12px; color: #1B365D; letter-spacing: 0.08em; }
+    .step h2 { margin: 6px 0 6px; font-size: 18px; font-weight: 500; line-height: 1.2; }
+    .step p { margin: 0; font-size: 14px; line-height: 1.4; color: #6b665b; }
+    .arrow { width: 28px; display: flex; align-items: center; justify-content: center; color: #1B365D; font-size: 22px; flex: 0 0 28px; }
+    .gate { background: #e8e4d4; }
+    .moved { background: #1B365D; color: #f5f4ef; border-color: #1B365D; }
+    .moved p, .moved .n { color: #c9d4e2; }
+    .moved h2 { color: #f5f4ef; }
+    .tag { display: inline-block; font-family: "Segoe UI", sans-serif; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; background: #1B365D; color: #f5f4ef; padding: 2px 6px; margin-bottom: 4px; }
+    .moved .tag { background: #f5f4ef; color: #1B365D; }
+    .footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #d4d1c5; padding-top: 14px; font-size: 15px; }
+    .footer strong { color: #1B365D; }
+    .out { color: #6b665b; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <div class="kicker">Semantic Mastery · Content Pipeline</div>
+        <h1>1. Content Pipeline Init</h1>
+      </div>
+      <div class="suite">
+        <span class="chip on">Init</span>
+        <span class="chip">Photos</span>
+        <span class="chip">Run</span>
+        <span class="chip">Pages init</span>
+        <span class="chip">Pages</span>
+        <span class="chip">Interview</span>
+      </div>
+    </header>
+    <p class="lede">One campaign folder. Build the research pack, then the Editorial Roadmap and SiteSwarm tag taxonomy. Do not produce posts here.</p>
+
+    <div class="row-label">A · Research pack — missing companions only</div>
+    <div class="flow">
+      <div class="step"><div class="n">00</div><h2>Pin campaign</h2><p>Operator names <em>campaign_dir</em>. Confirm the absolute path before any writes.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">01</div><h2>Scaffold ICM</h2><p>Copy missing files from Content-Pipeline-ICM into <em>06-content-pipeline/</em>. Never overwrite filled work.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">02</div><h2>Inventory</h2><p>Scan for the eight research classes. Write <em>content-pipeline-init-manifest.json</em>.</p></div>
+      <div class="arrow">→</div>
+      <div class="step gate"><div class="n">03</div><h2>Keyword gate</h2><p>If matrix, personas, PAA, or fanout are missing: stop. Ask for keywords and PAA location. Do not infer.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">04</div><h2>Companion waves</h2><p>Wave 1 dossier. Wave 2 crawl, matrix, personas, PAA, fanout. Wave 3 product-doc + ICP. Paid APIs need approval.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">05</div><h2>Copy pack</h2><p>Flat-copy matching files into <em>01-resources/</em>. Leave intake originals untouched.</p></div>
+    </div>
+
+    <div class="row-label">B · Plan — moved here so photo library can classify</div>
+    <div class="flow">
+      <div class="step moved"><span class="tag">Moved from Run</span><div class="n">06</div><h2>Horizon + roadmap</h2><p>Ask 13 weeks (39) or 26 weeks (78). Execute <em>02-plan/CONTEXT.md</em> verbatim. Write only the markdown table.</p></div>
+      <div class="arrow">→</div>
+      <div class="step moved"><span class="tag">Moved from Run</span><div class="n">07</div><h2>SiteSwarm taxonomy</h2><p>Condense roadmap Clusters into Title Case tags. Write <em>02-plan/siteswarm-tag-taxonomy.md</em>. Reuse sibling vertical tags.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">08</div><h2>init_complete</h2><p>All 8 classes + <em>ai-isms.md</em> + roadmap + taxonomy. Otherwise stay partial / awaiting plan.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">Next</div><h2>Photo library</h2><p>Setup operator ingests and approves photos against that allowlist. Then the writing team can Run.</p></div>
+    </div>
+
+    <div class="footer">
+      <div><strong>Reuse rule:</strong> already-present research, roadmaps, and taxonomies are kept. Rebuild only if the operator asks.</div>
+      <div class="out">Out of scope: brief → images, CMS publish</div>
+    </div>
+  </div>
+</body>
+</html>

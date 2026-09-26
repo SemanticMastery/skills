@@ -1,0 +1,50 @@
+{
+  "name": "owner-interview-host",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-03-21",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/s/*",
+      "/e/*",
+      "/i/*",
+      "/v/*",
+      "/admin/*",
+      "/retell/*",
+      "/v3/*",
+      "/q",
+      "/tap"
+    ]
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "SESSION", "class_name": "InterviewSession" },
+      { "name": "INDEX", "class_name": "SessionIndex" },
+      { "name": "SERIES", "class_name": "Series" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["InterviewSession", "SessionIndex"] },
+    { "tag": "v2", "new_sqlite_classes": ["Series"] }
+  ],
+  // Optional custom domain: add a "routes" array for a hostname in THIS
+  // Cloudflare account, then set PUBLIC_ORIGIN to https://that-host.
+  // Do not copy anyone else's domain.
+  "vars": {
+    "RETELL_AGENT_ID": "REPLACE_WITH_YOUR_RETELL_AGENT_ID",
+    "RETELL_EXPERT_AGENT_ID": "REPLACE_WITH_YOUR_RETELL_EXPERT_AGENT_ID",
+    "RETELL_VOICE_AGENT_ID": "REPLACE_WITH_YOUR_RETELL_VOICE_AGENT_ID",
+    "PUBLIC_ORIGIN": "https://REPLACE_WITH_YOUR_PUBLIC_ORIGIN",
+    "LINK_EXPIRY_DAYS": "7",
+    "VOICE_LINK_EXPIRY_DAYS": "2",
+    "RETENTION_DAYS": "30",
+    "START_CAP": "5",
+    "EXPERT_START_CAP": "8"
+  },
+  "secrets": {
+    "required": ["RETELL_API_KEY", "OWNER_INTERVIEW_HOST_TOKEN"]
+  }
+}

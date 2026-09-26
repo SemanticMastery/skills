@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Content Pipeline Suite Map</title>
+  <link rel="stylesheet" href="diagram.css" />
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <div class="kicker">Semantic Mastery &middot; Content Pipeline</div>
+        <h1>The suite at a glance</h1>
+      </div>
+      <div class="suite">
+        <span class="chip on">Init</span>
+        <span class="chip on">Photos</span>
+        <span class="chip on">Run</span>
+        <span class="chip on">Pages init</span>
+        <span class="chip on">Pages</span>
+        <span class="chip on">Interview</span>
+        <span class="chip on">Stories</span>
+        <span class="chip on">Voice</span>
+      </div>
+    </header>
+    <p class="lede">Eight skills, one suite. <strong>One research foundation</strong> feeds <strong>two production tracks</strong>. Three sibling interviews capture different things: <strong>facts</strong>, <strong>stories</strong>, and <strong>how they sound</strong>. Research is built once; both tracks read the same pack.</p>
+
+    <div class="body">
+
+    <div class="row-label">Shared foundation &mdash; once per campaign</div>
+    <div class="foundation">
+      <h2>1 &middot; content-pipeline-init</h2>
+      <p>Scaffolds <em>06-content-pipeline/</em>, gathers eight research classes into <em>01-resources/</em>, then writes the Editorial Roadmap and the SiteSwarm tag taxonomy into <em>02-plan/</em>. Both tracks are blocked until this reports <em>init_complete</em>. Nobody builds a second research pack.</p>
+    </div>
+
+    <div class="row-label">Two production tracks &mdash; same pack, different output</div>
+
+    <div class="lane">
+      <div class="lane-tag">
+        <div class="t">Blog track</div>
+        <div class="s">Roadmap-driven. One slot at a time. Ends with images.</div>
+      </div>
+      <div class="step"><div class="n">2</div><h2>content-pipeline-photo-library</h2><p>Ingest owner photos from GBP, Facebook, Instagram. Classify against the SiteSwarm allowlist. <strong>You</strong> approve, reject, or retag every photo.</p></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step"><div class="n">3</div><h2>content-pipeline-run</h2><p>Pick one roadmap slot. Brief &rarr; draft &rarr; edit &rarr; polish &rarr; images. Consumes approved photos; falls back to Fal on a miss.</p></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step stop"><div class="n">Out</div><h2>Post package</h2><p>Polish markdown plus generated or matched PNGs. Publishing is out of scope.</p></div>
+    </div>
+
+    <div class="lane">
+      <div class="lane-tag">
+        <div class="t">Service page track</div>
+        <div class="s">Catalog-driven. One slug at a time. No images.</div>
+      </div>
+      <div class="step"><div class="n">4</div><h2>pipeline-pages-init</h2><p>Reconcile live pages against the offering catalog. You decide the leftovers and confirm seeds. One Content Maxima Matrix per approved page.</p></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step"><div class="n">5</div><h2>content-pipeline-pages</h2><p>One approved slug. Evidence gate, then Matrix terms, then brief &rarr; draft &rarr; edit &rarr; polish.</p></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step stop"><div class="n">Out</div><h2>Two builder zones</h2><p>Main copy and FAQs, each in Markdown and HTML, ready to paste into the page builder.</p></div>
+    </div>
+
+    <div class="row-label">Three sibling interviews &mdash; facts, stories, voice</div>
+    <div class="repair-trio">
+    <div class="repair">
+      <h2>6 &middot; owner-interview</h2>
+      <p>When the page evidence gate returns <strong>block</strong>. Gaps &rarr; pack &rarr; capture &rarr; compile through <em>product-documentation</em> &rarr; re-sync. <strong>Facts.</strong> Never visitor copy.</p>
+    </div>
+    <div class="repair">
+      <h2>7 &middot; expert-interview</h2>
+      <p>After PD exists, on a calendar. Stable <em>/e/</em> link on the <strong>same</strong> voice host. Stories land in <em>{Company}-story-bank.md</em>. A <em>pd_candidate</em> is a handoff, not a PD write.</p>
+    </div>
+    <div class="repair">
+      <h2>8 &middot; voice-interview</h2>
+      <p>When draft needs a spoken-source Voice DNA. One <em>/v/</em> link, same Worker, <em>retell/voice</em>. Lands <em>{author}-voice-dna.json</em>. Does not write copy, facts, or stories.</p>
+    </div>
+    </div>
+
+        </div>
+
+    <div class="footer">
+      <div><strong>Read the arrows as gates, not suggestions:</strong> nothing downstream starts until the thing to its left is genuinely finished.</div>
+      <div class="out">Both tracks live under the same campaign folder and never share a stage directory</div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Content Pipeline Photo Library</title>
+  <style>
+    html, body { margin: 0; padding: 0; width: 1920px; height: 1080px; overflow: hidden; }
+    body { background: #f5f4ef; color: #1f1d18; font-family: Charter, "Source Serif Pro", "Iowan Old Style", Georgia, serif; }
+    .page { box-sizing: border-box; width: 1920px; height: 1080px; padding: 40px 48px 32px; display: flex; flex-direction: column; }
+    header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d4d1c5; padding-bottom: 12px; }
+    .kicker { font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: #6b665b; font-family: "Segoe UI", sans-serif; }
+    h1 { margin: 8px 0 0; font-size: 40px; font-weight: 500; letter-spacing: -0.02em; color: #1B365D; }
+    .suite { display: flex; gap: 8px; font-family: "Segoe UI", sans-serif; font-size: 13px; }
+    .chip { padding: 6px 12px; border: 1px solid #d4d1c5; color: #6b665b; }
+    .chip.on { background: #1B365D; color: #f5f4ef; border-color: #1B365D; }
+    .lede { margin: 16px 0 20px; font-size: 18px; color: #6b665b; max-width: 1500px; }
+    .row-label { font-family: "Segoe UI", sans-serif; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #1B365D; margin: 0 0 10px; }
+    .flow { display: flex; align-items: stretch; gap: 0; margin-bottom: 20px; }
+    .step { flex: 1; background: #efeee5; border: 1px solid #d4d1c5; padding: 14px 14px 12px; min-height: 148px; }
+    .step .n { font-family: "Segoe UI", sans-serif; font-size: 12px; color: #1B365D; letter-spacing: 0.08em; }
+    .step h2 { margin: 6px 0 6px; font-size: 20px; font-weight: 500; line-height: 1.2; }
+    .step p { margin: 0; font-size: 15px; line-height: 1.4; color: #6b665b; }
+    .arrow { width: 32px; display: flex; align-items: center; justify-content: center; color: #1B365D; font-size: 24px; flex: 0 0 32px; }
+    .gate { background: #e8e4d4; }
+    .hitl { background: #1B365D; color: #f5f4ef; border-color: #1B365D; }
+    .hitl p, .hitl .n { color: #c9d4e2; }
+    .hitl h2 { color: #f5f4ef; }
+    .sources { display: flex; gap: 16px; margin-bottom: 20px; }
+    .src { flex: 1; border: 1px solid #d4d1c5; padding: 14px 16px; background: #f5f4ef; }
+    .src h3 { margin: 0 0 6px; font-size: 18px; font-weight: 500; color: #1B365D; }
+    .src p { margin: 0; font-size: 14px; color: #6b665b; line-height: 1.4; }
+    .footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #d4d1c5; padding-top: 14px; font-size: 15px; }
+    .footer strong { color: #1B365D; }
+    .out { color: #6b665b; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <div class="kicker">Semantic Mastery · Content Pipeline</div>
+        <h1>2. Photo Library</h1>
+      </div>
+      <div class="suite">
+        <span class="chip">Init</span>
+        <span class="chip on">Photos</span>
+        <span class="chip">Run</span>
+        <span class="chip">Pages init</span>
+        <span class="chip">Pages</span>
+        <span class="chip">Interview</span>
+      </div>
+    </header>
+    <p class="lede">Setup operator only — after <em>init_complete</em>. Classify against the SiteSwarm allowlist from Init. Writers later consume <em>approved/</em> at 3.5-images; they do not build this library.</p>
+
+    <div class="row-label">Prerequisite</div>
+    <div class="sources">
+      <div class="src"><h3>Taxonomy allowlist</h3><p><em>02-plan/siteswarm-tag-taxonomy.md</em> (fallback: existing 04-publish copy). Missing file is a hard-stop. Do not invent tags.</p></div>
+      <div class="src"><h3>Campaign classifier</h3><p>Copy <em>classify.mjs</em> into this campaign’s image-library. Edit KEEP / OFF_TOPIC. Two campaigns never share a prompt.</p></div>
+      <div class="src"><h3>Sources.md</h3><p>GBP, Facebook, and Instagram page URLs for this brand. No login scrape. Stop that source on a login wall.</p></div>
+    </div>
+
+    <div class="row-label">Build the library</div>
+    <div class="flow">
+      <div class="step"><div class="n">01</div><h2>Extract</h2><p>GBP first: SerpAPI Maps Photos, By owner. Facebook and Instagram via Monid discover → inspect → run.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">02</div><h2>Ingest</h2><p>Keep JPEG, PNG, WebP, GIF only. Skip posts, stock, UGC, video, and non-image bytes. Persist into <em>inbox/</em>.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">03</div><h2>Classify</h2><p>Gemini tags from the allowlist. Off-topic and dated promo are filtered out — that is not an approve.</p></div>
+      <div class="arrow">→</div>
+      <div class="step hitl"><div class="n">04</div><h2>HITL review</h2><p>Operator: approve, reject, retag, or requeue. The agent never self-approves. Approved files are named by topic tag.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">05</div><h2>Handoff</h2><p><em>01-resources/image-library/approved/</em> is ready. Writing team runs Content Pipeline Run and matches at 3.5-images.</p></div>
+    </div>
+
+    <div class="footer">
+      <div><strong>Evergreen only:</strong> skip sports, parties, wrecked-car-as-subject, fundraising, Venmo overlays, and other dated campaign text.</div>
+      <div class="out">Out of scope: Fal keys, SiteSwarm publish, a company-wide shared pool</div>
+    </div>
+  </div>
+</body>
+</html>

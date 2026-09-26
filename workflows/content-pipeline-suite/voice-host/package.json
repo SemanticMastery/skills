@@ -1,0 +1,21 @@
+{
+  "name": "owner-interview-host",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "vendor-sdk": "node scripts/vendor-sdk.mjs",
+    "predeploy": "node scripts/vendor-sdk.mjs",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "4.20260305.0",
+    "typescript": "^5.9.2",
+    "vitest": "~3.2.4",
+    "wrangler": "4.35.0"
+  },
+  "dependencies": {
+    "retell-client-js-sdk": "3.0.1"
+  }
+}

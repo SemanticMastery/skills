@@ -1,0 +1,7 @@
+node_modules/
+.env
+.cache/
+ContentMaxima/
+*.xlsx
+*.pdf
+debug-error-*.png

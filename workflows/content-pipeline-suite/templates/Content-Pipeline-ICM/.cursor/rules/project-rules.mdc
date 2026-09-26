@@ -1,0 +1,17 @@
+---
+description: Thin Cursor pointer into ICM PROJECT-RULES + CONTEXT for Content-Pipeline-ICM
+globs:
+alwaysApply: true
+---
+
+# Cursor rules pointer
+
+Canonical ICM rules: `PROJECT-RULES.mdc`
+
+Campaign/project router: `CONTEXT.md`
+
+Handoff: `HOW-TO-WORK-THIS-PROJECT.md`
+
+Do not duplicate the full tree here. Update the canonical PROJECT-RULES / CONTEXT files instead.
+
+This tree is a reusable campaign template. See root `CONTEXT.md` for permanent vs campaign-supplied resources.
