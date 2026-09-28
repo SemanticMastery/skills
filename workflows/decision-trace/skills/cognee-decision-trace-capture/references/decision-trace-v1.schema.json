@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/decision-trace-v1.schema.json",
+  "title": "DecisionTrace",
+  "description": "Canonical decision trace stored in Cognee and mirrored under the campaign folder",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "record_type",
+    "trace_id",
+    "source_system",
+    "captured_at",
+    "client_slug",
+    "topic",
+    "decision",
+    "content_markdown"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0" },
+    "record_type": { "type": "string", "const": "decision_trace" },
+    "trace_id": { "type": "string", "format": "uuid" },
+    "source_system": {
+      "type": "string",
+      "enum": ["manual", "cognee-dtc", "slack-decision-capture"]
+    },
+    "captured_at": { "type": "string", "format": "date-time" },
+    "client_slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "client_id": { "type": ["string", "integer"] },
+    "order_id": { "type": "string" },
+    "company": { "type": "string" },
+    "service": { "type": "string" },
+    "campaign_name": { "type": "string" },
+    "topic": { "type": "string", "minLength": 1 },
+    "decision": { "type": "string", "minLength": 1 },
+    "alternatives": { "type": "array", "items": { "type": "string" } },
+    "rationale_chain": { "type": "array", "items": { "type": "string" } },
+    "constraints": { "type": "array", "items": { "type": "string" } },
+    "rejected_options": { "type": "array", "items": { "type": "string" } },
+    "classifier_tags": { "type": "array", "items": { "type": "string" } },
+    "importance": { "type": "string", "enum": ["critical", "high", "medium", "low"] },
+    "knowledge_category": { "type": "string" },
+    "source_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "ref"],
+        "properties": {
+          "type": { "type": "string", "enum": ["slack_thread", "doc", "url"] },
+          "ref": { "type": "string" }
+        }
+      }
+    },
+    "content_markdown": { "type": "string", "minLength": 1 },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^trace:(client|order|company|service):" }
+    }
+  },
+  "additionalProperties": false
+}
