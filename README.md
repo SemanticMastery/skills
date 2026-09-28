@@ -19,7 +19,7 @@ The live interview Worker is not in this catalog.
 | ICM | `workflows/icm/` |
 | Decision trace | `workflows/decision-trace/` |
 
-`skills/icm-architect/` is a pointer only. The skill itself lives in the ICM bundle. Install one bundle at a time: open its folder, run its `INSTALL`, and flatten. Each skill must land at `<host-skills-root>/<skill-name>/SKILL.md`. Do not point Cursor or Claude Code at the bundle folder.
+Install one bundle at a time: open its folder, run its `INSTALL`, and flatten. Each skill must land at `<host-skills-root>/<skill-name>/SKILL.md`. Do not point Cursor or Claude Code at the bundle folder.
 
 ## License
 
