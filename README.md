@@ -1,6 +1,6 @@
 # Semantic Mastery - Agent Skills
 
-Named bundles for [Semantic Mastery](https://semanticmastery.com) coaching and fulfillment. Students clone [SemanticMastery/skills](https://github.com/SemanticMastery/skills) (`master`).
+Named bundles for [Semantic Mastery](https://mastermind.semanticmastery.com/) coaching and fulfillment. Students clone [SemanticMastery/skills](https://github.com/SemanticMastery/skills) (`master`).
 
 **Organization:** [SemanticMastery on GitHub](https://github.com/SemanticMastery)
 
@@ -23,7 +23,14 @@ Install one bundle at a time: open its folder, run its `INSTALL`, and flatten. E
 
 ## License
 
-Licenses are per bundle. The Content Pipeline Suite keeps the enrolled-students notice. Local Schema and ICM stay Apache-2.0. The decision-trace bundle carries the same notice style as the content pipeline suite. This repository has no single root license.
+Licenses are per bundle. This repository has no single license that covers every folder.
+
+| Bundle | License |
+|--------|---------|
+| Content Pipeline Suite | [Semantic Mastery Member License](LICENSE-MEMBERS.md) |
+| Decision trace | [Semantic Mastery Member License](LICENSE-MEMBERS.md) |
+| Local Schema | Apache-2.0 (`workflows/local-schema/LICENSE`) |
+| ICM | Apache-2.0 (`workflows/icm/LICENSE`) |
 
 ## Releases
 

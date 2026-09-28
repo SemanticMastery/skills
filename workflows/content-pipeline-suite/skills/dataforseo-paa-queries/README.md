@@ -1,7 +1,7 @@
 # dataforseo-paa-queries
 
 **Semantic Mastery Mastermind** — Bradley Benner  
-**License:** For enrolled students only. Not for public resale or redistribution outside the program.
+**License:** Semantic Mastery Member License. See LICENSE-MEMBERS.md at the repository root.
 
 ## What this skill does
 

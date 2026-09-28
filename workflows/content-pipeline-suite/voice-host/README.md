@@ -1,7 +1,7 @@
 # Interview voice host
 
 **Semantic Mastery Mastermind** — Bradley Benner  
-**License:** For enrolled students only. Not for public resale or redistribution outside the program.
+**License:** Semantic Mastery Member License. See LICENSE-MEMBERS.md at the repository root.
 
 One Cloudflare Worker + SQLite Durable Objects that hosts **all three** interview kinds on the same deploy:
 

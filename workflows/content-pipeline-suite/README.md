@@ -2,7 +2,7 @@
 
 Course (source of truth): https://docshare.us/content-pipeline-suite-course/
 
-**License:** For enrolled students only. Not for public resale or redistribution outside the program.
+**License:** Semantic Mastery Member License. See LICENSE-MEMBERS.md at the repository root.
 
 Open `INSTALL.md` and flatten. Do not point Cursor or Claude Code at this folder. `git pull` does not update an installed flatten; run INSTALL again.
 

@@ -1,7 +1,7 @@
 # schema-markup-generator
 
 **Semantic Mastery Mastermind** — Bradley Benner  
-**License:** For enrolled students only. Not for public resale or redistribution outside the program.
+**License:** Apache-2.0. See `../../LICENSE` in this bundle.
 
 **Package:** `schema-markup-generator-v9.15.1.zip` (same version as `SKILL.md` frontmatter `version` / `metadata.version`).
 

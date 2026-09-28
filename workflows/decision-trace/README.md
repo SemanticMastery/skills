@@ -10,4 +10,4 @@ Install `dtc-video`, `cognee-decision-trace-capture`, and `video-feedback` toget
 
 See `INSTALL.md`. The public copy uses `client_id`, `order_id`, `company`, and `service`. A private overlay is not included.
 
-**License:** For enrolled students only. Not for public resale or redistribution outside the program.
+**License:** Semantic Mastery Member License. See LICENSE-MEMBERS.md at the repository root.

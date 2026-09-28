@@ -1,7 +1,7 @@
 # Content Pipeline Suite — start here
 
 **Semantic Mastery Mastermind** — Bradley Benner  
-**License:** For enrolled students only. Not for public resale or redistribution outside the program.
+**License:** Semantic Mastery Member License. See LICENSE-MEMBERS.md at the repository root.
 
 Eight agent skills that take one local business campaign from raw research to publishable blog posts and service pages, without the agent inventing facts about the business.
 

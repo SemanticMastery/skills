@@ -1,8 +1,6 @@
-Decision trace
-Workflow ID: decision-trace
+Content Pipeline Suite
+Workflow ID: content-pipeline-suite
 Copyright 2026 Semantic Mastery (https://github.com/SemanticMastery)
-
-This distribution bundles three agent skills: dtc-video, cognee-decision-trace-capture, and video-feedback.
 
 License: Semantic Mastery Member License (LICENSE-MEMBERS.md at the repository root).
 
