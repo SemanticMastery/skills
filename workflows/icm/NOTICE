@@ -1,0 +1,11 @@
+ICM skills
+Workflow ID: icm
+Copyright 2026 SemanticMastery (https://github.com/SemanticMastery)
+
+This distribution bundles three agent skills: icm-setup, icm-architect, and icm-migrate.
+
+Interpretable Context Methodology (ICM) was created by Jake Van Clief.
+  https://github.com/RinDig/Interpretable-Context-Methodology
+  https://smshort.link/clief-notes
+
+Licensed under the Apache License, Version 2.0. See LICENSE.

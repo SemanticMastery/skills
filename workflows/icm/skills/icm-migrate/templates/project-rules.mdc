@@ -1,0 +1,35 @@
+---
+description: ICM router policy for {{ROOT_NAME}} — read CONTEXT.md first; pin active path
+globs:
+alwaysApply: true
+---
+
+# {{ROOT_NAME}} — project rules (ICM migrate Mode 1)
+
+## First read
+
+1. Read root `CONTEXT.md` before substantive work in this workspace.
+2. Confirm or pin the **active path** (subfolder under this root) before editing.
+3. Prefer edits under the active path.
+
+## Soft boundary (honest)
+
+This router is **not** a sandbox. Agents can still read/write elsewhere if instructed.
+High-stakes isolation (single-client open / multi-root) is a separate habit — do not pretend this file enforces OS-level containment.
+
+## MCP / workspace
+
+- Open **this root** as the Cursor workspace so `.cursor/mcp.json` loads.
+- Do not assume parent MCP inheritance when a nested leaf is opened alone.
+
+## Inventory vs policy
+
+- `CONTEXT.md` inventory between `<!-- ICM:INVENTORY -->` markers may be refreshed by `/icm-refresh-context` or `icm-migrate` refresh.
+- **Do not** auto-edit this `project-rules.mdc` from hooks. Humans or explicit skill runs change policy rarely.
+
+## Structure
+
+- Do not invent silent folder renumbers or Agency module trees unless the user explicitly runs a deeper migrate and confirms.
+- Propose structural changes; wait for explicit approval before creating new trees.
+
+{{EXTRA_RULES}}

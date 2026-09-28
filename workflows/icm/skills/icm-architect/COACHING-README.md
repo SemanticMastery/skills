@@ -5,20 +5,21 @@
 
 ## Before class
 
-1. Students install per `INSTALL.md` (zip or private repo) into a **new empty project** `.cursor/skills/icm-architect/`.
-2. Confirm `SKILL.md` is visible to Cursor.
-3. Reminder: deeper ICM learning → [Clief Notes](https://www.skool.com/cliefnotes/about?ref=a8a5ace9f3c746e79bf6885aa53eb3ee) (Jake Van Clief).
+1. Students install the **pack zip** (`icm-pack.zip`) per **`README.md`** (project-level **or** global).
+2. Confirm three skills exist: `icm-setup/SKILL.md`, `icm-architect/SKILL.md`, `icm-migrate/SKILL.md` under `.cursor/skills/`.
+3. Reminder: deeper ICM learning → [Clief Notes](https://smshort.link/clief-notes) (Jake Van Clief).
 
 ## Minute 0–2 — Frame
 
 - ICM = Interpretable Context Methodology: folders and markdown routers so agents and humans share the same map.
+- Pack entry: **`/icm-setup`** routes new vs existing; direct `/icm-architect` (greenfield) and `/icm-migrate` (existing harness, **Mode 1 only** in class) still work.
 - This skill scaffolds **WorkFlows** or **Agency Client Direct** (`Client -> Campaign`).
-- Not white-label (`Client -> Agency -> Campaign`) — that stays in Golden Image.
+- Not white-label (`Client -> Agency -> Campaign`) — that stays in a separate white-label layout.
 
 ## Minute 2–10 — Demo A: Agency Client (Standard)
 
 1. Optional: drop a company `*dossier*.md` in the folder first (or let the skill suggest one).
-2. Invoke `/icm-architect` in that folder (empty or dossier-only is OK).
+2. Invoke `/icm-architect` (or `/icm-setup` → architect) in that folder (empty or dossier-only is OK).
 3. Location: here. Type: Agency Client. Harness: Cursor.
 4. **Client = person** (e.g. `Jordan Lee` → `Jordan-Lee/`). **Campaign = company** from dossier (e.g. `Columbia Land Clearing` → `Jordan-Lee/Columbia-Land-Clearing/`). Do **not** use the company as the client folder. Retainer/monthly = goal/outcome text, not a campaign slug.
 5. Goal/outcome/services: e.g. local SEO under monthly retainer (tools annotate modules; tree stays full by default).
@@ -37,12 +38,12 @@
 ## Minute 16–20 — Where to go deeper
 
 - Skill teaches why *these* stages for *this* project.
-- Full methodology: [Clief Notes](https://www.skool.com/cliefnotes/about?ref=a8a5ace9f3c746e79bf6885aa53eb3ee) + [ICM repo](https://github.com/RinDig/Interpreted-Context-Methdology).
+- Full methodology: [Clief Notes](https://smshort.link/clief-notes) + [ICM repo](https://github.com/RinDig/Interpretable-Context-Methodology).
 - Next Thursday: richer harness mapping / packaging polish.
 
 ## Facilitator checklist
 
-- [ ] Zip expands to `.cursor/skills/icm-architect/SKILL.md`
+- [ ] Zip expands to `icm-setup/`, `icm-architect/`, and `icm-migrate/` under `.cursor/skills/`
 - [ ] Both demos use propose → confirm → write
 - [ ] Attribution spoken once aloud
-- [ ] Students know migration of messy folders is out of scope for v1
+- [ ] Students know class migrate is Mode 1 harness only (not deeper remaps); greenfield stays `/icm-architect`

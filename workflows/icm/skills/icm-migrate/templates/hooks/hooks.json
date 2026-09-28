@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "node .cursor/hooks/icm-session-start-nudge.js"
+      }
+    ],
+    "stop": [
+      {
+        "command": "node .cursor/hooks/icm-inventory-stale-nudge.js"
+      }
+    ]
+  }
+}

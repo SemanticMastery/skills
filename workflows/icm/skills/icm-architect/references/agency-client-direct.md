@@ -90,7 +90,7 @@ Empty folders are intentional. Local SEO / local marketing campaigns usually nee
 
 | Module slug | Purpose |
 |-------------|---------|
-| `links` | Link building / placements / citations (Agency Direct name; not Golden Image `tier1`) |
+| `links` | Link building / placements / citations (Agency Direct name; not the white-label `tier1` name) |
 | `press-releases` | PR / press |
 | `reports` | Recurring or one-shot reports |
 | `schema` | Schema / structured data |

@@ -42,5 +42,5 @@ Visual map of the scaffolded tree (read top-down: person-level client → compan
 
 This project uses Interpretable Context Methodology (ICM) ideas from **Jake Van Clief**.
 This skill explained why these stages fit your goal — it is not a full ICM course.
-For deeper learning, join [Clief Notes](https://www.skool.com/cliefnotes/about?ref=a8a5ace9f3c746e79bf6885aa53eb3ee) and read the
-[ICM repository](https://github.com/RinDig/Interpreted-Context-Methdology).
+For deeper learning, join [Clief Notes](https://smshort.link/clief-notes) and read the
+[ICM repository](https://github.com/RinDig/Interpretable-Context-Methodology).

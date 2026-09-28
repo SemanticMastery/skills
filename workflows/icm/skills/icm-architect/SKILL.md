@@ -3,10 +3,13 @@ name: icm-architect
 description: >-
   Interview wizard that scaffolds Interpretable Context Methodology (ICM)
   folder architecture for greenfield projects. Use when the user invokes
-  /icm-architect, or asks to scaffold ICM, set up ICM folders, create a new
-  project architecture, or bootstrap WorkFlows or Agency Client Direct
-  (Client -> Campaign) trees with propose-then-confirm writes.
+  /icm-architect, after /icm-setup routes here, or asks to scaffold ICM, set
+  up ICM folders, create a new project architecture, or bootstrap WorkFlows
+  or Agency Client Direct (Client -> Campaign) trees with propose-then-confirm
+  writes. For unsure new-vs-existing, prefer /icm-setup.
 disable-model-invocation: true
+metadata:
+  version: "1.1.0"
 ---
 
 # ICM Architect
@@ -31,17 +34,7 @@ Scaffold an Interpretable Context Methodology (ICM) workspace through an adaptiv
 | Attribution | `references/attribution.md` |
 | Templates | `templates/agency/`, `templates/workflows/`, `templates/harness/` |
 
-Resolve paths relative to this skill folder (authoring: `skills/icm-architect/`; install: `.cursor/skills/icm-architect/`).
-
-## Publish / GitHub (agents: read this before hunting remotes)
-
-| Role | Location |
-|------|----------|
-| **Authoring source of truth** | This package under the local `icm-architect` project: `skills/icm-architect/` (also mirrored to `C:\Users\bradl\.cursor\skills\icm-architect\`). That authoring git repo often has **no remote** — do not search for one. |
-| **Canonical GitHub publish target** | Private catalog **[SemanticMastery/skills](https://github.com/SemanticMastery/skills)** → path **`skills/icm-architect/`** on branch **`master`**. |
-| **Student install from GitHub** | Copy `skills/icm-architect/` from that catalog into `<project>/.cursor/skills/icm-architect/`. |
-
-When the user asks to **commit and push** skill updates: (1) commit in the authoring repo if they want a local history snapshot; (2) sync/copy this skill folder into a clone of `SemanticMastery/skills` at `skills/icm-architect/` and **push `master` there**. Do not invent alternate orgs/repos. Details: `INSTALL.md` + authoring repo `docs/student-distribution.md`.
+Resolve paths relative to this skill folder (install: `.cursor/skills/icm-architect/` next to `icm-setup/` and `icm-migrate/`).
 
 ## Procedure (run top to bottom)
 
@@ -56,7 +49,7 @@ Follow `setup-interview.md` Phase B (greenfield matrix).
 - Trivial (`.git` and/or single README) → soft-warn, may proceed.
 - Business dossier(s) at scaffold root (`*dossier*.md` / `*dossier*.docx`) alone or with trivial starters → **allowed**; proceed and use for context.
 - No dossier present → suggest adding one (business-dossier skill or existing file); do not block.
-- Substantial other content → **refuse writes**; migration deferred. Stop.
+- Substantial other content → **refuse writes**; redirect to `/icm-setup` or `/icm-migrate`. Stop.
 
 ### 2. Interview
 
@@ -98,7 +91,7 @@ Only after confirm:
 
 ### 7. Handoff → Done
 
-Point the user at the written HOW-TO-WORK-THIS-PROJECT.md handoff. It must include: **folder tree diagram**, why-these-stages, first-task checklist, [Clief Notes](https://www.skool.com/cliefnotes/about?ref=a8a5ace9f3c746e79bf6885aa53eb3ee), harness notes.
+Point the user at the written HOW-TO-WORK-THIS-PROJECT.md handoff. It must include: **folder tree diagram**, why-these-stages, first-task checklist, [Clief Notes](https://smshort.link/clief-notes), harness notes.
 
 ## Out of scope (v1)
 

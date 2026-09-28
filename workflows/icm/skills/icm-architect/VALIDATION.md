@@ -10,7 +10,8 @@ Run before sharing a student zip or publishing the private repo.
 
 ## Required files present
 
-- [ ] `SKILL.md`, `INSTALL.md`, `setup-interview.md`, `COACHING-README.md`, `VALIDATION.md`
+- [ ] `SKILL.md`, `README.md`, `INSTALL.md`, `setup-interview.md`, `COACHING-README.md`, `VALIDATION.md`
+- [ ] `README.md` documents **project-level** and **global** install paths
 - [ ] `references/attribution.md`, `harness-map.md`, `interview-standard.md`, `go-deeper-guidance.md`
 - [ ] `references/agency-client-direct.md`, `workflows-mode.md`, `confirm-checklist.md`
 - [ ] `templates/agency/*`, `templates/workflows/*`, `templates/harness/*`
