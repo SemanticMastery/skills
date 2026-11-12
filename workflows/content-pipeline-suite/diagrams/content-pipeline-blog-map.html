@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Content Pipeline Blog Map</title>
+  <style>
+    html, body { margin: 0; padding: 0; width: 1920px; height: 1080px; overflow: hidden; }
+    body { background: #f5f4ef; color: #1f1d18; font-family: Charter, "Source Serif Pro", "Iowan Old Style", Georgia, serif; }
+    .page { box-sizing: border-box; width: 1920px; height: 1080px; padding: 40px 48px 32px; display: flex; flex-direction: column; }
+    header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d4d1c5; padding-bottom: 12px; }
+    .kicker { font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: #6b665b; font-family: "Segoe UI", sans-serif; }
+    h1 { margin: 8px 0 0; font-size: 40px; font-weight: 500; letter-spacing: -0.02em; color: #1B365D; }
+    .suite { display: flex; gap: 8px; font-family: "Segoe UI", sans-serif; font-size: 13px; }
+    .chip { padding: 6px 12px; border: 1px solid #d4d1c5; color: #6b665b; }
+    .chip.on { background: #1B365D; color: #f5f4ef; border-color: #1B365D; }
+    .lede { margin: 16px 0 22px; font-size: 20px; color: #6b665b; max-width: 1600px; }
+    .flow { display: flex; align-items: stretch; gap: 0; margin-bottom: 22px; }
+    .step { flex: 1; background: #efeee5; border: 1px solid #d4d1c5; padding: 22px 20px 18px; min-height: 220px; }
+    .step .n { font-family: "Segoe UI", sans-serif; font-size: 12px; color: #1B365D; letter-spacing: 0.08em; }
+    .step h2 { margin: 8px 0 8px; font-size: 28px; font-weight: 500; line-height: 1.15; }
+    .step p { margin: 0; font-size: 18px; line-height: 1.4; color: #6b665b; }
+    .arrow { width: 36px; display: flex; align-items: center; justify-content: center; color: #1B365D; font-size: 28px; flex: 0 0 36px; }
+    .side { display: flex; gap: 16px; margin-bottom: 12px; }
+    .note { flex: 1; border: 1px solid #d4d1c5; padding: 16px 18px; background: #e8e4d4; }
+    .note h3 { margin: 0 0 6px; font-size: 20px; font-weight: 500; color: #1B365D; }
+    .note p { margin: 0; font-size: 16px; color: #6b665b; line-height: 1.4; }
+    .footer { margin-top: auto; display: flex; justify-content: space-between; border-top: 1px solid #d4d1c5; padding-top: 14px; font-size: 16px; }
+    .footer strong { color: #1B365D; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <div class="kicker">Semantic Mastery · Content Pipeline · Blog</div>
+        <h1>Blog track</h1>
+      </div>
+      <div class="suite">
+        <span class="chip on">Init</span>
+        <span class="chip on">Photos</span>
+        <span class="chip on">Run</span>
+        <span class="chip">Expert interview</span>
+        <span class="chip">Voice</span>
+      </div>
+    </header>
+    <p class="lede">One campaign pack, then real photos, then one post from brief through schema. The story bank and Voice DNA sit beside that path. Neither one is required for the first post.</p>
+    <div class="flow">
+      <div class="step"><div class="n">1</div><h2>Init</h2><p>Eight research classes, the editorial roadmap, and the SiteSwarm tag taxonomy. Status <em>init_complete</em>.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">2</div><h2>Photo library</h2><p>Ingest, classify, and you approve. Taxonomy must already exist. Empty <em>approved/</em> is a Fal miss later, not a failed init.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">3</div><h2>Run one slot</h2><p>Brief, draft, edit, polish, images, schema. Then stop. The next roadmap row is a new invoke.</p></div>
+    </div>
+    <div class="side">
+      <div class="note"><h3>Expert interview</h3><p>Recurring series. Writes <em>{Company}-story-bank.md</em>. Run refreshes it when a series exists and never blocks when it does not.</p></div>
+      <div class="note"><h3>Voice interview</h3><p>Lands a Voice DNA file in <em>01-resources/</em>. Zero files means a clean professional draft. Two or more files: the run asks which one.</p></div>
+    </div>
+    <div class="footer">
+      <div><strong>This course:</strong> blog folders <em>01-resources</em>, <em>02-plan</em>, <em>03-write</em>.</div>
+      <div>Scaffold also copies <em>06-pages</em> and <em>07-claims-audit</em> for later courses.</div>
+    </div>
+  </div>
+</body>
+</html>

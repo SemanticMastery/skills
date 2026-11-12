@@ -6,7 +6,7 @@
  * Pre-flight (resolve-site.mjs): canonical host, sitemap, JS probe, orphan/sitemap rules.
  * Polling exits immediately when crawl_progress=finished.
  * See docs/solutions/onpage-js-and-stall-fix.md for incident learnings
- * (DeForest 2026-06 JS/stall; Greater Life 2026-07 Googlebot WAF).
+ * (Summit 2026-06 JS/stall; Greater Life 2026-07 Googlebot WAF).
  */
 
 import fs from 'fs';
@@ -157,7 +157,7 @@ function domainSlugFromHost(host) {
 }
 
 /**
- * Per-client overrides from field-learnings.md (Golden Image `1.2-audit/` first, legacy fallback).
+ * Per-client overrides from field-learnings.md (campaign folder `1.2-audit/` first, legacy fallback).
  */
 function readProjectCrawlOverrides(projectDir, outputDir = null) {
   if (!projectDir) return {};

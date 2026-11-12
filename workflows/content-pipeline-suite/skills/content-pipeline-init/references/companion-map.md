@@ -14,16 +14,16 @@ For each companion, use only this path:
 
 ## Companion table
 
-| Class ID | Skill name | Canonical SKILL.md (prefer) | Fallback | Typical write location |
-|----------|------------|-----------------------------|----------|------------------------|
-| `dossier` | `business-dossier` | User: `{user-skills}\business-dossier\SKILL.md` | — | Source: `{campaign}/01-intake/1.1-docs/*-Dossier.md` (+ `.docx` in intake only). Pipeline pack: copy `.md` only into `06-content-pipeline/01-resources/` |
-| `onpage` | `dataforseo-onpage-crawl` | Project: `dataforseo-onpage-crawl/SKILL.md` | — | `{campaign}/01-intake/1.2-audit/onpage-crawl-*.{csv,xlsx}` |
-| `matrix` | `contentmaxima` (Matrix workflow) | Project: `contentmaxima/SKILL.md` | — | `{campaign}/01-intake/1.2-audit/contentmaxima/*_matrix*` |
-| `personas` | `contentmaxima` (Personas workflow) | Project: `contentmaxima/SKILL.md` | — | `{campaign}/01-intake/1.2-audit/contentmaxima/*_personas*` |
-| `paa` | `dataforseo-paa-queries` | Project: `dataforseo-paa-queries/SKILL.md` | — | `{campaign}/01-intake/1.2-audit/paa-queries/paa-*` |
-| `fanout` | `dataforseo-fanout-queries` | Project: `dataforseo-fanout-queries/SKILL.md` | — | `{campaign}/01-intake/1.2-audit/fanout-queries/fanout-queries-*` |
-| `product_doc` | `product-documentation` | User: `{user-skills}\product-documentation\SKILL.md` | — | `{campaign}/01-intake/1.1-docs/Product-Documentation.md` only (no `outputs/` write) |
-| `icp` | `customer-research` | — | Global | Prefer `{campaign}/01-intake/1.1-docs/*ICP*.md`; also `outputs/customer-research/` |
+| Class ID | Skill name | Canonical SKILL.md | Typical write location |
+|----------|------------|--------------------|------------------------|
+| `dossier` | `business-dossier` | Project: `business-dossier/SKILL.md` | Source: `{campaign}/01-intake/1.1-docs/*-Dossier.md` (+ `.docx` in intake only). Pipeline pack: copy `.md` only into `06-content-pipeline/01-resources/` |
+| `onpage` | `dataforseo-onpage-crawl` | Project: `dataforseo-onpage-crawl/SKILL.md` | `{campaign}/01-intake/1.2-audit/onpage-crawl-*.{csv,xlsx}` |
+| `matrix` | `contentmaxima` (Matrix workflow) | Project: `contentmaxima/SKILL.md` | `{campaign}/01-intake/1.2-audit/contentmaxima/*_matrix*` |
+| `personas` | `contentmaxima` (Personas workflow) | Project: `contentmaxima/SKILL.md` | `{campaign}/01-intake/1.2-audit/contentmaxima/*_personas*` |
+| `paa` | `dataforseo-paa-queries` | Project: `dataforseo-paa-queries/SKILL.md` | `{campaign}/01-intake/1.2-audit/paa-queries/paa-*` |
+| `fanout` | `dataforseo-fanout-queries` | Project: `dataforseo-fanout-queries/SKILL.md` | `{campaign}/01-intake/1.2-audit/fanout-queries/fanout-queries-*` |
+| `product_doc` | `product-documentation` | Project: `product-documentation/SKILL.md` | Canonical `{campaign}/01-intake/1.1-docs/Product-Documentation.md`. `{campaign}/06-content-pipeline/01-resources/Product-Documentation.md` is a mirror: sync copies the canonical over it when the content differs. No `outputs/` write. |
+| `icp` | `customer-research` | Project: `customer-research/SKILL.md` | Prefer `{campaign}/01-intake/1.1-docs/*ICP*.md`; also `outputs/customer-research/` |
 
 ## Waves
 
@@ -42,7 +42,7 @@ For each companion, use only this path:
 ### Wave 3 notes
 
 - `product-documentation` child skill hard-gates on dossier + onpage — only dispatch when both classes are present.
-- `customer-research`: instruct subagent to produce an ICP markdown whose **basename includes `icp`**, written under `01-intake/1.1-docs/` (Golden Image) or `outputs/customer-research/` — so inventory can detect the class.
+- `customer-research`: instruct subagent to produce an ICP markdown whose **basename includes `icp`**, written under `01-intake/1.1-docs/` (campaign layout) or `outputs/customer-research/` — so inventory can detect the class.
 
 ## Paid / HITL gates (orchestrator)
 

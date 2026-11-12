@@ -22,14 +22,17 @@
 |-------|-----|
 | `01-resources` | Hold permanent + campaign source pack (do not rewrite source of truth here) |
 | `02-plan` | Build the 13- or 26-week Editorial Roadmap from campaign resources |
-| `03-write` | Route piece production through brief → draft → edit → polish → images |
+| `03-write` | Route piece production through brief → draft → edit → polish → images → schema |
 | `03-write/3.1-brief` | Write the piece brief from plan slot + resources |
 | `03-write/3.2-draft` | Draft the article from the brief (uses `ai-isms.md`) |
 | `03-write/3.3-edit` | Structural/editorial pass (no reintroducing ai-isms) |
 | `03-write/3.4-polish` | CMS-ready text package → `3.5-images` |
-| `03-write/3.5-images` | Library-first images, Fal.ai fallback → hard-stop (publish later) |
+| `03-write/3.5-images` | Library-first images, Fal.ai fallback → `3.6-schema` |
+| `03-write/3.6-schema` | Blog schema after images. `WebPage` with `BlogPosting` as `mainEntity`. Overwrites this post’s JSON-LD in `02-deliverables/2.4-schema` |
 | `04-publish` | Hold publish-ready assets; platform integration filled per campaign |
 | `05-archives` | Store completed plans/runs off the live pipeline |
+| `06-pages` | Service page copy through brief → draft → edit → polish, then images and schema. Not a blog stage. |
+| `07-claims-audit` | Claims ledger, Content Gaps report, and page snapshots written by `claims-audit`. Not a pipeline stage. |
 
 ## Task routing
 
@@ -44,8 +47,13 @@
 | Editorial rewrite | `03-write/3.3-edit/` |
 | Final polish / CMS package | `03-write/3.4-polish/` |
 | Produce images from polish placeholders (library, else Fal) | `03-write/3.5-images/` |
+| Blog schema for one post | `03-write/3.6-schema/` |
 | Publish-ready pack / campaign platform push | `04-publish/` |
 | Completed run / cold storage | `05-archives/` |
+| Claims ledger or Content Gaps | `07-claims-audit/` |
+| Service page copy | `06-pages/CONTEXT.md` |
+| Service page images | `06-pages/p.5-images/` |
+| Service page schema | `06-pages/p.6-schema/` |
 
 ## Rules
 

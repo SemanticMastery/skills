@@ -1,4 +1,4 @@
-import { FINISHED, RESUMABLE, randomHex } from "./session-logic";
+import { ALARM_RETRY_MS, FINISHED, RESUMABLE, randomHex } from "./session-logic";
 
 export type CadenceFreq = "weekly" | "monthly";
 
@@ -654,7 +654,8 @@ export function seriesNextAlarm(state: SeriesState, now: number, retentionDays: 
   if (state.purged) return null;
   if (state.status === "ended" && state.ended_at && state.ledger.every((row) => row.acked)) {
     const due = Date.parse(state.ended_at) + retentionDays * 86400000;
-    return due > now ? due : now;
+    if (Number.isFinite(due) && due > now) return due;
+    return now + ALARM_RETRY_MS;
   }
   return null;
 }

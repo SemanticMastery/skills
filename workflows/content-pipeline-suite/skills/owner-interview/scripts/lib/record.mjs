@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { collectInterviewFiles, companySlug, interviewPair } from "./paths.mjs";
 import { groundFact } from "./grounding.mjs";
+import { defaultPublishFor } from "./publish-default.mjs";
 
 export const RECORD_STATES = ["open", "captured", "compiled", "superseded"];
 export const LEGAL_TRANSITIONS = {
@@ -13,6 +14,12 @@ export const LEGAL_TRANSITIONS = {
 export const WHO_MAY_ANSWER_QUESTION_ID = "q-company-who-may-answer-describe-1";
 export const CHANNELS = ["call-notes", "form", "chat", "voice"];
 export const PUBLISH_VALUES = ["public", "framing-only", "internal"];
+/**
+ * Who decided a fact's `publish` value. Absent means the owner's own Publish? answer, an
+ * explicit value in `--add-answer`, or a record from before these keys existed.
+ */
+export const PUBLISH_SOURCES = ["spoken", "tap", "operator", "default"];
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function todayStamp() {
   return new Date().toISOString().slice(0, 10);
@@ -27,8 +34,18 @@ export function isPack(data) {
   return Boolean(data && Array.isArray(data.questions));
 }
 
+/** Every active (not superseded) record in the campaign, whatever its scope. */
+export function listActiveRecordEntries(campaignDir) {
+  return readInterviewEntries(campaignDir, `${companySlug(campaignDir)}-owner-interview-`).filter(
+    (entry) => isRecord(entry.data) && entry.data.state !== "superseded",
+  );
+}
+
 export function listInterviewEntries(campaignDir, scope) {
-  const prefix = `${companySlug(campaignDir)}-owner-interview-${scope}-`;
+  return readInterviewEntries(campaignDir, `${companySlug(campaignDir)}-owner-interview-${scope}-`);
+}
+
+function readInterviewEntries(campaignDir, prefix) {
   return collectInterviewFiles(
     campaignDir,
     "owner",
@@ -101,17 +118,42 @@ function cloneReview(review) {
   return out;
 }
 
-export function normalizeFacts(facts) {
+/**
+ * Normalize a fact list. A fact with a valid `publish` keeps it, with its provenance keys
+ * (`publish_source`, `publish_set_by`, `publish_set_on`) when valid. A fact with none is
+ * decided by the default policy when `question` is a Describe question with no Publish?
+ * link (`publish_source: "default"`), and is stored `internal` otherwise (R30).
+ * `needs_publish_decision` is true when a fact arrived with no usable `publish`, or the
+ * default held it `internal`. Key order stays text, publish, provenance, review so a
+ * record without provenance re-saves byte for byte.
+ */
+export function normalizeFacts(facts, { question } = {}) {
   if (facts == null) return { facts: [], needs_publish_decision: false };
   if (!Array.isArray(facts)) return { error: "facts_invalid" };
   let needs = false;
   const out = facts.map((fact) => {
     const text = fact?.text == null ? "" : String(fact.text);
     const rawPublish = fact?.publish;
-    const publish =
-      rawPublish && PUBLISH_VALUES.includes(rawPublish) ? rawPublish : "internal";
-    if (!rawPublish || !PUBLISH_VALUES.includes(rawPublish)) needs = true;
-    const row = { text, publish };
+    const row = { text };
+    if (rawPublish && PUBLISH_VALUES.includes(rawPublish)) {
+      row.publish = rawPublish;
+      if (PUBLISH_SOURCES.includes(fact.publish_source)) row.publish_source = fact.publish_source;
+      const by = typeof fact.publish_set_by === "string" ? fact.publish_set_by.trim() : "";
+      if (by) row.publish_set_by = by;
+      if (typeof fact.publish_set_on === "string" && DATE_RE.test(fact.publish_set_on)) {
+        row.publish_set_on = fact.publish_set_on;
+      }
+    } else {
+      const fallback = defaultPublishFor(question, text);
+      if (fallback) {
+        row.publish = fallback;
+        row.publish_source = "default";
+        if (fallback === "internal") needs = true;
+      } else {
+        row.publish = "internal";
+        needs = true;
+      }
+    }
     const review = cloneReview(fact?.review);
     if (review) row.review = review;
     return row;
@@ -170,10 +212,10 @@ function namesFromWhoMayAnswerFacts(facts, raw) {
   return names;
 }
 
-export function applyAnswer(record, answer, callId) {
+export function applyAnswer(record, answer, callId, { question } = {}) {
   if (!record || !answer?.question_id) return record;
   const questionId = answer.question_id;
-  const normalized = normalizeFacts(answer.facts);
+  const normalized = normalizeFacts(answer.facts, { question });
   if (normalized.error) return { error: normalized.error };
   const existing = (record.answers || []).find((row) => row.question_id === questionId);
   const row = {
@@ -191,6 +233,11 @@ export function applyAnswer(record, answer, callId) {
     transcript_ref: answer.transcript_ref ?? existing?.transcript_ref ?? null,
   };
   if (answer.verify != null) row.verify = answer.verify;
+  // An answer-level review (owner words on a Publish? answer) describes this answer's words,
+  // so a new answer replaces it instead of inheriting the old one.
+  const answerReview = cloneReview(answer.review);
+  if (answerReview) row.review = answerReview;
+  else delete row.review;
   row.authorized = deriveAuthorized(row, record.who_may_answer || []);
   if (questionId === WHO_MAY_ANSWER_QUESTION_ID && record.scope === "company") {
     record.who_may_answer = namesFromWhoMayAnswerFacts(row.facts, row.raw);
@@ -205,11 +252,15 @@ export function applyAnswer(record, answer, callId) {
   return record;
 }
 
-export function applyUnanswered(record, questionId, callId) {
+/**
+ * Record a skipped question. `date` is the day of the call for a pulled voice call, so a new
+ * row says when the owner was asked and not when the call was pulled; it defaults to today.
+ */
+export function applyUnanswered(record, questionId, callId, { date } = {}) {
   if (!record || !questionId) return record;
   if (callId && callAlreadyHasQuestion(record, callId, questionId)) return record;
   const existing = (record.answers || []).find((row) => row.question_id === questionId);
-  const row = existing || emptyAnswerRow(questionId);
+  const row = existing || emptyAnswerRow(questionId, date);
   row.question_id = questionId;
   row.skip_count = (row.skip_count || 0) + 1;
   row.status = row.skip_count >= 2 ? "declined" : "unanswered";
@@ -228,13 +279,13 @@ export function applyUnanswered(record, questionId, callId) {
   return record;
 }
 
-function emptyAnswerRow(questionId) {
+function emptyAnswerRow(questionId, date) {
   return {
     question_id: questionId,
     answered_by: null,
     role: null,
     authorized: false,
-    date: todayStamp(),
+    date: date || todayStamp(),
     channel: null,
     raw: "",
     facts: [],
@@ -243,6 +294,16 @@ function emptyAnswerRow(questionId) {
     skip_count: 0,
     transcript_ref: null,
   };
+}
+
+/** Where a fact's publish value came from. Empty for owner decisions and older records. */
+function publishNote(fact) {
+  if (fact.publish_source === "operator") {
+    const by = fact.publish_set_by || "operator";
+    return ` (publish set by ${by}${fact.publish_set_on ? ` on ${fact.publish_set_on}` : ""})`;
+  }
+  if (fact.publish_source === "default") return " (publish default)";
+  return "";
 }
 
 export function renderRecordMarkdown(record, pack) {
@@ -325,7 +386,7 @@ export function renderRecordMarkdown(record, pack) {
             ? fact.review.tokens.join(", ")
             : fact.review?.reason;
           const marker = fact.review ? ` [REVIEW: ${tokens}]` : "";
-          lines.push(`- [${fact.publish}] ${fact.text}${marker}`);
+          lines.push(`- [${fact.publish}] ${fact.text}${publishNote(fact)}${marker}`);
         }
         lines.push("");
       }
@@ -336,6 +397,14 @@ export function renderRecordMarkdown(record, pack) {
   lines.push("");
   const notes = record?.unmapped_notes;
   if (notes) lines.push(String(notes), "");
+  const publishWords = answers.filter((row) => row.review?.reason === "owner_words_on_publish");
+  for (const row of publishWords) {
+    const tokens = Array.isArray(row.review.tokens) ? row.review.tokens.join(", ") : row.review.reason;
+    lines.push(
+      `- \`${row.question_id}\` (${row.date || ""}) [REVIEW: ${tokens}] Owner words on a Publish? answer: ${row.raw || ""}`,
+    );
+  }
+  if (publishWords.length) lines.push("");
   return lines.join("\n");
 }
 
@@ -526,7 +595,7 @@ export function addAnswer({ campaignDir, scope, answerInput } = {}) {
     return { error: "invalid_channel", extra: { channel: incoming.channel } };
   }
 
-  const normalized = normalizeFacts(incoming.facts);
+  const normalized = normalizeFacts(incoming.facts, { question });
   if (normalized.error) return normalized;
 
   const whoMayAnswer = loadCompanyWhoMayAnswer(campaignDir);
@@ -545,6 +614,7 @@ export function addAnswer({ campaignDir, scope, answerInput } = {}) {
     skip_count: existing?.skip_count || 0,
     transcript_ref: incoming.transcript_ref ?? existing?.transcript_ref ?? null,
   };
+  delete row.review;
   row.authorized = deriveAuthorized(row, whoMayAnswer);
   if (questionId === WHO_MAY_ANSWER_QUESTION_ID && record.scope === "company") {
     record.who_may_answer = namesFromWhoMayAnswerFacts(row.facts, row.raw);
@@ -612,6 +682,16 @@ export function setState({ campaignDir, scope, state } = {}) {
 export function listFlagged(record) {
   const out = [];
   for (const answer of record?.answers || []) {
+    if (answer?.review) {
+      // Answer-level flag: owner words on a Publish? answer. There is no fact to point at.
+      out.push({
+        question_id: answer.question_id,
+        fact_index: null,
+        text: answer.raw,
+        publish: null,
+        review: answer.review,
+      });
+    }
     (answer.facts || []).forEach((fact, factIndex) => {
       if (!fact?.review) return;
       out.push({
@@ -650,6 +730,14 @@ export function reviewFact({
   if (loaded.error) return loaded;
   const { pack, record, entry } = loaded;
   const answer = (record.answers || []).find((row) => row.question_id === questionId);
+  const noFact = factIndex === undefined || factIndex === null || factIndex === "";
+  if (noFact && answer?.review && clear && edit === undefined && !drop) {
+    // `--review --question-id <id> --clear` with no --fact clears the answer-level flag.
+    delete answer.review;
+    const cleared = writePair(entry.json, entry.md, record, pack);
+    if (cleared?.error) return cleared;
+    return { ...resultPayload(entry.json, entry.md, record), flagged: listFlagged(record) };
+  }
   const idx = Number(factIndex);
   if (!answer || !Array.isArray(answer.facts) || !answer.facts[idx]) {
     return { error: "fact_not_found", extra: { question_id: questionId, fact: factIndex } };
@@ -673,6 +761,89 @@ export function reviewFact({
   const written = writePair(entry.json, entry.md, record, pack);
   if (written?.error) return written;
   return { ...resultPayload(entry.json, entry.md, record), flagged: listFlagged(record) };
+}
+
+/**
+ * Operator override of one fact's publish value (or every fact in an answer). Stores who
+ * set it and when, so the record and the compile plan show the decision was not the owner's.
+ * `needs_publish_decision` clears once no untouched fact is still held `internal`.
+ */
+export function setPublish({
+  campaignDir,
+  scope,
+  questionId,
+  factIndex,
+  all = false,
+  value,
+  by,
+  today,
+} = {}) {
+  if (!scope) return { error: "scope_required" };
+  if (!questionId) return { error: "question_id_required" };
+  if (value == null || value === "") return { error: "value_required" };
+  if (!PUBLISH_VALUES.includes(value)) return { error: "publish_value_invalid", extra: { value } };
+  const setBy = String(by ?? "").trim();
+  if (!setBy) return { error: "by_required" };
+  const hasFact = factIndex !== undefined && factIndex !== null && factIndex !== "";
+  if (!hasFact && !all) return { error: "fact_or_all_required" };
+  if (hasFact && all) return { error: "fact_and_all_conflict" };
+
+  const loaded = loadWritable(campaignDir, scope);
+  if (loaded.error) return loaded;
+  const { pack, record, entry } = loaded;
+  const answer = (record.answers || []).find((row) => row.question_id === questionId);
+  if (!answer || !Array.isArray(answer.facts)) {
+    return { error: "answer_not_found", extra: { question_id: questionId } };
+  }
+
+  let targets;
+  if (all) {
+    if (!answer.facts.length) {
+      return { error: "fact_not_found", extra: { question_id: questionId, fact: "all" } };
+    }
+    targets = answer.facts.map((_, index) => index);
+  } else {
+    const index = Number(factIndex);
+    if (!Number.isInteger(index) || !answer.facts[index]) {
+      return { error: "fact_not_found", extra: { question_id: questionId, fact: factIndex } };
+    }
+    targets = [index];
+  }
+
+  const on = today || todayStamp();
+  const touched = new Set(targets);
+  for (const index of targets) {
+    const [next] = normalizeFacts([
+      {
+        ...answer.facts[index],
+        publish: value,
+        publish_source: "operator",
+        publish_set_by: setBy,
+        publish_set_on: on,
+      },
+    ]).facts;
+    answer.facts[index] = next;
+  }
+  if (answer.needs_publish_decision) {
+    answer.needs_publish_decision = answer.facts.some(
+      (fact, index) => !touched.has(index) && fact.publish === "internal" && fact.publish_source !== "operator",
+    );
+  }
+
+  const written = writePair(entry.json, entry.md, record, pack);
+  if (written?.error) return written;
+  return {
+    ...resultPayload(entry.json, entry.md, record),
+    publish_set: targets.map((index) => ({
+      question_id: questionId,
+      fact_index: index,
+      publish: answer.facts[index].publish,
+      publish_source: answer.facts[index].publish_source,
+      publish_set_by: answer.facts[index].publish_set_by,
+      publish_set_on: answer.facts[index].publish_set_on,
+    })),
+    needs_publish_decision: Boolean(answer.needs_publish_decision),
+  };
 }
 
 export function listFlaggedForScope({ campaignDir, scope } = {}) {

@@ -19,6 +19,8 @@ alwaysApply: true
 - `01-resources/ai-isms.md` is **always included** in the template. Do not delete it from campaign copies.
 - Campaign-supplied research files live in `01-resources/` and must be present before `02-plan` (see root `CONTEXT.md` resource table).
 - `04-publish` stays **platform-generic** in the template. Add CMS/API/MCP details only when deploying a campaign (or when the operator asks to wire a specific platform).
+- `06-pages` ships with stage CONTEXT files for service-page brief → polish, plus `p.5-images` and `p.6-schema`. Page copy and Matrix workbooks are campaign outputs.
+- `07-claims-audit` ships as the claims-audit output slot. Ledgers, reports, and snapshots are campaign outputs.
 
 ## Working rules
 
@@ -30,7 +32,7 @@ alwaysApply: true
 - Upstream outputs are contracts: do not invent missing inputs; stop and ask if a prior stage has no usable output.
 - Keep `01-resources` as source-of-truth storage; prefer copies/derivatives in later stages over mutating originals.
 - Draft / edit / polish stages must respect `ai-isms.md` (no banned patterns; never reintroduce them).
-- `04-publish` holds final CMS-ready assets (text + images from `3.5-images`) only.
+- `04-publish` holds final CMS-ready assets (text + images from `3.5-images`, plus a `3.6-schema` package when that stage has an output).
 
 ## Goal reminder
 

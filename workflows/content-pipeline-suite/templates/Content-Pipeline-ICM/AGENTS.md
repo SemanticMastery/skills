@@ -17,3 +17,4 @@ This workspace uses Interpretable Context Methodology (ICM).
 - Propose structural changes; wait for explicit create approval before writing new trees.
 - Run one stage folder at a time unless asked to orchestrate the full pipeline.
 - Keep `04-publish` platform-generic until the campaign’s publishing target is known.
+- `06-pages` is service-page copy, then `p.5-images` and `p.6-schema`. `07-claims-audit` is the claims-audit output slot. Neither pages nor claims-audit is a blog stage.

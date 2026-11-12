@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Content Pipeline Blog Run</title>
+  <style>
+    html, body { margin: 0; padding: 0; width: 1920px; height: 1080px; overflow: hidden; }
+    body { background: #f5f4ef; color: #1f1d18; font-family: Charter, "Source Serif Pro", "Iowan Old Style", Georgia, serif; }
+    .page { box-sizing: border-box; width: 1920px; height: 1080px; padding: 40px 48px 32px; display: flex; flex-direction: column; }
+    header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d4d1c5; padding-bottom: 12px; }
+    .kicker { font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: #6b665b; font-family: "Segoe UI", sans-serif; }
+    h1 { margin: 8px 0 0; font-size: 40px; font-weight: 500; letter-spacing: -0.02em; color: #1B365D; }
+    .lede { margin: 16px 0 18px; font-size: 18px; color: #6b665b; max-width: 1600px; }
+    .row-label { font-family: "Segoe UI", sans-serif; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #1B365D; margin: 0 0 10px; }
+    .flow { display: flex; align-items: stretch; gap: 0; margin-bottom: 18px; }
+    .step { flex: 1; background: #efeee5; border: 1px solid #d4d1c5; padding: 14px 12px 12px; min-height: 210px; }
+    .step .n { font-family: "Segoe UI", sans-serif; font-size: 12px; color: #1B365D; letter-spacing: 0.08em; }
+    .step h2 { margin: 6px 0 6px; font-size: 22px; font-weight: 500; line-height: 1.15; }
+    .step p { margin: 0; font-size: 15px; line-height: 1.35; color: #6b665b; }
+    .arrow { width: 22px; display: flex; align-items: center; justify-content: center; color: #1B365D; font-size: 20px; flex: 0 0 22px; }
+    .stop { background: #1B365D; color: #f5f4ef; border-color: #1B365D; }
+    .stop p, .stop .n { color: #c9d4e2; }
+    .stop h2 { color: #f5f4ef; }
+    .notes { display: flex; gap: 16px; }
+    .note { flex: 1; border: 1px solid #d4d1c5; padding: 14px 16px; }
+    .note h3 { margin: 0 0 6px; font-size: 17px; font-weight: 500; color: #1B365D; }
+    .note p { margin: 0; font-size: 15px; color: #6b665b; line-height: 1.4; }
+    .footer { margin-top: auto; display: flex; justify-content: space-between; border-top: 1px solid #d4d1c5; padding-top: 14px; font-size: 16px; }
+    .footer strong { color: #1B365D; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <div class="kicker">Semantic Mastery · Content Pipeline · Blog</div>
+        <h1>One slot, through schema</h1>
+      </div>
+    </header>
+    <p class="lede">content-pipeline-run 1.6.3. The roadmap and tags already exist. Pick one row. Follow each stage CONTEXT.md. Stop after schema. Do not publish.</p>
+    <div class="row-label">Produce chain</div>
+    <div class="flow">
+      <div class="step"><div class="n">3.1</div><h2>Brief</h2><p>One roadmap row. Story bank lines only when the brief names them.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">3.2</div><h2>Draft</h2><p>Voice DNA first. Zero files: professional. Two or more: ask. Reads ai-isms.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">3.3</div><h2>Edit</h2><p>Structural pass. Keeps the draft's speaker.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">3.4</div><h2>Polish</h2><p>CMS-ready text. External copy mode stays in the other app until this exists.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">3.5</div><h2>Images</h2><p>Approved photo by tag, otherwise Fal. Empty library is a miss, not a stop.</p></div>
+      <div class="arrow">→</div>
+      <div class="step stop"><div class="n">3.6</div><h2>Schema</h2><p>Blog JSON-LD for this post, then stop. No 04-publish. Next post is a new slot.</p></div>
+    </div>
+    <div class="notes">
+      <div class="note"><h3>review</h3><p>Stop after every stage until you say OK.</p></div>
+      <div class="note"><h3>auto</h3><p>Chain this one slot through schema. Still asks when two Voice DNA files exist. Still does not approve photos.</p></div>
+      <div class="note"><h3>Copy model</h3><p>Grok 4.6 or ChatGPT-5.6 Terra in this chat, or an external app already on a non-Anthropic model. Claude cannot inherit.</p></div>
+    </div>
+    <div class="footer">
+      <div><strong>Hard stop after schema.</strong> Run does not write the roadmap, ingest photos, or push the CMS.</div>
+      <div>Ridgeline Tree Care · Greater Denver</div>
+    </div>
+  </div>
+</body>
+</html>

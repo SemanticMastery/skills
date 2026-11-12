@@ -72,6 +72,7 @@ Voice DNA files may or may not be present in 01-resources/. Zero files: default 
    - Do not write SEO/process language for readers (e.g. “local search demand,” “SERP,” “once published,” “cluster,” “trigger word,” “money page,” “town page,” “service page,” “on the company website”).
    - Write about **services the business provides**, not about pages the website contains. Forbidden reader-facing patterns include: “maintains a dedicated … page,” “match the company website’s money pages,” “if you already know your town page,” “stated on the website,” or similar site-architecture narration.
    - When the brief lists a **live URL** for a service or location, you may add a natural Markdown link on the service/location words (e.g. `[tree removal](https://…)`). Do not announce that a page exists. Aspirational topics (no live URL) get no link and no teaser.
+   - Write for a potential customer. When a limit or exclusion has to be said, explain it as help and give the reason in plain sentences. Do not stack short refusals ("I will not…", "We do not…"). Keep the fact. Sound like a person helping someone decide, not a list of denials.
 
 5. Integrate the local business naturally so the educational answer leads logically to why a professional service from that business is the practical next step. Record this placement in the Heuristic Summary.
 
@@ -88,6 +89,7 @@ Voice DNA files may or may not be present in 01-resources/. Zero files: default 
 - Never use em dashes.
 - Never use any phrase or pattern listed in ai-isms.md.
 - Keep paragraphs short (three sentences maximum).
+- Write for a potential customer. State limits and exclusions as help, with the reason, not as a stack of short "I will not" or "We do not" lines.
 - Use H2 and H3 headings that reflect real user questions or sub-topics; avoid generic labels such as “Introduction” or “Conclusion.”
 - The article H1 must read like a natural blog post title, not a raw SEO label. Prefer question-, how-to-, what-, when-, or benefit-framed H1s when that fits the brief intent.
 - Write in a clean, neutral professional tone only when no Voice DNA file exists in 01-resources/. If one Voice DNA file exists, match it. If two or more exist, use only the operator-selected file.

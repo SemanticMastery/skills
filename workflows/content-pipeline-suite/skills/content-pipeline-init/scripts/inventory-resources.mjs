@@ -100,6 +100,14 @@ function parseArgs(argv) {
   return out;
 }
 
+function existsNonEmpty(file) {
+  try {
+    return fs.statSync(file).size > 0;
+  } catch {
+    return false;
+  }
+}
+
 function walkFiles(dir, acc = []) {
   if (!fs.existsSync(dir)) return acc;
   let entries;
@@ -182,6 +190,16 @@ function inventory(campaignDir, { destOnly }) {
       matches = matches.filter(
         (f) => !f.replace(/\\/g, "/").includes("/06-content-pipeline/")
       );
+    }
+
+    if (def.class_id === "product_doc" && !destOnly) {
+      // One canonical Product-Documentation: 01-intake/1.1-docs. The 01-resources file is a
+      // mirror that sync refreshes from it. A campaign that only has the resources copy keeps
+      // using that copy until a canonical file exists.
+      const canonical = path.join(campaignDir, "01-intake", "1.1-docs", "Product-Documentation.md");
+      const mirror = path.join(resourcesDir, "Product-Documentation.md");
+      if (existsNonEmpty(canonical)) matches = [canonical];
+      else if (existsNonEmpty(mirror)) matches = [mirror];
     }
 
     matches.sort((a, b) => {

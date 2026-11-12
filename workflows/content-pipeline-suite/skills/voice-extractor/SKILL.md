@@ -1,5 +1,6 @@
 ---
 name: voice-extractor
+disable-model-invocation: true
 description: >-
   Extract a complete writing style profile from any author's samples and output
   a portable voice-dna.json file. Use this skill when the user wants to clone,

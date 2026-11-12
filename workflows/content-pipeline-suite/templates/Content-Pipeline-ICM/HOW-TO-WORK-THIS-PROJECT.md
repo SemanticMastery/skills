@@ -6,7 +6,7 @@ WorkFlows ICM **campaign template** for **Content-Pipeline-ICM**:
 
 - Layer 1 router: `CONTEXT.md` (template + resource classes)
 - Canonical rules: `PROJECT-RULES.mdc`
-- Stages with hard-coded Agent prompts: `02-plan`, `3.1`–`3.5`
+- Stages with hard-coded Agent prompts: `02-plan`, `3.1`–`3.6`, and `06-pages` (`p.1`–`p.6`).
 - Permanent resource: `01-resources/ai-isms.md`
 - Harness: Cursor — `AGENTS.md` + `.cursor/rules/project-rules.mdc` (thin pointers)
 
@@ -40,28 +40,51 @@ Content-Pipeline-ICM/
 │   │   └── CONTEXT.md
 │   ├── 3.4-polish/
 │   │   └── CONTEXT.md
-│   └── 3.5-images/
+│   ├── 3.5-images/
+│   │   └── CONTEXT.md
+│   └── 3.6-schema/
 │       └── CONTEXT.md
 ├── 04-publish/
 │   └── CONTEXT.md          # platform-generic until campaign deploy
-└── 05-archives/
-    └── CONTEXT.md
+├── 05-archives/
+│   └── CONTEXT.md
+├── 06-pages/
+│   ├── CONTEXT.md
+│   ├── service-pages.md    # projection; pipeline-pages-init replaces it
+│   ├── matrix/
+│   │   └── README.md       # one workbook per slug, written later
+│   ├── p.1-brief/
+│   │   └── CONTEXT.md
+│   ├── p.2-draft/
+│   │   └── CONTEXT.md
+│   ├── p.3-edit/
+│   │   └── CONTEXT.md
+│   ├── p.4-polish/
+│   │   └── CONTEXT.md
+│   ├── p.5-images/
+│   │   └── CONTEXT.md
+│   └── p.6-schema/
+│       └── CONTEXT.md
+└── 07-claims-audit/
+    └── CONTEXT.md          # claims-audit output slot; empty until a run
 ```
 
 ## Why these stages
 
 - **`01-resources`** — permanent `ai-isms.md` plus campaign research pack so plan/produce agents share one source vault.
 - **`02-plan`** — one planning job for a 13- or 26-week Editorial Roadmap before any piece work.
-- **`03-write` + 3.1–3.5** — linear folder-agents (brief → draft → edit → polish → images); parent CONTEXT routes which step runs next.
+- **`03-write` + 3.1–3.6** — linear folder-agents (brief → draft → edit → polish → images → schema); parent CONTEXT routes which step runs next. `content-pipeline-run` continues from images into `3.6-schema`.
 - **`04-publish`** — CMS-ready assets + images; platform wiring is campaign-specific.
 - **`05-archives`** — completed plans/runs stay out of the live pipeline.
+- **`06-pages`** — service-page brief → draft → edit → polish, then `p.5-images` and `p.6-schema`. Not a blog stage. `content-pipeline-pages` still stops after polish unless the operator asks for images or schema. Matrix workbooks and page copy are campaign outputs.
+- **`07-claims-audit`** — claims ledger, Content Gaps report, and page snapshots from `claims-audit`. On-page crawl files stay in `01-intake/1.2-audit`.
 
 ## First-task checklist
 
 1. Duplicate this template for the campaign (if not already a campaign copy).
 2. Read root `CONTEXT.md` and confirm the resource table + task → stage map.
 3. Confirm `01-resources/ai-isms.md` is present; drop campaign-supplied research files into `01-resources/`.
-4. Run `02-plan` (13 or 26 weeks), then one vertical slice through 3.1→3.5 (hard-stop after images); run `04-publish` when ready.
+4. Run `02-plan` (13 or 26 weeks), then one vertical slice through 3.1→3.6. Run `04-publish` when ready.
 5. When the campaign’s CMS/platform is known, update `04-publish/CONTEXT.md` only — leave earlier stages alone unless forking intentionally.
 6. Log durable rules in `PROJECT-RULES.mdc`; keep harness files as pointers.
 

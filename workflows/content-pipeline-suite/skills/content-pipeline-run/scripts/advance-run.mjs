@@ -25,7 +25,7 @@ import { resolveArtifact } from "./lib/artifacts.mjs";
 import { planArtifactsReady } from "./lib/plan-artifacts.mjs";
 import { attachStoryBank } from "./lib/story-bank.mjs";
 
-const STAGE_ORDER = ["plan", "brief", "draft", "edit", "polish", "images"];
+const STAGE_ORDER = ["plan", "brief", "draft", "edit", "polish", "images", "schema"];
 
 const NEXT_AFTER = {
   plan: "select_slot",
@@ -33,7 +33,8 @@ const NEXT_AFTER = {
   draft: "run:edit",
   edit: "run:polish",
   polish: "run:images",
-  images: "done:slot",
+  images: "run:schema",
+  schema: "done:slot",
 };
 
 function parseArgs(argv) {
@@ -270,7 +271,7 @@ function ensureStage(manifest, key) {
 }
 
 function resetProduceStages(manifest) {
-  for (const k of ["brief", "draft", "edit", "polish", "images"]) {
+  for (const k of ["brief", "draft", "edit", "polish", "images", "schema"]) {
     manifest.stages[k] = { status: "pending", artifact: null, updated_at: null };
   }
 }
@@ -474,7 +475,7 @@ Actions:
         }
       } else {
         manifest.next_action = nextProduceAction(manifest, args.markComplete);
-        if (args.markComplete === "images") {
+        if (args.markComplete === "schema") {
           manifest.status = "produce_complete";
           if (manifest.active_slot) {
             manifest.active_slot.status = "produce_complete";
@@ -482,7 +483,7 @@ Actions:
           manifest.next_action = "done:slot";
         }
       }
-      if (args.markComplete === "images") {
+      if (args.markComplete === "schema") {
         manifest.status = "produce_complete";
       } else if (
         args.markComplete === "plan" &&
@@ -545,7 +546,7 @@ Actions:
       } else {
         manifest.next_action = nextProduceAction(manifest, args.approveStage);
         manifest.status = "in_progress";
-        if (args.approveStage === "images") {
+        if (args.approveStage === "schema") {
           manifest.status = "produce_complete";
           manifest.next_action = "done:slot";
           if (manifest.active_slot) {
@@ -599,13 +600,13 @@ Actions:
     }
 
     if (args.produceComplete) {
-      const st = ensureStage(manifest, "images");
+      const st = ensureStage(manifest, "schema");
       st.status = "complete";
       st.updated_at = nowIso();
       if (!st.artifact) {
         st.artifact = defaultArtifact(
           pipelineDir,
-          "images",
+          "schema",
           manifest.active_slot?.post,
         );
       }

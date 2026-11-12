@@ -34,6 +34,15 @@ Do not invent a Voice DNA file. Do not read intake copies outside `01-resources/
 
 ## Draft / edit / polish
 
-- Draft: match the selected file (POV, cadence, vocabulary). Still obey `ai-isms.md` and the no-em-dash rule even if the DNA uses those patterns.
+When the selected voice file is a person, and that person is the speaker, write the page as that person:
+
+- Shared company or crew work is we / us / our.
+- That person's own role, calls, and arrival are I / me / my.
+- Do not name that person in the third person in the visitor copy.
+- Do not import filler words or a personal biography from the voice file onto a service page unless the operator asks for them.
+
+Then:
+
+- Draft: match that speaker, plus cadence and vocabulary from the selected file. Still obey `ai-isms.md` and the no-em-dash rule even if the DNA uses those patterns. Zero voice files stays the default professional tone, with no invented author.
 - Heuristic Summary must include **Voice source** (path + speaker, or none).
-- Edit and polish: keep that voice. Do not flatten an author voice back to generic professional.
+- Edit and polish: keep that speaker. Do not flatten an author voice back to generic professional. Keeping it includes not renaming the author into the third person and not smoothing I back into a name.

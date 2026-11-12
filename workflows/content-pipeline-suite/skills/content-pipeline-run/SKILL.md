@@ -1,19 +1,23 @@
 ---
 name: content-pipeline-run
+disable-model-invocation: true
 description: >-
   Execute the campaign content pipeline produce stages: one slot through
-  3.1-brief → 3.2-draft → 3.3-edit → 3.4-polish → 3.5-images. Reads each
-  stage CONTEXT.md Agent prompt verbatim. Requires prior
+  3.1-brief → 3.2-draft → 3.3-edit → 3.4-polish → 3.5-images → 3.6-schema.
+  Reads each stage CONTEXT.md Agent prompt verbatim. Requires prior
   content-pipeline-init (init_complete), including the Editorial Roadmap
   and SiteSwarm tag taxonomy in 02-plan. Invoke-time gate_mode review|auto
-  and copywriting_model (inherit, pin Cursor, or external/local such as
-  Zed). Anthropic/Claude is prohibited. Cursor-session suggestion: Grok
+  and copywriting_model (inherit, pin Cursor, or external/local in
+  another app). Anthropic/Claude is prohibited. Cursor-session suggestion: Grok
   4.6 or ChatGPT-5.6 Terra. Does not publish, archive, or create the
   roadmap/taxonomy. Photo library is consumed at 3.5-images; first library
   build belongs after content-pipeline-init, not to the writing team.
-  (v1.5.0)
+  When the selected voice file is a person, company and crew work
+  is we and that person's own actions are I. After images this skill
+  continues into 3.6-schema and overwrites that post's JSON-LD.
+  Page produce does not roll into schema. (v1.6.3)
 metadata:
-  version: "1.5.0"
+  version: "1.6.3"
 ---
 
 # Content Pipeline Run (Orchestrator)
@@ -27,22 +31,20 @@ Editorial Roadmap, and the SiteSwarm tag taxonomy.
 | **Campaign pin** | User must specify `campaign_dir` (or pipeline dir) at invoke time. Confirm absolute path before writes. |
 | **Init gate** | Require `content-pipeline-init-manifest.json` `status: init_complete` **and** all 8 resource classes + `ai-isms.md` under `01-resources/` **and** `02-plan/editorial-roadmap.md` plus a SiteSwarm tag taxonomy. Else hard-stop → run `content-pipeline-init`. |
 | **Gate mode** | Require `gate_mode: review \| auto` at invoke (ask once if omitted). Persist on run manifest. |
-| **Copywriting model** | Require or ask `copywriting_model` at first run (and whenever the manifest field is missing). Offer **Cursor session** (inherit / pin) or **external/local** (Zed). Cursor-session suggestion: **Grok 4.6** or **ChatGPT-5.6 Terra**. **Prohibit Anthropic/Claude** (watermarking) — refuse a pin and refuse `inherit` when this chat is already Claude. If they skip and this chat is not Anthropic: `inherit` + `session`. See [copywriting-model.md](references/copywriting-model.md). |
+| **Copywriting model** | Require or ask `copywriting_model` at first run (and whenever the manifest field is missing). Offer **Cursor session** (inherit / pin) or **external/local** (another app already on the copy model). Cursor-session suggestion: **Grok 4.6** or **ChatGPT-5.6 Terra**. **Prohibit Anthropic/Claude** (watermarking) — refuse a pin and refuse `inherit` when this chat is already Claude. If they skip and this chat is not Anthropic: `inherit` + `session`. See [copywriting-model.md](references/copywriting-model.md). |
 | **Prompt ownership** | Each stage: read that folder's `CONTEXT.md`, execute **Agent prompt** verbatim. Do not reimplement or rewrite prompts. |
 | **One stage / one folder** | Write outputs only into the active stage folder (or path CONTEXT names). |
 | **No skip** | Do not advance past empty upstream unless the operator explicitly overrides. |
 | **One vertical slice** | After init left a roadmap: produce **one slot at a time**. Do not batch all weeks in one invoke. |
 | **Plan is init-owned** | Do not write `editorial-roadmap.md` or `siteswarm-tag-taxonomy.md`. Missing or rebuild → `content-pipeline-init`. |
-| **Stop after images** | Hard-stop after `3.5-images`. Do not write `04-publish/` or `05-archives/`. |
-| **Photo library** | **Consume only.** `3.5-images` runs `{pipeline_dir}/scripts/match-library.mjs` then `{pipeline_dir}/scripts/fal-generate.mjs` on miss. Those campaign-local copies are seeded by `content-pipeline-photo-library`. If they are missing, run that skill's `scripts/seed-helpers.mjs --campaign-dir "…"` — do not hard-stop just because the skill folder is not on this machine. First ingest/HITL is `content-pipeline-photo-library` after init (setup operator). Do **not** tell the writing team to build the library. Do **not** start ingest/classify/HITL during run unless the operator explicitly asks to refresh. Empty approved is a Fal miss, not a hard-stop. |
+| **Stop after schema** | Hard-stop after `3.6-schema`. After images, continue into schema in the same run. Schema reads `02-deliverables/2.4-schema` and overwrites this post’s JSON-LD. Do not write `04-publish/` or `05-archives/`. Page produce (`content-pipeline-pages`) does not roll into schema. |
+| **Photo library** | **Consume only.** `3.5-images` runs `{pipeline_dir}/scripts/match-library.mjs` then `{pipeline_dir}/scripts/fal-generate.mjs` on miss. Those files are seeded by `content-pipeline-photo-library`. If they are missing, run `node …/content-pipeline-photo-library/scripts/seed-helpers.mjs --campaign-dir "…"` — do not hard-stop because the installed skills folder is missing. First ingest/HITL is setup (the operator). Empty approved is a Fal miss, not a hard-stop. |
 | **Manifest SoT** | `{campaign_dir}/06-content-pipeline/content-pipeline-run-manifest.json` |
 | **Planning files** | Prefer `{campaign_dir}/04-archives/planning/` for task/findings/progress when that tree exists. |
 
 Companion (prerequisite): **`content-pipeline-init`** — fills `01-resources/` and writes `02-plan/` roadmap + SiteSwarm taxonomy. This skill does not call research companions or paid APIs, and does not create the plan.
 
-Optional companion (setup, not this skill): **`content-pipeline-photo-library`** — the setup operator runs it after init so writers already have `approved/` photos. Run does not own that HITL.
-
-Sibling track (not this skill): **`pipeline-pages-init`** + **`content-pipeline-pages`** produce service pages from the same `01-resources/` pack. Blog slots and page slugs never share a stage folder.
+Setup companion (setup, not this skill): **`content-pipeline-photo-library`** — the operator runs it after init so writers already have `approved/` photos. Run does not own that HITL.
 
 ## When to use
 
@@ -58,7 +60,8 @@ Sibling track (not this skill): **`pipeline-pages-init`** + **`content-pipeline-
 4. [references/copywriting-model.md](references/copywriting-model.md)
 5. [references/run-manifest-schema.md](references/run-manifest-schema.md)
 6. [references/subagent-stage.md](references/subagent-stage.md)
-7. [references/voice-dna.md](references/voice-dna.md) — optional author/brand Voice DNA before draft
+7. [references/brainrot-shorts-test.md](references/brainrot-shorts-test.md) — optional local shorts test (not a produce stage)
+8. [references/voice-dna.md](references/voice-dna.md) — optional author/brand Voice DNA before draft
 
 ## Scripts
 
@@ -71,6 +74,7 @@ Skill root = this folder (next to `SKILL.md`).
 | `scripts/advance-run.mjs` | Init/update run manifest (approve, set-slot, mark-complete, copywriting model, …) |
 | `scripts/nest-post-artifacts.mjs` | Nest polish/images (and any post with >1 file) into `post-{NN}-{stage}/` |
 | `scripts/fal-generate.mjs` | Generate one PNG via Fal.ai (`FAL_AI_API_KEY` or `FAL_KEY`; default `fal-ai/flux-2-pro`) |
+| local REST CLI (not in this folder) | `.cursor/scripts/brainrot/cli.mjs` — optional shorts test via `BRAINROT_API_KEY` |
 
 Run with **Node.js 20+**. Pass absolute `--campaign-dir`.
 
@@ -91,7 +95,7 @@ node scripts/fal-generate.mjs --prompt "photoreal tree crew..." --out "/abs/path
 4. Require or ask **`copywriting_model`** when the manifest field is missing (see [copywriting-model.md](references/copywriting-model.md)):
    - **Cursor session — inherit** — use the model already running this chat. `copywriting_via=session`. Recommended when this chat is already **Grok 4.6** or **ChatGPT-5.6 Terra**. If this chat is Claude/Anthropic: **stop** — do not inherit, do not write copy. Ask them to switch this chat to Grok 4.6 or ChatGPT-5.6 Terra.
    - **Cursor session — pin** — they name a Cursor-dispatchable id. Suggest **`cursor-grok-4.6-high-fast`** (Grok 4.6) or **`gpt-5.6-terra-medium`** (ChatGPT-5.6 Terra). Other non-Anthropic Cursor slugs are OK if they name one. `copywriting_via=session`.
-   - **External / local** — they will run **03-write** (brief→polish) in another agent already on the copy model (example: Zed + Copywriter-Gemma4-31B). Persist the model id, `copywriting_via=external`, and `copywriting_host` (e.g. `zed`). **Do not write those stages in this chat.** Use this only when the operator has that local host — team members on Cursor-only should use the session options above.
+   - **External / local** — they will run **03-write** (brief→polish) in another agent already on the copy model. Persist the model id, `copywriting_via=external`, and an optional `copywriting_host` label. **Do not write those stages in this chat.** Use this only when the operator has that local host — team members on Cursor-only should use the session options above.
    - **Anthropic is prohibited.** Do not pin, inherit, Task-dispatch, or silently substitute Claude / Sonnet / Opus / Haiku / any Anthropic id. If they skip and this chat is not Anthropic: `inherit` + `session`.
 5. Create/update run manifest:
 
@@ -100,8 +104,8 @@ node scripts/advance-run.mjs --campaign-dir "..." --init --gate-mode review --co
 # Cursor pin examples (team / no local models):
 # --copywriting-model cursor-grok-4.6-high-fast
 # --copywriting-model gpt-5.6-terra-medium
-# Zed + local copywriter example (operator has homelab access):
-# --copywriting-model copywriter-gemma4-31b --copywriting-via external --copywriting-host zed
+# External copywriter example (operator has local-model access):
+# --copywriting-model <model-id> --copywriting-via external --copywriting-host <label>
 ```
 
 6. Optionally create planning trio under `04-archives/planning/` for long runs.
@@ -131,27 +135,28 @@ Plan and SiteSwarm taxonomy are **init-owned**. This step only records them on t
 node scripts/advance-run.mjs --campaign-dir "..." --set-slot --post N --week W --title "..." --trigger "..."
 ```
 
-3. Produce **only this slot** through images in this invoke (or until review / external pause). If `copywriting_via=external`, stop after set-slot and hand off the **entire** 3.1→3.4 chain (`await_external:write`). The operator stays in that host through polish. Do not write 03-write copy here and do not call them back after each stage.
+3. Produce **only this slot** through schema in this invoke (or until review / external pause). If `copywriting_via=external`, stop after set-slot and hand off the **entire** 3.1→3.4 chain (`await_external:write`). The operator stays in the external host through polish. Do not write 03-write copy here and do not call them back after each stage.
 
-## Step 4 — Produce chain (`3.1` → `3.5`)
+## Step 4 — Produce chain (`3.1` → `3.6`)
 
-For each stage in order: **brief → draft → edit → polish → images**:
+For each stage in order: **brief → draft → edit → polish → images → schema**:
 
 1. Verify upstream artifact exists (see [artifact-naming.md](references/artifact-naming.md)).
-2. **Before `draft`:** resolve Voice DNA per [voice-dna.md](references/voice-dna.md). Zero files → default professional. One file → use it. Two or more → ask which to use as the author voice, then proceed. Do not skip a present `*voice-dna*` file.
+2. **Before `draft`:** resolve Voice DNA per [voice-dna.md](references/voice-dna.md). Zero files → default professional. One file → use it. Two or more → ask which to use as the author voice, then proceed. Do not skip a present `*voice-dna*` file. When that file is a person, company and crew work is we / us / our and that person's own role, calls, and arrival are I / me / my. Do not name that person in the third person. Do not import filler words or a personal biography unless the operator asks. Edit and polish keep that speaker, including not smoothing I back into a name.
 3. Read that stage's `CONTEXT.md`; follow Agent prompt verbatim.
 4. **Copy stages** (`brief` / `draft` / `edit` / `polish`): apply [copywriting-model.md](references/copywriting-model.md). Refuse Anthropic/Claude (pin or inherit-on-Claude). If `copywriting_via=external`, print **one** handoff for 3.1→3.4, `--await-external write`, and **stop** — do not write copy here, do not Task-dispatch, and do not resume until polish exists. If `via=session` and a pinned id is not dispatchable, stop — do not substitute another model (never substitute Claude).
-5. **`images`:** ignore the copywriting pin (orchestrator + library matcher + Fal). Always run here, including after an external polish. Consume `approved/` if present; Fal-miss if empty. Do not start photo-library ingest/HITL.
-6. Write the named artifact into that stage folder only.
-7. Update manifest (`--mark-complete` or `--await-approval`).
-8. **`review`:** set awaiting approval and **stop the turn** until the operator says proceed/revise.
-9. **`auto`:** continue to the next stage unless blocked/failed.
+5. **`images`:** ignore the copywriting pin (orchestrator + library matcher + Fal). Always run here, including after an external polish. Consume `approved/` if present; Fal-miss if empty. Do not start photo-library ingest/HITL. Then continue to schema.
+6. **`schema`:** read `3.6-schema/CONTEXT.md` and follow it. Overwrite this post’s JSON-LD in `02-deliverables/2.4-schema/blog/` when that slug’s file is already there. Do not call SiteSwarm.
+7. Write the named artifact into that stage folder only.
+8. Update manifest (`--mark-complete` or `--await-approval`).
+9. **`review`:** set awaiting approval and **stop the turn** until the operator says proceed/revise.
+10. **`auto`:** continue to the next stage unless blocked/failed.
 
 Optional: dispatch a stage via Task subagent using [subagent-stage.md](references/subagent-stage.md). Pass the pinned copywriting model on copy stages.
 
 ## Step 5 — Complete (slot)
 
-After images:
+After schema:
 
 ```bash
 node scripts/advance-run.mjs --campaign-dir "..." --produce-complete
@@ -159,7 +164,7 @@ node scripts/advance-run.mjs --campaign-dir "..." --produce-complete
 
 Report artifact paths. Remind: publish/archive are **out of scope** — do not write `04-publish/` or `05-archives/`.
 
-Do not invent a `3.6-video` stage. Repurposing the polish file into video is a separate, operator-triggered job outside this skill.
+Optional (operator-triggered only): test a Brainrot vertical short from the polish file. See [brainrot-shorts-test.md](references/brainrot-shorts-test.md). Do not invent a `3.6-video` stage.
 
 To produce another post: new slot selection on a later invoke (or after clear + set-slot).
 
@@ -171,7 +176,7 @@ On re-invoke:
 node scripts/status-run.mjs --campaign-dir "..."
 ```
 
-Honor `next_action`, `copywriting_model`, and `copywriting_via`. If `next_action` is `blocked:need_init_plan` (roadmap or taxonomy missing), tell them to run **content-pipeline-init**. If `copywriting_model` is missing, ask before writing more copy (do not silently assume Claude or inherit on an old manifest). If the stored pin is Anthropic/Claude, or `inherit` while this chat is Claude/Anthropic: **stop** — do not write copy. Ask them to switch to Grok 4.6 or ChatGPT-5.6 Terra (or pin `cursor-grok-4.6-high-fast` / `gpt-5.6-terra-medium`). If polish exists (with brief/draft/edit), `--ingest-external-write` then continue to images (or one polish approval in `review`). If polish is missing, stay handed off — do not write 03-write copy here. Do not redo `complete` stages unless the operator requests rewrite.
+Honor `next_action`, `copywriting_model`, and `copywriting_via`. If `next_action` is `blocked:need_init_plan` (roadmap or taxonomy missing), tell them to run **content-pipeline-init**. If `copywriting_model` is missing, ask before writing more copy (do not silently assume Claude or inherit on an old manifest). If the stored pin is Anthropic/Claude, or `inherit` while this chat is Claude/Anthropic: **stop** — do not write copy. Ask them to switch to Grok 4.6 or ChatGPT-5.6 Terra (or pin `cursor-grok-4.6-high-fast` / `gpt-5.6-terra-medium`). If `next_action` is `await_external:write` and polish exists (with brief/draft/edit), `--ingest-external-write` then continue to images and then schema (or one polish approval in `review`). If polish is missing, stay handed off — do not write 03-write copy here. Do not redo `complete` stages unless the operator requests rewrite.
 
 ## Out of scope
 

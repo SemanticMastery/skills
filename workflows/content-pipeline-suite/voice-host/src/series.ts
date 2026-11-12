@@ -43,6 +43,7 @@ export class Series {
     const retention = Number(this.env.RETENTION_DAYS || 30);
     const alarmAt = seriesNextAlarm(state, now, retention);
     if (alarmAt != null) await this.ctx.storage.setAlarm(alarmAt);
+    else if (state.purged) await this.ctx.storage.deleteAlarm();
   }
 
   private sessionStub(sessionId: string) {

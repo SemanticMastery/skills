@@ -15,7 +15,7 @@ Created by **content-pipeline-init**. This skill does not write either file. Mis
 
 `{NN}` = zero-padded Post number from the roadmap row (minimum 2 digits: `01`, `02`, … `39`, `78`).
 
-**Per-post subdirectory:** when a post has **more than one artifact** in a stage folder, nest them under `{stage}/post-{NN}-{stage}/`. `3.4-polish` and `3.5-images` always nest (they accrue extras). Single-file brief/draft/edit stay flat until a second file appears. `CONTEXT.md` and `_*.json` temps stay at the stage root.
+**Per-post subdirectory:** when a post has **more than one artifact** in a stage folder, nest them under `{stage}/post-{NN}-{stage}/`. `3.4-polish`, `3.5-images`, and `3.6-schema` always nest (they accrue extras). Single-file brief/draft/edit stay flat until a second file appears. `CONTEXT.md` and `_*.json` temps stay at the stage root.
 
 | Stage | Path |
 |-------|------|
@@ -24,7 +24,11 @@ Created by **content-pipeline-init**. This skill does not write either file. Mis
 | edit | `03-write/3.3-edit/post-{NN}-edit.md` |
 | polish | `03-write/3.4-polish/post-{NN}-polish/post-{NN}-polish.md` (+ `.html` / `.docx` in the same folder) |
 | images | `03-write/3.5-images/post-{NN}-images/post-{NN}-images.md` |
-| images (PNG) | `03-write/3.5-images/post-{NN}-images/post-{NN}-img-{KK}.png` (`01`, `02`, …) |
+| images (working PNG) | `03-write/3.5-images/post-{NN}-images/post-{NN}-img-{KK}.png` (`01`, `02`, …). Matcher and Fal write this name. |
+| images (upload JPEG) | `03-write/3.5-images/post-{NN}-images/{public-slug}.jpg`. The publication asset links this file. SiteSwarm stores it at `/media/{public-slug}.jpg` when `filename` is that basename. |
+| schema | `03-write/3.6-schema/post-{NN}-schema/post-{NN}-schema.jsonld` |
+| schema (note) | `03-write/3.6-schema/post-{NN}-schema/post-{NN}-schema.md` |
+| campaign JSON-LD | `{campaign_dir}/02-deliverables/2.4-schema/blog/blogpost-{slug}.jsonld` (overwrite this slug) |
 
 Examples:
 
@@ -32,7 +36,7 @@ Examples:
 - Post 1 polish → `3.4-polish/post-01-polish/post-01-polish.md`
 - Post 1 images → `3.5-images/post-01-images/post-01-images.md` + `post-01-img-01.png` …
 
-Readers accept the nested path first, then the older flat path. New writes for polish/images go in the subdirectory.
+Readers accept the nested path first, then the older flat path. New writes for polish, images, and schema go in the subdirectory.
 
 To nest an existing campaign: `node scripts/nest-post-artifacts.mjs --campaign-dir "..." --execute`
 

@@ -134,7 +134,7 @@ Status values: complete | skipped | blocked | failed
 }
 ```
 
-**Overrides:** Hard-stop inside child skill if dossier or onpage missing — return `blocked` rather than drafting. Write **only** `01-intake/1.1-docs/Product-Documentation.md`. Do not create or write `outputs/product-documentation/`. Prefer global `product-documentation` skill path when present.
+**Overrides:** Hard-stop inside child skill if dossier or onpage missing — return `blocked` rather than drafting. Write `01-intake/1.1-docs/Product-Documentation.md` (the canonical file) and never the `01-resources` mirror; sync refreshes the mirror. Do not create a `06-content-pipeline/` tree from this dispatch. Do not create or write `outputs/product-documentation/`. Run the installed `product-documentation` skill.
 
 ### `icp` — customer-research
 

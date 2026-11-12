@@ -4,7 +4,7 @@ Use when the host supports the **Task** tool and a stage should run in an isolat
 
 **Copywriting model:** for `plan` / `brief` / `draft` / `edit` / `polish`, pass the run manifest `copywriting_model` as Task `model` when the host allowlists that id. Use `inherit` (or omit `model`) when the pin is `inherit` **and this chat is not Anthropic**. Never pass Claude / Sonnet / Opus / Haiku / any Anthropic id. If the pin is Anthropic, or `inherit` while this chat is Claude: do **not** launch the Task. Suggest Grok 4.6 (`cursor-grok-4.6-high-fast`) or ChatGPT-5.6 Terra (`gpt-5.6-terra-medium`). If the pinned id is not on this host’s Task list, do **not** launch the subagent with a substitute. Stop and tell the operator. `images` ignores this pin.
 
-**Within a produce chain (`auto`):** prefer sequential Tasks (or in-process) — do not parallelize brief/draft/edit/polish/images for the same slot.
+**Within a produce chain (`auto`):** prefer sequential Tasks (or in-process) — do not parallelize brief/draft/edit/polish/images/schema for the same slot.
 
 ## Reliability
 
@@ -71,6 +71,7 @@ Status values: complete | blocked | failed
 | `edit` | `03-write/3.3-edit/CONTEXT.md` | draft artifact |
 | `polish` | `03-write/3.4-polish/CONTEXT.md` | edit artifact |
 | `images` | `03-write/3.5-images/CONTEXT.md` | polish artifact |
+| `schema` | `03-write/3.6-schema/CONTEXT.md` | images package |
 
 ## Orchestrator merge
 

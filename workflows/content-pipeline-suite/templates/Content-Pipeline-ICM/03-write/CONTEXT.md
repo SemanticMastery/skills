@@ -2,7 +2,7 @@
 
 ## Job
 
-Orchestrate piece production for one plan slot at a time through the linear chain: brief → draft → edit → polish → images.
+Orchestrate piece production for one plan slot at a time through the linear chain: brief → draft → edit → polish → images → schema.
 
 ## Inputs
 
@@ -14,14 +14,14 @@ Orchestrate piece production for one plan slot at a time through the linear chai
 
 1. Select one plan slot.
 2. Run stages in order; do not skip unless the operator overrides:
-   - `3.1-brief` → `3.2-draft` → `3.3-edit` → `3.4-polish` → `3.5-images`
+   - `3.1-brief` → `3.2-draft` → `3.3-edit` → `3.4-polish` → `3.5-images` → `3.6-schema`
 3. Each subfolder is a folder-agent: read that subfolder's `CONTEXT.md`, write only its outputs.
-4. After images, hard-stop. Hand the candidate to `04-publish/` only when publish is explicitly run (platform remains generic until campaign deploy).
+4. Run `3.6-schema` from its `CONTEXT.md` after images. `content-pipeline-run` rolls into that stage on its own. Hand the candidate to `04-publish/` only when publish is explicitly run (platform remains generic until campaign deploy).
 
 ## Outputs
 
 - Routing decision: which `3.x` step is next for the active slot
-- Completed produce chain artifacts under `3.1`–`3.5` for that slot. When a post has more than one file in a stage, nest them in `post-{NN}-{stage}/` (polish and images always nest).
+- Completed produce chain artifacts under `3.1`–`3.6` for that slot. Schema is written when that stage is run. When a post has more than one file in a stage, nest them in `post-{NN}-{stage}/` (polish, images, and schema nest).
 
 ## Notes
 

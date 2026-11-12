@@ -18,14 +18,15 @@ When this stage runs, execute the **Agent prompt** below exactly. Produce one im
 ## Outputs
 
 - `post-{NN}-images/post-{NN}-images.md` — Image Manifest + Technical Suite (filenames updated) + Publication Asset with markdown image links
-- `post-{NN}-images/post-{NN}-img-{KK}.png` — one PNG per placeholder (`01`, `02`, …)
+- `post-{NN}-images/post-{NN}-img-{KK}.png` — working PNG per placeholder (`01`, `02`, …). The matcher and Fal write this name.
+- `post-{NN}-images/{public-slug}.jpg` — the file that gets uploaded. Its basename is the SiteSwarm `/media/` path.
 - Do **not** overwrite the polish markdown
 
 ## Notes
 
 - Keep this stage focused on image production and placeholder swap.
 - Point agents here from the root `CONTEXT.md` task table and `03-write/CONTEXT.md`.
-- Produce chain hard-stops after this stage until publish is wired.
+- Hand the images package to `3.6-schema`. `content-pipeline-run` continues into that stage. Do not invent JSON-LD in this stage.
 - Engine: Fal.ai (`fal-ai/flux-2-pro`) for **outcome/feeling** stills. Library photos may show real process. Requires `FAL_AI_API_KEY` or `FAL_KEY` in your environment. Do **not** use Cursor GenerateImage.
 - **Shared image helpers:** `{pipeline_dir}/scripts/match-library.mjs` and `{pipeline_dir}/scripts/fal-generate.mjs`. A missing installed-skill path is not a hard-stop — run photo-library `seed-helpers.mjs` if those files are absent.
 
@@ -84,11 +85,15 @@ Never use Cursor GenerateImage.
    - Forbidden: hanging failure geometry, rope/rigging diagrams, chainsaws-in-action, limb-on-roof physics
    - Use dossier only for high-level visual cues (region, trade atmosphere) — never invent services or claims
 
-7. Build `post-{NN}-images/post-{NN}-images.md`:
+7. Name the upload JPEG, then build `post-{NN}-images/post-{NN}-images.md`:
+   - Leave the working PNG at `post-{NN}-img-{KK}.png`.
+   - For each successful image, write a JPEG in the same folder. Its filename describes the photo: lowercase, hyphens, three to six words, `.jpg`, unique in this post. No `post-{NN}`, no `img-{KK}`, no city, and no article title. Example: `crew-loading-wood-chipper.jpg`.
+   - If `post-{NN}-web-{KK}.jpg` is already in the folder, that file is the JPEG: rename it to the public filename. Otherwise export the JPEG from the working PNG.
    - Copy Technical Suite forward (Title Tag, Meta Description, URL Slug, Asset Map).
-   - Replace the Image placeholders list with the real filenames (and alts).
-   - Publication Asset: copy the Final Publication Asset and replace each `[IMAGE: …]` with `![alt](post-{NN}-img-{KK}.png)` (relative to this folder).
+   - The manifest Filename column is the public JPEG. Record the working PNG beside it.
+   - Publication Asset: copy the Final Publication Asset and replace each `[IMAGE: …]` with `![alt]({public-filename}.jpg)` (relative to this folder).
    - Do not change article prose except the placeholder → markdown image swap.
+   - `siteswarm-publish-kit` uploads that JPEG with `filename` set to the same basename. The live path is `/media/{public-filename}`.
 
 8. If a Fal call fails for a placeholder: leave that `[IMAGE: …]` marker in the Publication Asset, note the failure in the Manifest, and continue with remaining images.
 </instructions>
@@ -107,9 +112,9 @@ Never use Cursor GenerateImage.
 Write `post-{NN}-images/post-{NN}-images.md` with exactly these sections:
 
 ### I. IMAGE MANIFEST
-| Index | Source scene | Alt | Filename | Aspect | Engine | Status |
-|------:|--------------|-----|----------|--------|--------|--------|
-| 01 | … | … | post-{NN}-img-01.png | 16:9 | fal \| library | ok \| failed |
+| Index | Source scene | Alt | Public filename | Working file | Aspect | Engine | Status |
+|------:|--------------|-----|-----------------|--------------|--------|--------|--------|
+| 01 | … | … | crew-loading-wood-chipper.jpg | post-{NN}-img-01.png | 16:9 | fal \| library | ok \| failed |
 
 ### II. TECHNICAL SUITE
 **Title Tag:** [from polish]
@@ -124,7 +129,7 @@ Write `post-{NN}-images/post-{NN}-images.md` with exactly these sections:
 
 ### III. PUBLICATION ASSET (WITH IMAGES)
 ```markdown
-[Full article from polish with successful placeholders swapped to ![alt](post-{NN}-img-KK.png)]
+[Full article from polish with successful placeholders swapped to ![alt]({public-filename}.jpg)]
 ```
 </output_format>
 </prompt>

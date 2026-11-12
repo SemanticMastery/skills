@@ -132,7 +132,7 @@ Options:
 Pre-gather scratch (temp — deleted after success unless --keep-artifacts):
   {tmpdir}/business-dossier-{slug}-{timestamp}/
 
-Output (Golden Image — only deliverables):
+Output (campaign folder — only deliverables):
   {campaign}/outputs/business-dossier/{Business-Name}-Dossier.md
   {campaign}/outputs/business-dossier/{Business-Name}-Dossier.docx`;
 }

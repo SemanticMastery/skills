@@ -1,6 +1,6 @@
 # content-pipeline-run
 
-**Version:** 1.5.0  
+**Version:** 1.6.3  
 **Semantic Mastery Mastermind** — Bradley Benner  
 **License:** Semantic Mastery Member License. See LICENSE-MEMBERS.md at the repository root.
 
@@ -10,7 +10,7 @@ Orchestrates **content pipeline editorial execution** for one campaign/project f
 
 1. Gate on prior **content-pipeline-init** (`init_complete` + resources in `01-resources/` + Editorial Roadmap + SiteSwarm tag taxonomy in `02-plan/`)
 2. Consume the existing roadmap (do not create or rebuild it)
-3. Produce **one plan slot** through `3.1-brief` → `3.2-draft` → `3.3-edit` → `3.4-polish` → `3.5-images`
+3. Produce **one plan slot** through `3.1-brief` → `3.2-draft` → `3.3-edit` → `3.4-polish` → `3.5-images` → `3.6-schema`. Schema overwrites that post’s JSON-LD in `02-deliverables/2.4-schema/blog/` when the file is already there. Page produce does not roll into schema.
 4. Pause after each produce stage (`gate_mode=review`) or auto-chain (`gate_mode=auto`)
 
 It does **not** initialize research resources, publish to a CMS, or archive runs.
@@ -25,10 +25,15 @@ It does **not** initialize research resources, publish to a CMS, or archive runs
 | **1.2.0** | First-run **copywriting model** selector. Persist `copywriting_model` (`inherit` or a pinned id). Default if skipped: inherit. Never default to Claude/Anthropic. |
 | **1.3.0** | `copywriting_via=external` + optional `copywriting_host` (e.g. Zed). |
 | **1.3.1** | External 03-write is **one stay**: complete 3.1→3.4 in Zed, then return once for `3.5-images`. No bounce after each stage. |
-| **1.3.2** | External-host handoff is one stay, not a per-stage bounce. |
+| **1.3.2** | external write companion pointer. |
 | **1.3.3** | **Anthropic/Claude prohibited** for copy stages (watermarking). Cursor-session suggestion: **Grok 4.6** or **ChatGPT-5.6 Terra**. External/local (Zed) remains optional. |
 | **1.4.0** | After the editorial roadmap exists, map topic clusters to condensed SiteSwarm tags (`02-plan/siteswarm-tag-taxonomy.md`). Overlapping clusters share a tag. Not CMS publish. |
-| **1.5.0** (this package) | Plan + SiteSwarm taxonomy move to **content-pipeline-init**. This skill is produce-only. |
+| **1.5.0** | Plan + SiteSwarm taxonomy move to **content-pipeline-init**. This skill is produce-only. |
+| **1.5.1** | Zed is retired (2026-10-20). Removed the Zed examples and the `content-pipeline-zed-write` pointer. External hosts (`copywriting_via=external`) stay. |
+| **1.6.0** | When the selected voice file is a person, company and crew work is we / us / our and that person's own actions are I / me / my. Edit and polish keep that speaker. |
+| **1.6.1** | Template stage `3.6-schema` is on the tree. Produce still hard-stops after `3.5-images` unless the operator asks for schema. |
+| **1.6.2** | `3.6-schema` reads `02-deliverables/2.4-schema` first and follows `schema-markup-generator`. A blog post is a `WebPage` whose `mainEntity` is the `BlogPosting`. |
+| **1.6.3** (this package) | Blog produce continues from images into schema and overwrites that post’s JSON-LD. Page produce still stops after polish. |
 | Later | Publishing instructions will be added to the campaign `04-publish/CONTEXT.md` and this skill will gain a publish step. |
 
 Keep the zip filename version (`content-pipeline-run-v1.3.3.zip`) so you can tell which release students installed when publish support ships.
@@ -39,7 +44,7 @@ Keep the zip filename version (`content-pipeline-run-v1.3.3.zip`) so you can tel
 - An AI agent host that loads Agent Skills (`SKILL.md`)
 - Campaign folder with `06-content-pipeline/` already initialized via **content-pipeline-init**
 - Stage `CONTEXT.md` Agent prompts present (from Content-Pipeline-ICM template — see `content-pipeline-icm.zip`)
-- **`FAL_AI_API_KEY`** (preferred User env name) or **`FAL_KEY`** for `3.5-images` Fal generations (User env or skill-local `.env` from `.env.example`). Never commit the key.
+- **`FAL_AI_API_KEY`** (User env name) or **`FAL_KEY`** for `3.5-images` Fal generations (User env or skill-local `.env` from `.env.example`). Never commit the key.
 
 ## Prerequisite skill
 
@@ -81,8 +86,8 @@ Optional: if you use the open skills CLI: `npx skills add <path-or-repo>` when s
 Ask your agent to run **content-pipeline-run** with:
 
 1. Explicit campaign/project path
-2. **`gate_mode`**: `review` (pause after every stage) or `auto` (chain brief→images after plan + slot)
-3. **`copywriting_model`**: Cursor session (`inherit` or pin) or **external/local** (Zed, etc.). Ask once on first run. Cursor-session suggestion: **Grok 4.6** or **ChatGPT-5.6 Terra**. **Anthropic/Claude is prohibited** (watermarking). If you skip and this chat is not Anthropic, the skill stores `inherit` + `session`.
+2. **`gate_mode`**: `review` (pause after every stage) or `auto` (chain brief→schema after plan + slot)
+3. **`copywriting_model`**: Cursor session (`inherit` or pin) or **external/local** (another app already on the copy model). Ask once on first run. Cursor-session suggestion: **Grok 4.6** or **ChatGPT-5.6 Terra**. **Anthropic/Claude is prohibited** (watermarking). If you skip and this chat is not Anthropic, the skill stores `inherit` + `session`.
 
 Example phrases:
 
@@ -91,7 +96,7 @@ Example phrases:
 - “Pin copywriting to Grok 4.6”
 - “Pin copywriting to ChatGPT-5.6 Terra (`gpt-5.6-terra-medium`)”
 - “Use inherit for copywriting” (only if this chat is not Claude)
-- “Run 03-write in Zed on Copywriter-Gemma4-31B”
+- “Run 03-write externally on `<model-id>`”
 
 Or drive the manifest with scripts:
 
@@ -125,17 +130,17 @@ Asked on first run (same turn as `gate_mode`). Stored as `copywriting_model` on 
 
 **Anthropic/Claude is prohibited** for copy stages — do not pin it, do not inherit a Claude chat, and do not silently switch to it. Change later with `--set-copywriting-model`. If a pinned id cannot be dispatched on your host, the agent must stop and ask — it must not silently switch models.
 
-To run **03-write** (brief→polish) in another app already connected to the copy model (Zed + Copywriter-Gemma4-31B is the reference):
+To run **03-write** (brief→polish) in another app already connected to the copy model:
 
 ```bash
 node path/to/content-pipeline-run/scripts/advance-run.mjs \
   --campaign-dir "/abs/path/to/campaign" \
-  --set-copywriting-model copywriter-gemma4-31b \
+  --set-copywriting-model "<model-id>" \
   --set-copywriting-via external \
-  --set-copywriting-host zed
+  --set-copywriting-host "<label>"
 ```
 
-Open the **campaign directory** in that app. Stay there through **3.1-brief → 3.4-polish** (follow each stage `CONTEXT.md` verbatim). Come back here **once** after polish for `3.5-images`. Do not switch back after each write stage. The Editorial Roadmap is created by **content-pipeline-init**, not here.
+Open the **campaign directory** in that app. Stay there through **3.1-brief → 3.4-polish** (follow each stage `CONTEXT.md` verbatim). Come back here **once** after polish for `3.5-images` and then `3.6-schema`. Do not switch back after each write stage. The Editorial Roadmap is created by **content-pipeline-init**, not here.
 
 ```bash
 node path/to/content-pipeline-run/scripts/advance-run.mjs \
@@ -154,6 +159,7 @@ node path/to/content-pipeline-run/scripts/advance-run.mjs \
 | Edit | `03-write/3.3-edit/post-{NN}-edit.md` |
 | Polish | `03-write/3.4-polish/post-{NN}-polish/post-{NN}-polish.md` |
 | Images | `03-write/3.5-images/post-{NN}-images/post-{NN}-images.md` + `post-{NN}-img-{KK}.png` |
+| Schema | `03-write/3.6-schema/post-{NN}-schema/post-{NN}-schema.jsonld` and `{campaign_dir}/02-deliverables/2.4-schema/blog/blogpost-{slug}.jsonld` |
 
 Run progress: `06-content-pipeline/content-pipeline-run-manifest.json`
 
@@ -171,8 +177,8 @@ Optional coaching visual (ships next to this zip in Shareable): `content-pipelin
 
 ## Attribution
 
-Packaged for Semantic Mastery Mastermind by Bradley Benner.
+Packaged for Semantic Mastery Mastermind by the operator Benner.
 
 ## Support
 
-Questions about this skill: ask inside Semantic Mastery Mastermind (Bradley Benner).
+Questions about this skill: ask inside Semantic Mastery Mastermind (the operator Benner).

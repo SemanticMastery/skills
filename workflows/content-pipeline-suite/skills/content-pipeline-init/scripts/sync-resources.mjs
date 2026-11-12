@@ -3,11 +3,13 @@
  * Copy inventoried campaign resources into 06-content-pipeline/01-resources/.
  *
  * Usage:
- *   node sync-resources.mjs --campaign-dir "C:\\...\\Ridgeline-Tree-Care"
+ *   node sync-resources.mjs --campaign-dir "C:\\...\\Campaign"
  *   node sync-resources.mjs --campaign-dir "..." --dry-run
+ *   node sync-resources.mjs --campaign-dir "..." --classes product_doc
  */
 
 import { spawnSync } from "node:child_process";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,12 +21,20 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function parseArgs(argv) {
-  const out = { campaignDir: null, dryRun: false };
+  const out = { campaignDir: null, dryRun: false, classes: null };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--campaign-dir") out.campaignDir = argv[++i];
     else if (a === "--dry-run") out.dryRun = true;
-    else if (a === "--help" || a === "-h") out.help = true;
+    else if (a === "--classes") {
+      const raw = argv[++i];
+      out.classes = new Set(
+        String(raw || "")
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean),
+      );
+    } else if (a === "--help" || a === "-h") out.help = true;
   }
   return out;
 }
@@ -51,6 +61,47 @@ function copyFile(src, dest, dryRun) {
   ensureDir(path.dirname(dest), false);
   fs.copyFileSync(src, dest);
   return { action: "copied", src, dest };
+}
+
+function sha256(file) {
+  return crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+}
+
+/** The ISO date from a Product-Documentation `**Last updated:**` line, or null. */
+function lastUpdated(file) {
+  const text = fs.readFileSync(file, "utf8");
+  const hit =
+    text.match(/\*\*Last updated:\*\*\s*(\d{4}-\d{2}-\d{2})/) ||
+    text.match(/^Last updated:\s*(\d{4}-\d{2}-\d{2})/m);
+  return hit ? hit[1] : null;
+}
+
+/**
+ * One canonical Product-Documentation: `01-intake/1.1-docs/Product-Documentation.md` (`src`).
+ * The `01-resources` file (`dest`) is a mirror the content pipeline reads, refreshed from the
+ * canonical when the content differs (sha256).
+ *
+ *   already_at_dest              src is dest (a campaign that only has the resources copy)
+ *   copy                         dest is missing or differs: the canonical wins
+ *   identical_dest               same bytes: nothing to do
+ *   mirror_newer_than_canonical  the mirror's `Last updated` is later than the canonical's.
+ *                                Left alone so newer content is not overwritten silently.
+ *                                A missing date, or the same day, is the canonical's call.
+ */
+export function productDocCopyDecision(src, dest) {
+  if (path.resolve(src) === path.resolve(dest)) return "already_at_dest";
+  if (!fs.existsSync(dest)) return "copy";
+  if (sha256(src) === sha256(dest)) return "identical_dest";
+  const canonicalDate = lastUpdated(src);
+  const mirrorDate = lastUpdated(dest);
+  if (canonicalDate && mirrorDate && mirrorDate > canonicalDate) return "mirror_newer_than_canonical";
+  return "copy";
+}
+
+/** Extra report fields for a non-copy decision: the dates behind `mirror_newer_than_canonical`. */
+function productDocDecisionDetail(decision, src, dest) {
+  if (decision !== "mirror_newer_than_canonical") return {};
+  return { canonical_last_updated: lastUpdated(src), mirror_last_updated: lastUpdated(dest) };
 }
 
 function destFor(resourcesDir, classId, basename) {
@@ -164,7 +215,7 @@ function main() {
       JSON.stringify(
         {
           usage:
-            'node sync-resources.mjs --campaign-dir "<abs>" [--dry-run]',
+            'node sync-resources.mjs --campaign-dir "<abs>" [--dry-run] [--classes product_doc,paa]',
         },
         null,
         2
@@ -198,7 +249,16 @@ function main() {
   const skipped = [];
   const errors = [];
 
+  if (args.classes) {
+    for (const id of args.classes) {
+      if (!Object.prototype.hasOwnProperty.call(inv.resources || {}, id)) {
+        errors.push({ error: `unknown_class: ${id}` });
+      }
+    }
+  }
+
   for (const [classId, meta] of Object.entries(inv.resources || {})) {
+    if (args.classes && !args.classes.has(classId)) continue;
     if (meta.state !== "present") {
       skipped.push({ class_id: classId, reason: "missing_source" });
       continue;
@@ -217,7 +277,26 @@ function main() {
       }
       try {
         const dest = destFor(resourcesDir, classId, basename);
-        if (!args.dryRun && fs.existsSync(dest)) {
+        if (classId === "product_doc") {
+          const decision = productDocCopyDecision(src, dest);
+          if (decision !== "copy") {
+            skipped.push({
+              class_id: classId,
+              reason: decision,
+              src,
+              dest,
+              ...productDocDecisionDetail(decision, src, dest),
+            });
+            continue;
+          }
+          // The hash already says the content differs, so the size+mtime shortcut below
+          // must not skip it.
+          const replacedExisting = fs.existsSync(dest);
+          const result = copyFile(src, dest, args.dryRun);
+          copied.push({ class_id: classId, ...result, replaced_existing: replacedExisting });
+          continue;
+        }
+        if (fs.existsSync(dest)) {
           const s = fs.statSync(src);
           const d = fs.statSync(dest);
           if (s.size === d.size && s.mtimeMs === d.mtimeMs) {
@@ -247,19 +326,19 @@ function main() {
   const templateAi = templateRoot
     ? path.join(templateRoot, "01-resources", "ai-isms.md")
     : "";
-  if (!fs.existsSync(aiIsmsDest) && fs.existsSync(templateAi)) {
+  if (!args.classes && !fs.existsSync(aiIsmsDest) && fs.existsSync(templateAi)) {
     copied.push(copyFile(templateAi, aiIsmsDest, args.dryRun));
   }
 
-  const { removed: removedStale, moved: movedToRoot } = removeStaleDuplicates(
-    resourcesDir,
-    args.dryRun
-  );
+  const { removed: removedStale, moved: movedToRoot } = args.classes
+    ? { removed: [], moved: [] }
+    : removeStaleDuplicates(resourcesDir, args.dryRun);
 
   const report = {
     campaign_dir: campaignDir,
     dest: resourcesDir,
     dry_run: Boolean(args.dryRun),
+    classes: args.classes ? [...args.classes] : null,
     copied,
     skipped,
     removed_stale: removedStale,
@@ -274,7 +353,7 @@ function main() {
     "content-pipeline-init-manifest.json"
   );
 
-  if (!args.dryRun) {
+  if (!args.dryRun && !args.classes) {
     fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
     let manifest = inv;
     if (fs.existsSync(manifestPath)) {

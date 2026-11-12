@@ -26,7 +26,7 @@ A class is **present** when ≥1 matching file exists with size > 0.
 | `dossier` | matches `*-dossier*` **or** contains `Dossier` / `dossier` with extension `.md` or `.docx` | `01-intake/1.1-docs/*Dossier*` |
 | `onpage` | starts with `onpage-crawl-` **or** starts with `On-page` / `on-page` | `01-intake/1.2-audit/onpage-crawl-*` |
 | `icp` | basename includes `icp` (any case) | `01-intake/1.1-docs/*ICP*`, `outputs/customer-research/*` |
-| `product_doc` | basename includes `product-documentation` or equals `Product-Documentation.md` | Prefer `01-intake/1.1-docs/Product-Documentation.md`. Legacy read: `outputs/product-documentation/` (do not create) |
+| `product_doc` | basename includes `product-documentation` or equals `Product-Documentation.md` | Canonical `01-intake/1.1-docs/Product-Documentation.md`; `06-content-pipeline/01-resources/Product-Documentation.md` is a mirror refreshed from it. Legacy read: `outputs/product-documentation/` (do not create) |
 
 ### Dossier notes
 
@@ -43,6 +43,9 @@ A class is **present** when ≥1 matching file exists with size > 0.
 
 - Canonical name: `Product-Documentation.md`
 - Also accept paths whose basename includes `product-documentation`
+- When `01-intake/1.1-docs/Product-Documentation.md` exists, it is the class: inventory reports it present and sync copies it over `01-resources/Product-Documentation.md` when the sha256 differs (`copied`, else `identical_dest`).
+- When only the `01-resources` copy exists (an older campaign), inventory reports it present and sync leaves it in place (`already_at_dest`). When neither exists, inventory uses `outputs/` if found.
+- A mirror whose `**Last updated:**` is later than the canonical's is left alone and reported (`mirror_newer_than_canonical`).
 
 ## Multi-file classes
 
@@ -69,7 +72,7 @@ Layout follows the Farmers Insurance reference campaign (class subfolders for mu
 
 - Preserve original basename inside the class folder.
 - **After copy:** `sync-resources.mjs` deletes stale duplicates — root copies when the same basename exists under `{class_id}/`, and nested `icp/` / `product_doc/` copies when the canonical root file exists (legacy flat-layout residue).
-- Never overwrite a newer destination file with an older source of the same basename without recording `overwritten: true` in the sync report (default: skip if dest exists and is same size+mtime; otherwise overwrite source of truth from campaign intake and note in report).
+- Never overwrite a newer destination file with an older source of the same basename without recording `overwritten: true` in the sync report (default: skip if dest exists and is same size+mtime, including on `--dry-run`; otherwise overwrite source of truth from campaign intake and note in report). `product_doc` is the exception: it is compared by sha256 and replaced from the canonical intake file unless the mirror's `**Last updated:**` is later. `--classes product_doc,paa` copies only the named classes.
 
 ## Permanent template file
 

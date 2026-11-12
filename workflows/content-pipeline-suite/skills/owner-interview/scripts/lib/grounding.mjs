@@ -12,12 +12,54 @@ export const METHOD_VERBS = [
   "remove",
   "climb",
   "chip",
-  "stump",
   "cable",
   "brace",
   "plant",
   "water",
 ];
+
+/**
+ * Every written form of each method verb, mapped back to its stem. A fact's own words use
+ * the plain inflections. The owner's words are matched more loosely, with derived forms too
+ * ("removal", "injection", "grinder"), so the owner saying "removal" grounds "remove".
+ */
+function buildVerbForms({ derived }) {
+  const forms = new Map();
+  const add = (form, stem) => {
+    if (!forms.has(form)) forms.set(form, stem);
+  };
+  for (const stem of METHOD_VERBS) {
+    const endsE = stem.endsWith("e");
+    const endsY = /[^aeiou]y$/.test(stem);
+    const base = endsE || endsY ? stem.slice(0, -1) : stem;
+    const doubled = /[^aeiou][aeiou][bdgklmnprt]$/.test(stem) ? `${stem}${stem.slice(-1)}` : null;
+    add(stem, stem);
+    add(`${stem}s`, stem);
+    add(`${stem}ed`, stem);
+    add(`${stem}ing`, stem);
+    if (endsE) {
+      add(`${stem}d`, stem);
+      add(`${base}ing`, stem);
+    }
+    if (endsY) {
+      add(`${base}ies`, stem);
+      add(`${base}ied`, stem);
+    }
+    if (doubled) {
+      add(`${doubled}ed`, stem);
+      add(`${doubled}ing`, stem);
+    }
+    if (!derived) continue;
+    for (const suffix of ["er", "ers", "ings", "ion", "ions", "ment", "ments"]) add(`${stem}${suffix}`, stem);
+    if (endsE) for (const suffix of ["r", "rs", "al", "als", "ation", "ations"]) add(`${base}${suffix}`, stem);
+    if (endsY) for (const suffix of ["ication", "ications"]) add(`${base}${suffix}`, stem);
+    if (doubled) for (const suffix of ["er", "ers"]) add(`${doubled}${suffix}`, stem);
+  }
+  return forms;
+}
+
+const FACT_VERB_FORMS = buildVerbForms({ derived: false });
+const OWNER_VERB_FORMS = buildVerbForms({ derived: true });
 
 export const CREDENTIALS = ["ISA", "TCIA", "BBB", "LLC", "CPA", "CTSP", "OSHA"];
 
@@ -110,14 +152,14 @@ function stripCitations(text) {
   return String(text ?? "").replace(CITATION_RE, " ");
 }
 
+/** The method verb a word in a fact stands for, or null. */
 function lemmaVerb(word) {
-  const lower = word.toLowerCase();
-  if (METHOD_VERBS.includes(lower)) return lower;
-  for (const stem of METHOD_VERBS) {
-    if (lower === `${stem}s` || lower === `${stem}ed` || lower === `${stem}ing`) return stem;
-    if (stem.endsWith("e") && lower === `${stem.slice(0, -1)}ing`) return stem;
-  }
-  return null;
+  return FACT_VERB_FORMS.get(String(word).toLowerCase()) || null;
+}
+
+/** The method verb a word in the owner's speech stands for, or null. Looser than lemmaVerb. */
+function ownerLemmaVerb(word) {
+  return OWNER_VERB_FORMS.get(String(word).toLowerCase()) || null;
 }
 
 function replaceNumberWords(text) {
@@ -147,11 +189,61 @@ export function normalize(text) {
   return out.replace(/\s+/g, " ").trim();
 }
 
+/**
+ * A word with its possessive and plural removed, so "Stihl's", "Stihls", and "Stihl" agree.
+ * "ss" is a word ending, not a plural ("grass"), and "grasses" and "boxes" lose "es".
+ * Applying it to its own output changes nothing, which `ownerHasToken` relies on.
+ */
 function brandKey(word) {
-  return String(word || "")
+  const lower = String(word || "")
     .toLowerCase()
-    .replace(/['’]s$/i, "")
-    .replace(/s$/i, "");
+    .replace(/['’]s$/i, "");
+  if (/(?:ss|x|z|ch|sh)es$/.test(lower)) return lower.slice(0, -2);
+  if (/[^s]s$/.test(lower)) return lower.slice(0, -1);
+  return lower;
+}
+
+/**
+ * Words a fact can open a sentence with without being a brand: determiners, pronouns,
+ * question words, quantifiers, and the adverbs and connectives a rephrased fact starts with.
+ */
+const SENTENCE_STARTERS = new Set([
+  "the", "this", "that", "these", "those", "there", "here", "then", "than",
+  "they", "them", "their", "theirs", "he", "she", "his", "her", "hers", "its",
+  "our", "ours", "your", "yours",
+  "what", "when", "where", "which", "who", "whom", "whose", "why", "how",
+  "if", "so", "but", "yet", "nor", "also", "only", "just", "still", "even",
+  "both", "either", "neither", "each", "every", "any", "some", "many", "much",
+  "more", "most", "few", "fewer", "several", "all", "none", "other", "another",
+  "such", "same",
+  "sometimes", "usually", "typically", "often", "always", "never", "generally",
+  "mostly", "normally", "occasionally", "rarely", "frequently", "once", "twice",
+  "now", "soon", "later", "today", "tomorrow", "yesterday",
+  "after", "before", "during", "while", "until", "since", "because", "although",
+  "though", "unless", "whether", "however", "therefore", "instead", "otherwise",
+  "meanwhile", "afterwards", "afterward", "first", "second", "third", "next",
+  "last", "finally", "lastly",
+  "for", "with", "without", "from", "into", "onto", "upon", "about", "above",
+  "below", "between", "through", "over", "under", "per", "off", "out", "depending",
+]);
+
+/**
+ * A capitalized word that opens a sentence is a brand candidate only when it is not a common
+ * word. Common here means a sentence starter, or a plural, -ing, -ly, or -ed form of at least
+ * five letters ("Visits", "Pricing", "Usually"). "Vermeer" or "Stihl" starting a sentence is
+ * still a candidate, so an invented brand there is still caught.
+ */
+function isCommonStarter(word) {
+  const lower = word.toLowerCase();
+  if (SENTENCE_STARTERS.has(lower)) return true;
+  return lower.length >= 5 && (/(?:ing|ly|ed)$/.test(lower) || /[^s]s$/.test(lower));
+}
+
+function atSentenceStart(text, index) {
+  const before = text.slice(0, index);
+  if (/\n\s*$/.test(before)) return true;
+  const trimmed = before.trimEnd();
+  return trimmed === "" || /[.!?:]["')\]]*$/.test(trimmed);
 }
 
 function extractCapitalizedNames(original) {
@@ -162,10 +254,12 @@ function extractCapitalizedNames(original) {
   while ((match = re.exec(cleaned))) {
     names.push(match[0]);
   }
-  const singles = cleaned.match(/\b[A-Z][A-Za-z]{2,}\b/g) || [];
-  for (const word of singles) {
+  const single = /\b[A-Z][A-Za-z]{2,}\b/g;
+  while ((match = single.exec(cleaned))) {
+    const word = match[0];
     if (CREDENTIALS.includes(word.toUpperCase())) continue;
     if (STOP.has(word.toLowerCase())) continue;
+    if (atSentenceStart(cleaned, match.index) && isCommonStarter(word)) continue;
     names.push(word);
   }
   return names;
@@ -218,7 +312,8 @@ export function extractTokens(text) {
   return [...tokens].sort();
 }
 
-function ownerHasToken(ownerNorm, token) {
+function ownerHasToken(ownerNorm, token, ownerVerbs = new Set()) {
+  if (ownerVerbs.has(token)) return true;
   const needle = brandKey(token);
   const ownerBrand = ` ${ownerNorm.split(/\s+/).map(brandKey).join(" ")} `;
   if (token.includes(" ")) {
@@ -242,7 +337,9 @@ export function groundFact(factText, ownerWords) {
     return tokens.length ? { reason: "transcript_unavailable", tokens } : null;
   }
   const ownerNorm = normalize(ownerWords);
-  const missing = tokens.filter((token) => !ownerHasToken(ownerNorm, token));
+  // The owner's words are lemmatized too: "grinding" in speech grounds "grind" in a fact.
+  const ownerVerbs = new Set(ownerNorm.split(/[\s./-]+/).map(ownerLemmaVerb).filter(Boolean));
+  const missing = tokens.filter((token) => !ownerHasToken(ownerNorm, token, ownerVerbs));
   if (!missing.length) return null;
   return { reason: "ungrounded", tokens: missing };
 }

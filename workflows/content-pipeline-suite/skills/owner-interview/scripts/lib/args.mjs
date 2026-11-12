@@ -18,6 +18,10 @@ export const ACTION_FLAGS = {
   "--dry-run": "dryRun",
   "--slug": "slug",
   "--list-flagged": "listFlagged",
+  "--set-publish": "setPublish",
+  "--value": "value",
+  "--by": "by",
+  "--all": "all",
   "--review": "review",
   "--fact": "fact",
   "--clear": "clear",
@@ -46,6 +50,8 @@ const TAKES_VALUE = new Set([
   "--set-state",
   "--set-source-id",
   "--slug",
+  "--value",
+  "--by",
   "--fact",
   "--edit",
   "--from-file",
@@ -94,6 +100,10 @@ export function parseArgs(argv = process.argv, { actions } = {}) {
       else if (a === "--dry-run") out.dryRun = true;
       else if (a === "--slug") out.slug = argv[++i];
       else if (a === "--list-flagged") out.listFlagged = true;
+      else if (a === "--set-publish") out.setPublish = true;
+      else if (a === "--value") out.value = argv[++i];
+      else if (a === "--by") out.by = argv[++i];
+      else if (a === "--all") out.all = true;
       else if (a === "--review") out.review = true;
       else if (a === "--fact") out.fact = argv[++i];
       else if (a === "--clear") out.clear = true;

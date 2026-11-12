@@ -1,5 +1,6 @@
 ---
 name: dataforseo-onpage-crawl
+disable-model-invocation: true
 description: >-
   Full DataForSEO OnPage domain crawl (task_post → poll → pages) with sitemap
   discovery/expansion, JS detection, Googlebot WAF retry, and lean 7-field

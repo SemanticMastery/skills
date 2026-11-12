@@ -1,5 +1,6 @@
 ---
 name: content-pipeline-init
+disable-model-invocation: true
 description: >-
   Initialize a campaign content pipeline folder (06-content-pipeline) from the
   Content-Pipeline-ICM template, inventory eight required research resources,
@@ -8,9 +9,9 @@ description: >-
   taxonomy in 02-plan. Requires an explicit campaign/project directory.
   Does not produce 03-write slots. After init_complete, run
   content-pipeline-photo-library if installed, then content-pipeline-run.
-  (v1.1.0)
+  (v1.3.4)
 metadata:
-  version: "1.1.0"
+  version: "1.3.4"
 ---
 
 # Content Pipeline Init (Orchestrator)
@@ -36,7 +37,7 @@ and that `02-plan/` has the Editorial Roadmap plus SiteSwarm tag taxonomy
 | **Manifest SoT** | `{campaign_dir}/06-content-pipeline/content-pipeline-init-manifest.json` |
 | **Planning files** | Prefer `{campaign_dir}/04-archives/planning/` for task/findings/progress when that tree exists; otherwise `{campaign_dir}/.planning/`. |
 
-Out of scope: `content-pipeline-run` produce stages (3.1-brief → 3.5-images).
+Out of scope: `content-pipeline-run` produce stages (3.1-brief → 3.6-schema). That run continues from images into schema.
 
 ## Companion skills (install separately)
 

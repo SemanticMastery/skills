@@ -14,6 +14,8 @@ import { fail, parseArgs } from "./lib/args.mjs";
 import { groundFact } from "./lib/grounding.mjs";
 import * as defaultHost from "./lib/host-client.mjs";
 import { packHash, publishBeforeParent, spokenPrompt } from "./lib/pack.mjs";
+import { appliesDefaultPublish } from "./lib/publish-default.mjs";
+import { ownerWordsBeyondDecision } from "./lib/publish-words.mjs";
 import {
   agencyDisplayName,
   agencySlug,
@@ -77,9 +79,15 @@ function publishParentOf(pack, publishId) {
   return (pack?.questions || []).find((question) => question.publish_link === publishId) || null;
 }
 
+/**
+ * The publish decision for one answer's facts. A Describe question with no Publish? link has
+ * no one to ask, so it returns `publish: null` with `source: "default"`: each fact then takes
+ * the default policy (`lib/publish-default.mjs`) when the answer is applied.
+ */
 function publishDecisionFor(pack, questionId, answersById) {
   const question = questionMap(pack).get(questionId);
   if (!question) return { publish: "internal", source: "missing" };
+  if (appliesDefaultPublish(question)) return { publish: null, source: "default" };
   const publishId = question.publish_link;
   if (!publishId) return { publish: "internal", source: "missing" };
   const pubRow = answersById.get(publishId);
@@ -367,7 +375,7 @@ export async function pullSession({
       }
       questionIds.push(answer.question_id);
       if (answer.status === "unanswered") {
-        applyUnanswered(record, answer.question_id, call.call_id);
+        applyUnanswered(record, answer.question_id, call.call_id, { date });
         unansweredIds.push(answer.question_id);
         continue;
       }
@@ -375,6 +383,10 @@ export async function pullSession({
         ? { publish: answer.publish_decision, source: answer.publish_source || "spoken" }
         : publishDecisionFor(pack, answer.question_id, answersById);
       if (question?.type === "publish") {
+        // A Publish? row carries no facts. Words beyond the decision (a correction, a
+        // guarantee) are flagged so an operator reads them instead of losing them.
+        const publishRaw = answer.owner_words || answer.owner_slice || "";
+        const beyond = ownerWordsBeyondDecision(publishRaw);
         applyAnswer(
           record,
           {
@@ -383,9 +395,10 @@ export async function pullSession({
             role: answer.role || data.role || "owner",
             date,
             channel: "voice",
-            raw: answer.owner_words || answer.owner_slice || "",
+            raw: publishRaw,
             facts: [],
             transcript_ref: transcriptRef,
+            review: beyond ? { reason: "owner_words_on_publish", tokens: beyond } : undefined,
           },
           call.call_id,
         );
@@ -394,7 +407,8 @@ export async function pullSession({
       const words = groundingWords(answer, question);
       const facts = proposedFacts(answer).map((fact) => {
         const review = groundFact(fact.text, words);
-        const row = { text: fact.text, publish: decision.publish };
+        const row = { text: fact.text };
+        if (decision.publish) row.publish = decision.publish;
         if (review) row.review = review;
         return row;
       });
@@ -415,6 +429,7 @@ export async function pullSession({
           verify: question?.type === "verify" ? answer.verify : undefined,
         },
         call.call_id,
+        { question },
       );
     }
 

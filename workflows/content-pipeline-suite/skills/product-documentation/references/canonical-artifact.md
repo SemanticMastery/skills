@@ -1,8 +1,8 @@
 # Canonical Product Documentation Artifact
 
-The only canonical filename is:
+The only canonical filename is `Product-Documentation.md`.
 
-`{campaign-root}/01-intake/1.1-docs/Product-Documentation.md`
+The one canonical file is `{campaign-root}/01-intake/1.1-docs/Product-Documentation.md`. `{campaign-root}/06-content-pipeline/01-resources/Product-Documentation.md` is a mirror that `content-pipeline-init` sync refreshes from it; never write the mirror.
 
 ## Required document structure
 
@@ -13,7 +13,7 @@ The only canonical filename is:
 **Approval:** Pending | Approved - Product Documentation
 **Last updated:** YYYY-MM-DD
 **Company:** [Name]
-**Source coverage:** [Dossier, on-page crawl, entity map if present, and other inputs]
+**Source coverage:** [Dossier, on-page crawl, entity map if present, and other inputs. Greenfield stub must include: Stub — no dossier, no on-page crawl]
 
 ## Purpose and Authority
 
@@ -99,15 +99,44 @@ Create exactly one profile per catalog row. Keep every listed subheading, using 
 
 ### Cross-document controls
 
-- Cite facts inline as `[PD-SRC-001]` or `[PD-SRC-001; PD-SRC-002]`.
+- Cite each fact with one source id: `[PD-SRC-001]`. Do not write a multi-id token such as `[PD-SRC-001; PD-SRC-002]`. Split the sentence so each fact has its own token.
 - Label an inference as `Inference — ...`; cite the supporting facts.
 - Label an unresolved discrepancy as `Conflict — operator review required`.
 - Label an unsupported company assertion as `Unverified company claim`.
 - Use `Unknown` rather than filling gaps with general industry knowledge.
 
+### Owner-interview conventions
+
+These labels are additions beside the existing field labels. They do not replace the 13 profile subheadings or the Source Ledger shape.
+
+- Source type: `Owner interview`.
+- Field marker (internal answers): `Internal — not for publication [PD-SRC-00N]`. The marker names the interview source and carries no vendor, price, or method detail.
+- Open Questions: one entry per field; when a question was asked and left unanswered, append `asked on {date}` (further dates append to the same entry).
+- Evidence Notes phrases: `refuted by owner interview [PD-SRC-00N]` and `revised {date}`.
+- Framing-only / internal lint: after stripping `[PD-SRC-00N]` citation tokens, the PD field text contains no digit, currency symbol, `%`, or industry-seed brand token. The compile plan owns the lint; refresh refuses a hunk that fails it.
+
+### Greenfield stub conventions
+
+These apply only when the operator chose the stub path in [greenfield-stub.md](greenfield-stub.md). They do not replace the required headings or Source Ledger shape.
+
+- `**Status:** Draft` and `**Approval:** Pending`. Do not set Approved on a stub.
+- `**Source coverage:**` must include the exact phrase `Stub — no dossier, no on-page crawl`.
+- Offering Catalog **Evidence status** for stub rows is `Unverified` (this column has no `Unknown` value). Type, primary outcome, and geography stay `Unknown` unless a named intake source supports an Unverified NAP/geo fragment.
+- Every profile `####` field is present and `Unknown`. Do not copy SiteSwarm/CSV/theme marketing prose into a field.
+- Company H2 sections stay present. Use `Unverified company claim` only for named intake NAP. Use `Unknown` everywhere else.
+- Open Questions must list waived dossier, waived crawl, and replace-on-`/campaign-init` + full refresh.
+
 ### Source Ledger
 
 Use local source filenames as the primary provenance record. Preserve URLs quoted in source material but do not imply that they were independently fetched or validated.
+
+`Type` is one of these values, spelled this way:
+
+- `Owner interview`
+- `On-page crawl`
+- `Entity map`
+- `Business dossier`
+- `Operator`
 
 Source IDs are append-only during refresh. Retain an existing ID when the same source remains in use.
 

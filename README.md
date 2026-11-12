@@ -6,7 +6,9 @@ Named bundles for [Semantic Mastery](https://mastermind.semanticmastery.com/) co
 
 **Local clone:** the `semantic-mastery-skills` checkout of this repository. Set `SEMANTIC_MASTERY_SKILLS_ROOT` to that folder. It is not an `icm-authoring` tree.
 
-**Course (source of truth):** https://docshare.us/content-pipeline-suite-course/
+**Blog course (current blog lesson):** https://docshare.us/content-pipeline-blog/
+
+**Previous combined course:** https://docshare.us/content-pipeline-suite-course/
 
 The live interview Worker is not in this catalog.
 

@@ -19,7 +19,7 @@ import {
   siteswarmTaxonomyExists,
 } from "./lib/plan-artifacts.mjs";
 
-const STAGE_ORDER = ["plan", "brief", "draft", "edit", "polish", "images"];
+const STAGE_ORDER = ["plan", "brief", "draft", "edit", "polish", "images", "schema"];
 
 const ANTHROPIC_COPYWRITING_RE = /anthropic|claude|sonnet|opus|haiku/i;
 
@@ -120,8 +120,8 @@ function deriveNextAction(manifest, pipelineDir) {
     }
   }
 
-  for (const key of ["brief", "draft", "edit", "polish", "images"]) {
-    if (external && key !== "images") continue;
+  for (const key of ["brief", "draft", "edit", "polish", "images", "schema"]) {
+    if (external && key !== "images" && key !== "schema") continue;
     const st = manifest.stages?.[key];
     if (!st || st.status === "pending") return `run:${key}`;
     if (st.status === "in_progress") return `run:${key}`;
@@ -149,7 +149,7 @@ function filesystemHints(pipelineDir, manifest) {
   else missing.push(taxPath);
 
   if (post) {
-    for (const key of ["brief", "draft", "edit", "polish", "images"]) {
+    for (const key of ["brief", "draft", "edit", "polish", "images", "schema"]) {
       const p = expectedArtifact(pipelineDir, key, post);
       if (!p) continue;
       if (fs.existsSync(p)) present.push(p);

@@ -1,6 +1,6 @@
 # owner-interview
 
-**Version:** 1.2.4  
+**Version:** 1.3.0  
 **Semantic Mastery Mastermind** — Bradley Benner  
 **License:** Semantic Mastery Member License. See LICENSE-MEMBERS.md at the repository root.
 

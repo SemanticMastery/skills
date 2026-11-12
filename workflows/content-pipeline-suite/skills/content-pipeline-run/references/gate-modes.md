@@ -9,7 +9,7 @@ Ask **`copywriting_model` in the same first-run turn** when that field is unset 
 | Mode | Behavior |
 |------|----------|
 | `review` | After **every** completed produce stage, set status `awaiting_approval` and **stop the turn**. Wait for operator OK (or revise request) before the next stage. |
-| `auto` | After a slot is selected, chain `brief → draft → edit → polish → images` without pausing between produce stages. Pause only on missing inputs, errors, or explicit operator stop. |
+| `auto` | After a slot is selected, chain `brief → draft → edit → polish → images → schema` without pausing between produce stages. Pause only on missing inputs, errors, or explicit operator stop. |
 
 ## Plan gate (both modes)
 
@@ -31,8 +31,8 @@ Recommended default for a **new campaign**: `review`. Switch to `auto` once the 
 
 ### `auto`
 
-1. Complete brief → immediately run draft → edit → polish → images (same slot).
-2. After images → `produce_complete` for the slot → stop (do not start another slot).
+1. Complete brief → immediately run draft → edit → polish → images → schema (same slot).
+2. After schema → `produce_complete` for the slot → stop (do not start another slot).
 3. Any blocked/failed stage stops the chain; report `next_action` and errors.
 
 ## Resume

@@ -50,6 +50,7 @@ export class InterviewSession {
     await this.ctx.storage.put("s", state);
     const alarmAt = nextAlarm(state, now);
     if (alarmAt != null) await this.ctx.storage.setAlarm(alarmAt);
+    else await this.ctx.storage.deleteAlarm();
   }
 
   async fetch(request: Request): Promise<Response> {
@@ -255,9 +256,16 @@ export class InterviewSession {
     const now = Date.now();
     expireIfNeeded(state, now);
     if (state.stale_due != null && now >= state.stale_due && state.current_call_id) {
-      const live = await getCallStatus(this.env, state.current_call_id);
+      let live: { call_status?: string } | null = null;
+      let statusFailed = false;
+      try {
+        live = await getCallStatus(this.env, state.current_call_id);
+      } catch {
+        statusFailed = true;
+      }
       const status = live?.call_status || "";
-      if (!live || status === "ended" || status === "error") applyStaleEnd(state, now);
+      if (statusFailed) state.stale_due = now + 60_000;
+      else if (!live || status === "ended" || status === "error") applyStaleEnd(state, now);
       else state.stale_due = now + 60_000;
     }
     if (state.delete_due != null && now >= state.delete_due && state.delete_queue.length) {

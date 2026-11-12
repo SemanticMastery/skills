@@ -18,7 +18,7 @@ Single source of truth for run progress. Orchestrator and `scripts/*.mjs` read/w
   "gate_mode": "review",
   "copywriting_model": "copywriter-gemma4-31b",
   "copywriting_via": "external",
-  "copywriting_host": "zed",
+  "copywriting_host": "local",
   "updated_at": "2026-08-04T14:00:00.000Z",
   "plan": {
     "horizon_weeks": 13,
@@ -66,6 +66,11 @@ Single source of truth for run progress. Orchestrator and `scripts/*.mjs` read/w
       "status": "pending",
       "artifact": null,
       "updated_at": null
+    },
+    "schema": {
+      "status": "pending",
+      "artifact": null,
+      "updated_at": null
     }
   },
   "next_action": "await_approval:draft",
@@ -85,7 +90,7 @@ Absolute path to the init-owned `02-plan/siteswarm-tag-taxonomy.md` (or the exis
 | `in_progress` | Run active; see `next_action` |
 | `awaiting_slot` | Plan artifacts present; need Post # |
 | `awaiting_approval` | Gate mode paused for operator OK |
-| `produce_complete` | Active slot finished through images |
+| `produce_complete` | Active slot finished through schema |
 | `blocked` | Missing init/resources or unrecoverable error |
 | `failed` | Stage execution failed |
 
@@ -108,8 +113,8 @@ Absolute path to the init-owned `02-plan/siteswarm-tag-taxonomy.md` (or the exis
 | `blocked:need_init_plan` | Roadmap or SiteSwarm taxonomy missing — run `content-pipeline-init` |
 | `await_approval:plan` | Wait OK on the existing roadmap (review mode only; do not write a new plan) |
 | `select_slot` | Ask for Post # |
-| `run:brief` / `run:draft` / `run:edit` / `run:polish` / `run:images` | Execute that produce stage |
-| `await_external:write` | `copywriting_via=external`: wait for Zed (or other host) to finish **3.1→3.4** in one stay; resume here at images |
+| `run:brief` / `run:draft` / `run:edit` / `run:polish` / `run:images` / `run:schema` | Execute that produce stage |
+| `await_external:write` | `copywriting_via=external`: wait for the external host to finish **3.1→3.4** in one stay; resume here at images, then schema |
 | `await_approval:brief` (etc.) | Wait OK on that stage |
 | `done:slot` | Slot produce_complete |
 | `blocked:...` | Explain in `errors[]` |
@@ -128,7 +133,7 @@ Used for copy stages. Missing/null on an existing manifest means **ask** before 
 
 `session` | `external` — see [copywriting-model.md](copywriting-model.md).
 
-`copywriting_host` is an optional label (`zed`, …). When `via=external`, this host must **not** write `brief` / `draft` / `edit` / `polish`. Plan and `images` stay here. Unset `via` on an old manifest means `session`.
+`copywriting_host` is an optional free-text label. When `via=external`, this host must **not** write `brief` / `draft` / `edit` / `polish`. Plan, `images`, and `schema` stay here. Unset `via` on an old manifest means `session`.
 
 ## Init dependency
 

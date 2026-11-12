@@ -1,6 +1,6 @@
 {
-  "label_rule": "A field is Unknown when any line in it matches ^(?:[^:\\n]{1,40}:\\s*)?Unknown\\b. Lines starting with \"Unverified company claim\", \"Inference —\", or \"Conflict —\" set those labels. Otherwise the field is cited. A row is covered when any mapped field is not Unknown. framing-only text covers. The Internal — not for publication marker prevents the R20 block (the field is not Unknown) but does not count in the score.",
-  "unknown_pattern": "^(?:[^:\\n]{1,40}:\\s*)?Unknown\\b",
+  "label_rule": "A field is Unknown when any line in it is an Unknown statement (see unknown_pattern): the line starts with Unknown (or \"Label: Unknown\"), ends with \"(Unknown)\" or \"(Unknown).\", or says \"not documented\" or \"not stated\" together with the word Unknown. Lines starting with \"Unverified company claim\", \"Inference —\", or \"Conflict —\" set those labels. Otherwise the field is cited. A row is covered when any mapped field is not Unknown. framing-only text covers. The Internal — not for publication marker prevents the R20 block (the field is not Unknown) but does not count in the score.",
+  "unknown_pattern": "^(?:[^:\\n]{1,40}:\\s*)?Unknown\\b|\\(Unknown\\)\\.?\\s*$|\\b[Nn]ot (?:documented|stated)\\b.*\\bUnknown\\b",
   "unverified_prefix": "Unverified company claim",
   "inference_prefix": "Inference —",
   "conflict_prefix": "Conflict —",

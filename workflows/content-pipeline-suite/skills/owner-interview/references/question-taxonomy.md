@@ -23,7 +23,7 @@ Each question carries exactly one `answer_shape`:
 - `number with unit`
 - `true / partly / false`
 
-Publish? questions use `choice` with the three publication values.
+Publish? questions use `choice` with the three publication values. The voice host speaks the plain-language explanation of those three words on the first Publish? question of an interview and does not attach it again. A later Publish? question still asks for the choice. The explanation is repeated only when the owner asks what the words mean.
 
 ## Follow-up
 
@@ -54,6 +54,8 @@ A question that could yield any of the following **must** have a `publish_link` 
 - crew size
 
 The pack script rejects a trigger question with no `publish_link` (`publish_link_required`). A Publish?-linked fact compiled with no decision is stored `internal` and re-asked on the next delta pack (R30).
+
+A Describe question with no `publish_link` is not a trigger question and has no Publish? answer. Its facts default one by one: `public` only when the fact is plain description, otherwise `internal` (see `schemas.md`, "Publish decisions amendment"). R9 gates per question, so the default is the safety net for a price, brand, or credential the owner volunteers anyway. An operator changes a fact with `interview-record.mjs --set-publish`.
 
 ## Order and caps
 

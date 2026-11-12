@@ -2,11 +2,12 @@
 
 ## Job
 
-Hold final CMS-ready articles and images from `3.5-images`. In the **template**, this stage is platform-agnostic. When a campaign copy is deployed, update this file with the campaign’s publishing platform, API/MCP, and push steps.
+Hold final CMS-ready articles and images from `3.5-images`. When `3.6-schema` has an output, hold that schema package with the article. In the **template**, this stage is platform-agnostic. When a campaign copy is deployed, update this file with the campaign’s publishing platform, API/MCP, and push steps.
 
 ## Inputs
 
-- Publication Asset (with images) + Image Manifest (+ Technical Suite) from `03-write/3.5-images/post-{NN}-images/` (`post-{NN}-images.md` and `post-{NN}-img-*.png`)
+- Publication Asset (with images) + Image Manifest (+ Technical Suite) from `03-write/3.5-images/post-{NN}-images/` (`post-{NN}-images.md`, working `post-{NN}-img-*.png`, and the public `{descriptive-slug}.jpg` named in the manifest)
+- Optional: schema package from `03-write/3.6-schema/post-{NN}-schema/` when that stage has been run
 - Optional: polish package from `03-write/3.4-polish/` if images were skipped by explicit override
 - Optional publish metadata (slug, status, scheduled date) if provided
 - **Campaign deploy only:** platform credentials / MCP / API details (not part of the blank template)

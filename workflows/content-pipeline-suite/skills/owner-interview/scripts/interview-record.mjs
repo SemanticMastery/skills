@@ -8,6 +8,8 @@
  *   node interview-record.mjs --campaign-dir "..." --scope deep-root-fertilization --mark-unanswered --question-id <id>
  *   node interview-record.mjs --campaign-dir "..." --scope deep-root-fertilization --set-state captured
  *   node interview-record.mjs --campaign-dir "..." --scope deep-root-fertilization --set-source-id PD-SRC-002
+ *   node interview-record.mjs --campaign-dir "..." --scope deep-root-fertilization --set-publish --question-id <id> --fact 1 --value public --by "<name>"
+ *   node interview-record.mjs --campaign-dir "..." --scope deep-root-fertilization --set-publish --question-id <id> --all --value internal --by "<name>"
  */
 
 import path from "node:path";
@@ -20,6 +22,7 @@ import {
   listFlaggedForScope,
   markUnanswered,
   reviewFact,
+  setPublish,
   setSourceId,
   setState,
 } from "./lib/record.mjs";
@@ -36,6 +39,10 @@ export function main(argv = process.argv) {
       "setState",
       "setSourceId",
       "listFlagged",
+      "setPublish",
+      "value",
+      "by",
+      "all",
       "review",
       "fact",
       "clear",
@@ -46,7 +53,7 @@ export function main(argv = process.argv) {
   if (args.foreignFlag) fail("foreign_flag", { flag: args.foreignFlag });
   if (args.help) {
     console.log(
-      "usage: interview-record.mjs --campaign-dir <abs> --scope <offering-slug|company> (--create | --add-answer <json> | --mark-unanswered --question-id <id> | --set-state <state> | --set-source-id <id> | --list-flagged | --review --question-id <id> --fact <n> (--clear | --edit <text> | --drop))",
+      "usage: interview-record.mjs --campaign-dir <abs> --scope <offering-slug|company> (--create | --add-answer <json> | --mark-unanswered --question-id <id> | --set-state <state> | --set-source-id <id> | --list-flagged | --set-publish --question-id <id> (--fact <n> | --all) --value <public|framing-only|internal> --by <name> | --review --question-id <id> --fact <n> (--clear | --edit <text> | --drop))",
     );
     return;
   }
@@ -84,6 +91,16 @@ export function main(argv = process.argv) {
     });
   } else if (args.listFlagged) {
     result = listFlaggedForScope({ campaignDir, scope: args.scope });
+  } else if (args.setPublish) {
+    result = setPublish({
+      campaignDir,
+      scope: args.scope,
+      questionId: args.questionId,
+      factIndex: args.fact,
+      all: Boolean(args.all),
+      value: args.value,
+      by: args.by,
+    });
   } else if (args.review) {
     result = reviewFact({
       campaignDir,

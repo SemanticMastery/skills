@@ -1,5 +1,6 @@
 ---
 name: dataforseo-fanout-queries
+disable-model-invocation: true
 description: >-
   Expand a seed keyword into ~120 generated query variants via DataForSEO
   ChatGPT LLM Responses Live. Writes JSON + CSV under

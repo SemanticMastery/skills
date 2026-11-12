@@ -1,22 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { WHO_MAY_ANSWER_ID } from "./pack.mjs";
 import { canonicalPdPath } from "./paths.mjs";
 import { findOffering, joinKey, parseProductDoc } from "./pd.mjs";
-import { findActiveRecordEntry, findPackEntry } from "./record.mjs";
+import { findActiveRecordEntry, findPackEntry, listActiveRecordEntries } from "./record.mjs";
+import { resolveCatalogOffering } from "./sources.mjs";
+import { CITATION_RE, lintFraming, loadBrandTokens, stripCitations } from "./framing.mjs";
 
-const SEED_PATH = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "references",
-  "industry-seeds",
-  "tree-care.md",
-);
+export { lintFraming, loadBrandTokens, stripCitations };
 
-const CITATION_RE = /\[PD-SRC-[0-9A-Z]+\]/gi;
-const CURRENCY_RE = /[$€£¥₹]/;
 const PLACEHOLDER_SRC = "PD-SRC-00N";
 const INTERNAL_BODY = "Internal — not for publication";
 
@@ -33,21 +25,6 @@ const COMPANY_SECTIONS = {
   "Evidence Notes": "Proof and Documented Claims",
 };
 
-const BRAND_STOP = new Set([
-  "ASK",
-  "NEVER",
-  "ASSERT",
-  "FAQ",
-  "FAQS",
-  "PD",
-  "SRC",
-  "CTA",
-  "ICP",
-  "LLC",
-]);
-
-let brandTokenCache;
-
 export function sourceIdFor(record) {
   return record?.source_id || PLACEHOLDER_SRC;
 }
@@ -58,47 +35,6 @@ export function citationToken(sourceId) {
 
 export function internalMarker(sourceId) {
   return `${INTERNAL_BODY} ${citationToken(sourceId)}`;
-}
-
-export function stripCitations(text) {
-  CITATION_RE.lastIndex = 0;
-  return String(text || "").replace(CITATION_RE, "");
-}
-
-export function loadBrandTokens(seedText) {
-  if (seedText == null && brandTokenCache) return brandTokenCache;
-  const seed = seedText == null ? fs.readFileSync(SEED_PATH, "utf8") : String(seedText);
-  const tokens = new Set();
-  for (const m of seed.matchAll(/"([^"]+)"/g)) {
-    const phrase = m[1].trim().toLowerCase();
-    if (phrase.length >= 3 && !/ask, never assert/i.test(phrase)) tokens.add(phrase);
-  }
-  for (const m of seed.matchAll(/\b[A-Z]{2,}(?:[- ][A-Z0-9]+)*\b/g)) {
-    const token = m[0];
-    if (BRAND_STOP.has(token)) continue;
-    tokens.add(token.toLowerCase());
-  }
-  if (seedText == null) brandTokenCache = tokens;
-  return tokens;
-}
-
-function escapeRe(value) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-export function lintFraming(text, hunkId, seedText) {
-  const stripped = stripCitations(text);
-  if (/\d/.test(stripped) || CURRENCY_RE.test(stripped) || /%/.test(stripped)) {
-    return { error: "framing_lint", hunk: hunkId };
-  }
-  const lower = stripped.toLowerCase();
-  for (const token of loadBrandTokens(seedText)) {
-    if (token.length < 2) continue;
-    if (new RegExp(`\\b${escapeRe(token)}\\b`, "i").test(lower)) {
-      return { error: "framing_lint", hunk: hunkId };
-    }
-  }
-  return null;
 }
 
 export function answerId(answer, factIndex) {
@@ -128,6 +64,26 @@ export function verifyOutcome(answer, question) {
   return null;
 }
 
+/** A process is claimed by a sequence ("A → B", "then", "step 2"), not by a name. */
+const SEQUENCE_MARK_RE = /→|->|=>|›|»|\bthen\b|\bstep\s*\d|\b\d+[- ]step\b/i;
+
+/**
+ * A verify whose claim is a live-page title or heading: a short name such as "Stump Grinding
+ * Service" taken from the crawl. Confirming a title says nothing about how the service is
+ * delivered, so it never writes field text. A sequence, a sentence, or a long line is a real
+ * claim and is not a title.
+ */
+export function isPageTitleClaim(question) {
+  if (question?.type !== "verify") return false;
+  const claim = question.claim;
+  if (!claim) return false;
+  const source = String(claim.source || "").trim().toLowerCase();
+  if (source !== "live page" && source !== "crawl") return false;
+  const text = String(claim.text || "").trim();
+  if (!text || SEQUENCE_MARK_RE.test(text) || /[.!?](\s|$)/.test(text)) return false;
+  return text.split(/\s+/).length <= 10;
+}
+
 export function isRegistryFact(text) {
   const raw = String(text || "");
   if (/(?:\blicen[cs]e\b|\bregistry\b).{0,60}\d/i.test(raw)) return true;
@@ -155,39 +111,100 @@ export function existingFieldText(parsed, scope, pdField) {
   return "";
 }
 
-function distinctiveTokens(text) {
-  return String(text || "")
+const LINK_STOP_WORDS = new Set(["the", "and", "for", "with", "from", "that", "this", "are", "was", "not", "our", "your"]);
+
+function normalizeLink(value) {
+  return String(value || "")
     .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter((word) => word.length >= 4 && !/^(this|that|with|from|your|which|should|true|partly|false|claim)$/.test(word));
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 }
 
-export function matchingConflicts(parsed, question, answer) {
-  const blob = [
-    question?.prompt,
-    question?.claim?.text,
-    answer?.raw,
-    ...((answer?.facts || []).map((fact) => fact.text)),
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-  const blobTokens = new Set(distinctiveTokens(blob));
-  return (parsed?.conflicts || []).filter((conflict) => {
-    const c = String(conflict).toLowerCase();
-    if (/tenure|founding|serving since|established/.test(c) && /tenure|founding|serving since|established|start date/.test(blob)) {
-      return true;
+/** The texts that tie a question to a PD conflict: its claim and an optional `conflict` seed. */
+function conflictLinks(question) {
+  const seeded = Array.isArray(question?.conflict) ? question.conflict : [question?.conflict];
+  return [question?.claim?.text, ...seeded].map(normalizeLink).filter(Boolean);
+}
+
+/** A link names a conflict when the conflict contains it, or contains every one of its words. */
+function linksToConflict(link, conflict) {
+  const body = normalizeLink(conflict);
+  if (` ${body} `.includes(` ${link} `)) return true;
+  const words = link.split(" ").filter((word) => word.length >= 3 && !LINK_STOP_WORDS.has(word));
+  if (words.length < 2) return false;
+  const present = new Set(body.split(" "));
+  return words.every((word) => present.has(word));
+}
+
+/**
+ * The Conflicts and Verification Needs items this question resolves. Only a real link counts:
+ * the question's `claim.text`, or a `conflict` reference naming the item. Words in the prompt
+ * or in the owner's answer never link, so an answer that merely mentions "license" or
+ * "arborist" does not remove an unrelated conflict. The `answer` argument is kept for callers.
+ */
+export function matchingConflicts(parsed, question, _answer) {
+  const links = conflictLinks(question);
+  if (!links.length) return [];
+  return (parsed?.conflicts || []).filter((conflict) =>
+    links.some((link) => linksToConflict(link, conflict)),
+  );
+}
+
+/** The claim a verify question tests, without case or punctuation, so two packs agree on it. */
+function claimKey(question) {
+  return normalizeLink(question?.claim?.text);
+}
+
+/**
+ * What each other active record in the campaign decided about each claim it verified:
+ * `[{ scope, claims: Map(claimKey -> true | partly | false) }]`. A superseded record is
+ * not active, and the record being compiled is left out.
+ */
+export function otherRecordClaims(campaignDir, currentEntry) {
+  const out = [];
+  for (const entry of listActiveRecordEntries(campaignDir)) {
+    if (path.resolve(entry.json) === path.resolve(currentEntry.json)) continue;
+    const scope = entry.data.scope;
+    const questions = entry.data.questions?.length
+      ? entry.data.questions
+      : findPackEntry(campaignDir, scope)?.data?.questions || [];
+    const byId = new Map(questions.map((question) => [question.id, question]));
+    const claims = new Map();
+    for (const answer of entry.data.answers || []) {
+      if (answer.status !== "answered") continue;
+      const question = byId.get(answer.question_id);
+      const outcome = verifyOutcome(answer, question);
+      const key = claimKey(question);
+      if (outcome && key) claims.set(key, outcome);
     }
-    if (/arborist|credential|\bisa\b/.test(c) && /arborist|credential|\bisa\b/.test(blob)) {
-      return true;
-    }
-    if (/license|insurance/.test(c) && /license|insurance/.test(blob)) {
-      return true;
-    }
-    const conflictTokens = distinctiveTokens(conflict);
-    const overlap = conflictTokens.filter((token) => blobTokens.has(token));
-    return overlap.length >= 3;
-  });
+    if (claims.size) out.push({ scope, claims });
+  }
+  return out;
+}
+
+/** Other records that verified this claim with a different outcome. */
+function claimClashes(others, question, outcome) {
+  const key = claimKey(question);
+  if (!key || !outcome) return [];
+  const clashes = [];
+  for (const other of others || []) {
+    const theirs = other.claims.get(key);
+    if (theirs && theirs !== outcome) clashes.push({ scope: other.scope, outcome: theirs });
+  }
+  return clashes;
+}
+
+/**
+ * The same text from either side of a disagreement (participants sorted by scope), apart from
+ * the citation, which is each record's own source id. Applying both plans therefore writes
+ * the same Conflict item twice, not two different ones.
+ */
+function clashText(claim, scope, outcome, clashes, sourceId) {
+  const who = [{ scope: scope || "this record", outcome }, ...clashes]
+    .sort((a, b) => String(a.scope).localeCompare(String(b.scope)))
+    .map((row) => `${row.scope} verified it ${row.outcome}`)
+    .join("; ");
+  return `**${claim} — Conflict — operator review required.** Owner interviews disagree: ${who}. ${citationToken(sourceId)}`;
 }
 
 function withCitation(text, sourceId) {
@@ -207,7 +224,23 @@ function resolvePublish(answer, fact) {
   return fact?.publish || "internal";
 }
 
-function laterByField(answers, pack) {
+/**
+ * Where a fact's publish value came from (`default` or `operator`), for the plan. An answer
+ * from someone not authorized is forced `internal` above, so no source is claimed for it.
+ */
+function publishSourceOf(answer, fact) {
+  if (answer?.authorized === false) return {};
+  return fact?.publish_source ? { publish_source: fact.publish_source } : {};
+}
+
+/**
+ * The answer that counts for each question. A record keeps one row per question, so this
+ * only matters when a record holds the same question twice (for example a hand-merged delta):
+ * the later date wins, and on a tie the last row wins. Answers to different questions for the
+ * same PD field never replace each other; each one emits its own facts and the plan's field
+ * items add up.
+ */
+function latestPerQuestion(answers, pack) {
   const winners = new Map();
   for (const answer of answers || []) {
     if (answer.status !== "answered") continue;
@@ -215,10 +248,9 @@ function laterByField(answers, pack) {
     if (!question?.pd_field) continue;
     if (question.type === "publish") continue;
     if (question.id === WHO_MAY_ANSWER_ID) continue;
-    const key = question.pd_field;
-    const prev = winners.get(key);
+    const prev = winners.get(question.id);
     if (!prev || String(answer.date || "") >= String(prev.date || "")) {
-      winners.set(key, answer);
+      winners.set(question.id, answer);
     }
   }
   return winners;
@@ -237,7 +269,9 @@ function revisedFields(answers, pack) {
   }
   const notes = [];
   for (const [field, list] of grouped) {
-    if (list.length < 2) continue;
+    // Several questions answered on one call are not a revision; a later day is.
+    const days = new Set(list.map((answer) => String(answer.date || "")));
+    if (list.length < 2 || days.size < 2) continue;
     const sorted = [...list].sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")));
     const last = sorted[sorted.length - 1];
     notes.push({ field, date: last.date, answer: last });
@@ -250,10 +284,10 @@ function pushItem(groups, answerKey, item) {
   groups.get(answerKey).push(item);
 }
 
-export function buildHunks({ record, pack, parsed, scope }) {
+export function buildHunks({ record, pack, parsed, scope, others = [] }) {
   const src = sourceIdFor(record);
   const answers = Array.isArray(record?.answers) ? record.answers : [];
-  const winners = laterByField(answers, pack);
+  const winners = latestPerQuestion(answers, pack);
   const groups = new Map();
   const lintFailures = [];
 
@@ -265,6 +299,11 @@ export function buildHunks({ record, pack, parsed, scope }) {
     };
     const id = answerId(answer);
     if (question.id === WHO_MAY_ANSWER_ID) continue;
+    if (answer.review) {
+      // Owner words on a Publish? answer still need an operator (`--review --clear`).
+      lintFailures.push({ error: "review_pending", hunk: id });
+      continue;
+    }
     if (question.type === "publish" && !(answer.facts || []).length) continue;
 
     if (answer.status === "unanswered" || answer.status === "declined") {
@@ -282,6 +321,20 @@ export function buildHunks({ record, pack, parsed, scope }) {
     if (answer.status !== "answered") continue;
 
     const outcome = verifyOutcome(answer, question);
+
+    // Another active record verified this claim differently: nothing from this answer is
+    // published or cleared until an operator settles it.
+    const clashes = claimClashes(others, question, outcome);
+    if (clashes.length) {
+      pushItem(groups, id, {
+        target: "Conflicts and Verification Needs",
+        action: "append",
+        pd_field: "Conflicts and Verification Needs",
+        text: clashText(question.claim.text, record?.scope, outcome, clashes, src),
+      });
+      continue;
+    }
+
     const existing = existingFieldText(parsed, scope, question.pd_field);
     const registry = isRegistryFact(existing);
     const conflicts = matchingConflicts(parsed, question, answer);
@@ -297,6 +350,23 @@ export function buildHunks({ record, pack, parsed, scope }) {
       continue;
     }
 
+    if (isPageTitleClaim(question)) {
+      // A title says nothing about delivery, so it writes no field text and removes no
+      // conflict. A flagged fact still blocks compile, like any other.
+      (answer.facts || []).forEach((fact, i) => {
+        if (fact?.review) lintFailures.push({ error: "review_pending", hunk: answerId(answer, i) });
+      });
+      if (outcome === "partly") {
+        pushItem(groups, id, {
+          target: "Evidence Notes",
+          action: "append",
+          pd_field: question.pd_field || "Evidence Notes",
+          text: `Live-page title “${question.claim.text}” partly confirmed by owner interview ${citationToken(src)}`,
+        });
+      }
+      continue;
+    }
+
     if (conflicts.length && !registry) {
       for (const conflict of conflicts) {
         pushItem(groups, id, {
@@ -308,8 +378,8 @@ export function buildHunks({ record, pack, parsed, scope }) {
       }
     }
 
-    const winner = winners.get(question.pd_field);
-    const isWinner = !winner || winner.question_id === answer.question_id;
+    const winner = winners.get(question.id);
+    const isWinner = !winner || winner === answer;
 
     if (outcome === "true" && isWinner) {
       const fact = (answer.facts || []).find((row) => row.text);
@@ -331,6 +401,7 @@ export function buildHunks({ record, pack, parsed, scope }) {
         action: "replace",
         pd_field: question.pd_field,
         publish: fact ? publish : "internal",
+        ...publishSourceOf(answer, fact),
         text,
       });
       continue;
@@ -385,6 +456,7 @@ export function buildHunks({ record, pack, parsed, scope }) {
         action: registry && publish === "public" ? "keep-both" : "replace",
         pd_field: question.pd_field,
         publish,
+        ...publishSourceOf(answer, fact),
         text,
         ...extra,
       });
@@ -449,6 +521,7 @@ export function renderCompilePlan({ record, hunks, sourceId, mdBasename }) {
       if (item.pd_field) lines.push(`- pd_field: ${item.pd_field}`);
       if (item.action) lines.push(`- action: ${item.action}`);
       if (item.publish) lines.push(`- publish: ${item.publish}`);
+      if (item.publish_source) lines.push(`- publish_source: ${item.publish_source}`);
       if (item.retain_conflict) lines.push("- retain_conflict: true");
       if (item.field_text_unchanged) lines.push("- field_text_unchanged: true");
       if (item.existing) lines.push(`- existing: ${item.existing}`);
@@ -480,8 +553,13 @@ export function compilePlan({ campaignDir, scope, partial = false } = {}) {
 
   const markdown = fs.readFileSync(pdPath, "utf8");
   const parsed = parseProductDoc(markdown);
+  // Pack and record files are named by the scope slug. The PD names the offering, and the
+  // pipeline manifest maps one to the other (emergency-service -> Emergency storm response).
+  // The slug is the fallback when no manifest page names it.
+  const catalogScope =
+    scope === "company" ? scope : resolveCatalogOffering(campaignDir, scope) || scope;
   if (scope !== "company") {
-    const offering = findOffering(parsed.catalog, scope);
+    const offering = findOffering(parsed.catalog, catalogScope);
     if (!offering) return { error: "offering_not_found", extra: { scope } };
   }
 
@@ -489,7 +567,8 @@ export function compilePlan({ campaignDir, scope, partial = false } = {}) {
     record,
     pack: packEntry.data,
     parsed,
-    scope,
+    scope: catalogScope,
+    others: otherRecordClaims(campaignDir, recordEntry),
   });
   if (built.error) return { error: built.error, extra: { hunk: built.hunk } };
 

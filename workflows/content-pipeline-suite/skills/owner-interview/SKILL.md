@@ -5,10 +5,10 @@ description: >-
   draft every missing pack in one pass, mint one voice link per page, and
   compile answers through product-documentation refresh. Triggers on
   /owner-interview or "owner interview". Requires an explicit campaign
-  directory.   (v1.2.4)
+  directory.   (v1.3.0)
 disable-model-invocation: true
 metadata:
-  version: "1.2.4"
+  version: "1.3.0"
 ---
 
 # Owner Interview
@@ -57,7 +57,7 @@ Skill root = this folder (next to `SKILL.md`). **Node.js 20+**.
 |--------|---------|
 | `scripts/interview-gaps.mjs` | Gap extraction from PD, briefs, crawl, pasted claims |
 | `scripts/interview-pack.mjs` | Validate, cap, order, render pack `.json` + `.md` |
-| `scripts/interview-record.mjs` | Create record, add answers, set state / source id |
+| `scripts/interview-record.mjs` | Create record, add answers, set state / source id, set publish decisions |
 | `scripts/interview-compile-plan.mjs` | Tagged refresh diff for `product-documentation` |
 | `scripts/interview-voice.mjs` | Create the host link, show status, pull a finished session |
 | `scripts/interview-links.mjs` | `--plan` inventory, then mint one voice link per seated scope |
@@ -74,6 +74,7 @@ node scripts/interview-voice.mjs --campaign-dir "/abs/path/to/campaign" --scope 
 node scripts/interview-voice.mjs --campaign-dir "/abs/path/to/campaign" --scope oak-wilt-treatment --pull --from-file export.json
 node scripts/interview-record.mjs --campaign-dir "/abs/path/to/campaign" --create --scope deep-root-fertilization
 node scripts/interview-record.mjs --campaign-dir "/abs/path/to/campaign" --scope oak-wilt-treatment --list-flagged
+node scripts/interview-record.mjs --campaign-dir "/abs/path/to/campaign" --scope oak-wilt-treatment --set-publish --question-id <id> --fact 1 --value public --by "<operator name>"
 node scripts/interview-compile-plan.mjs --campaign-dir "/abs/path/to/campaign" --scope deep-root-fertilization
 ```
 
@@ -132,7 +133,7 @@ node scripts/interview-links.mjs --campaign-dir "<abs>"
 
 In batch mode only, `interview-links.mjs` opens a record when a pack exists; single-scope `--create-link` never auto-creates a record. One resumable link per scope — not one mega-session.
 
-**Stop.** Present the `paste_block` (also written to `{Company}-interview-links-{YYYY-MM-DD}.md`). The agency contact / IDE user sends that list. Do not message the owner.
+**Stop.** Present the `paste_block` (also written to `{Company}-interview-links-{YYYY-MM-DD}.md`). The paste block tells the owner to do the numbered links in order, one at a time, and to reopen the same link if a call stops early. The agency contact / IDE user sends that list. Do not message the owner.
 
 Env for voice (User vars, never files): `RETELL_API_KEY`, `OWNER_INTERVIEW_HOST_TOKEN`, `OWNER_INTERVIEW_HOST_URL`. The page names the **agency folder** as interviewer (hyphens unwrapped; CamelCase split so `ExampleAgency` → `Example Agency`) and the **campaign folder** as the company. The `company` scope title is **Company Details**, never "Company-wide" (`Example Agency` is interviewing the owner about **Company Details** at `Ridgeline Tree Care`).
 
@@ -142,13 +143,28 @@ Host catalog path: `voice-host/` in the suite package.
 
 ## Step 5 — After the owner finishes
 
-Per scope (or as they complete): `--status` then `--pull`. Review `[REVIEW:]` flags with `--list-flagged`. Do not `--review --clear`, `--edit --clear`, `--accept-withdrawn`, or `--accept-pack-hash` without a per-fact or per-call instruction. Voice ends at `captured`.
+Per scope (or as they complete): `--status` then `--pull`. Review `[REVIEW:]` flags with `--list-flagged`. A flag with `fact_index: null` is a Publish? answer where the owner said more than the decision (a correction, a guarantee). A Publish? row carries no facts, so the words would otherwise be lost: they are written under `## Unmapped notes` in the record `.md`. Act on them first (for example `--add-answer` on the question they belong to), then clear the flag with `--review --question-id <publish-id> --clear` (no `--fact`). Compile refuses with `review_pending` until it is cleared. Do not `--review --clear`, `--edit --clear`, `--accept-withdrawn`, or `--accept-pack-hash` without a per-fact, per-answer, or per-call instruction. Voice ends at `captured`.
+
+A question the owner skipped on a call is dated with the day of that call, so Open Questions say `asked on` the day the owner was asked, not the day the call was pulled.
 
 ```bash
 node scripts/interview-voice.mjs --campaign-dir "<abs>" --scope <offering-or-company> --status
 node scripts/interview-voice.mjs --campaign-dir "<abs>" --scope <offering-or-company> --pull
 node scripts/interview-record.mjs --campaign-dir "<abs>" --scope <offering-or-company> --list-flagged
 ```
+
+### Publish decisions for facts with no Publish? question
+
+A Describe question with no `publish_link` has no owner decision to read. Its facts default one by one: `public` only when the fact is plain description, otherwise `internal`. A fact is held `internal` when it has a digit or spelled-out number, a currency symbol or `%`, a capitalized name or acronym, credential or guarantee wording (certified, licensed, insured, bonded, accredited, guarantee, warranty, award), or a framing-lint hit. The record `.md` and the compile plan mark these facts `publish default`. Facts on a Publish?-linked question are unchanged: they take the owner's Publish? answer, or stay `internal` and are re-asked in the next delta pack.
+
+Read the `[internal]` facts in the record `.md`. Only when the operator says so for that fact or answer, set the decision:
+
+```bash
+node scripts/interview-record.mjs --campaign-dir "<abs>" --scope <offering-or-company> --set-publish --question-id <id> --fact <n> --value public --by "<operator name>"
+node scripts/interview-record.mjs --campaign-dir "<abs>" --scope <offering-or-company> --set-publish --question-id <id> --all --value internal --by "<operator name>"
+```
+
+`--value` is `public`, `framing-only`, or `internal`. The fact then carries `publish_source: operator`, `publish_set_by`, and `publish_set_on`, which the record `.md` and the compile plan show. A compiled or superseded record refuses it. Do not flip a fact to `public` or `framing-only` without that per-fact or per-answer instruction: the owner did not approve it.
 
 ## Repair — single-scope voice
 
@@ -170,6 +186,8 @@ node scripts/interview-record.mjs --campaign-dir "<abs>" --scope <offering-or-co
 node scripts/interview-record.mjs --campaign-dir "<abs>" --scope <offering-or-company> --mark-unanswered --question-id <id>
 ```
 
+A fact with no `publish` follows the same default as a voice fact when its question is a Describe question with no `publish_link`. On a Publish?-linked question it is stored `internal` until the owner decides.
+
 State machine: `open → captured → compiled → superseded`. Illegal transitions exit 1.
 
 ## Step 6 — Compile plan → product-documentation
@@ -177,6 +195,15 @@ State machine: `open → captured → compiled → superseded`. Illegal transiti
 ```bash
 node scripts/interview-compile-plan.mjs --campaign-dir "<abs>" --scope <offering-or-company>
 ```
+
+What compile does with the answers:
+
+- **Offering.** The scope slug resolves to the PD offering through `pipeline-pages-manifest.json` `setup.pages[].offering` (`emergency-service` → "Emergency storm response"), then falls back to the slug. Pack and record files stay named by the slug.
+- **Merging.** Answers to different questions for the same PD field are all emitted; the plan's field items for that field add up. A later answer replaces an earlier one only for the same question. `revised {date}` is written only when the answers for a field come from different days.
+- **Page titles.** A verify whose claim is a short live-page title or heading (source `live page` or `crawl`, no sequence, no sentence) never writes field text. `partly` writes an Evidence Notes line, `false` writes the refuted line, `true` writes nothing. A claim with a sequence (`A → B`, "then", "step 2") is a real process claim and still writes its cited field text.
+- **Conflicts.** An item in Conflicts and Verification Needs is removed only through a real link: the question's `claim.text`, or its `conflict` reference (see `references/schemas.md`). Prompt and answer wording never link.
+- **Contradictions.** When another active record in the campaign (any scope, not superseded) verified the same claim text with a different outcome, compile writes one Conflict item (`**<claim> — Conflict — operator review required.** Owner interviews disagree: …`) instead of any field text or conflict removal for that answer. Both records write the same item apart from the citation (each cites its own interview), so a refresh can recognize it and keep one. Settle it with the owner, then re-record the answer.
+- **Publish decisions.** Each hunk item shows `publish` and, for a default or an operator override, `publish_source` (Step 5).
 
 **Stop.** Hand the tagged refresh file to `product-documentation` refresh mode. Confirm with the operator before overwrite. After a confirmed refresh, write the assigned `PD-SRC-00N` back:
 
@@ -188,7 +215,7 @@ If refresh is declined, leave the record `captured` and save the diff under `{ca
 
 ## Step 7 — Re-sync
 
-`content-pipeline-init` `scripts/sync-resources.mjs` owns re-sync. Diff the `01-resources` Product-Documentation copy against canonical before refresh and warn when they differ. After refresh: dry-run, then the real run. Success is a `copied[]` entry, or a `skipped[]` entry with `reason: identical_dest`, for `class_id: product_doc` — not the exit code.
+The canonical Product-Documentation is `01-intake/1.1-docs/Product-Documentation.md`; the refresh writes only that file. `01-resources/Product-Documentation.md` is a mirror the content pipeline reads, and `content-pipeline-init` `scripts/sync-resources.mjs` owns refreshing it. After a confirmed refresh run sync: dry run (`would_copy`), then the real run. Success is a `copied[]` row for `class_id: product_doc`, so the mirror now matches; a second run reports `skipped[]` with `reason: identical_dest`. `reason: mirror_newer_than_canonical` means the mirror carries a later `Last updated`: stop and reconcile before anything is overwritten. Judge by those rows, not the exit code.
 
 ## Step 8 — Stop
 

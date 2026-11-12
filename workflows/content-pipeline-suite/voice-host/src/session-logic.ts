@@ -25,6 +25,10 @@ export const FINISHED = new Set([
 export const STORY_FLAGS = ["publish_unclear", "sensitive", "pd_candidate"] as const;
 export const STALE_MS = 10 * 60 * 1000;
 export const DELETE_BACKOFF_MS = [60_000, 5 * 60_000, 30 * 60_000, 6 * 60 * 60_000, 24 * 60 * 60_000];
+// A past alarm is delivered immediately. Scheduling one again is a paid
+// Durable Object row-write loop, so a blocked purge retries a day later.
+// Incident record: homelab/06-ops/planning/2026-11-10-cloudflare-do-row-writes.md
+export const ALARM_RETRY_MS = 24 * 60 * 60 * 1000;
 
 export function displayLabel(value: string): string {
   return String(value || "")
@@ -186,6 +190,7 @@ export type SessionState = {
   calls: CallRow[];
   current_call_id: string | null;
   slice_from: number;
+  publish_gloss_spoken: boolean;
   last_activity: number;
   stale_due: number | null;
   delete_due: number | null;
@@ -283,9 +288,9 @@ export function nextAlarm(state: SessionState, now: number): number | null {
   const times = [state.expires_at, state.purge_due];
   if (state.stale_due != null) times.push(state.stale_due);
   if (state.delete_due != null) times.push(state.delete_due);
-  const future = times.filter((t) => t > now);
-  if (!future.length) return Math.min(...times);
-  return Math.min(...future);
+  const future = times.filter((t): t is number => typeof t === "number" && Number.isFinite(t) && t > now);
+  if (future.length) return Math.min(...future);
+  return now + ALARM_RETRY_MS;
 }
 
 function slugify(value: string): string {
@@ -365,6 +370,7 @@ export function initSession(
     calls: [],
     current_call_id: null,
     slice_from: 0,
+    publish_gloss_spoken: false,
     last_activity: now,
     stale_due: null,
     delete_due: null,
@@ -599,17 +605,24 @@ function maybeSkipDependent(state: SessionState, servedParent: Question): void {
   }
 }
 
+export const PUBLISH_GLOSS =
+  "Public means it can go on the website in your words, framing-only means we can use the idea without numbers, names, or prices, and internal means it stays off the website.";
+
 function publicQuestion(q: Question, state: SessionState): Record<string, unknown> {
   const pub = q.publish_link;
   const tapped = pub && state.taps[pub] ? state.taps[pub].value : q.type === "publish" && state.taps[q.id] ? state.taps[q.id].value : null;
+  const prompt = spokenPrompt(q.prompt || "");
+  const firstGloss = q.type === "publish" && !state.publish_gloss_spoken;
+  if (firstGloss) state.publish_gloss_spoken = true;
   return {
     id: q.id,
     type: q.type || "describe",
-    prompt: spokenPrompt(q.prompt || ""),
+    prompt: firstGloss ? `${prompt} ${PUBLISH_GLOSS}` : prompt,
     answer_shape: q.answer_shape || "free text",
     followup: q.followup || "",
     has_publish_link: Boolean(q.publish_link),
     publish_tapped: tapped,
+    gloss: firstGloss ? PUBLISH_GLOSS : undefined,
   };
 }
 
@@ -679,6 +692,13 @@ function reportConsent(
     call_id: call?.call_id || "",
   };
   if (call) call.consent_turn = turn;
+  if (companyDetailsFirst(state) === "true") {
+    return {
+      ok: true,
+      status: "in_progress",
+      say: "If you have not finished the Company Details interview yet, end this call and complete that one first, then reopen this same link. If you already finished it, we will start.",
+    };
+  }
   return attachNext(state, turns, now, { ok: true, status: "in_progress" });
 }
 
@@ -801,10 +821,12 @@ function reportAnswer(
     return { ok: false, error: "question_not_spoken", question: publicQuestion(question, state) };
   }
   const answerStatus = String(args.status || "answered");
-  if (answerStatus === "answered" && ownerStillGoing(turns)) {
+  const slice = ownerSlice(turns, state.slice_from);
+  const described = slice.split(/\s+/).filter(Boolean).length > 12;
+  const storedStatus = answerStatus === "unanswered" && described ? "answered" : answerStatus;
+  if (storedStatus === "answered" && ownerStillGoing(turns)) {
     return { ok: false, error: "owner_not_finished", question_id: questionId };
   }
-  const slice = ownerSlice(turns, state.slice_from);
   const relayed = String(args.owner_words || args.words || "");
   const factsRaw = Array.isArray(args.facts) ? args.facts : [];
   const facts = factsRaw.map((fact) => (typeof fact === "string" ? { text: fact } : { text: String((fact as { text?: string }).text || "") }));
@@ -818,7 +840,7 @@ function reportAnswer(
   }
   const row: AnswerRow = {
     question_id: questionId,
-    status: answerStatus,
+    status: storedStatus,
     owner_slice: slice,
     owner_words: slice,
     agent_relayed: relayed || undefined,

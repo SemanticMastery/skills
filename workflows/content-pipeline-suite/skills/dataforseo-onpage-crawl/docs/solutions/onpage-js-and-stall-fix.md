@@ -4,12 +4,12 @@
 
 | Date | Site | Theme |
 |------|------|--------|
-| 2026-06 | DeForest Tree Service (`deforesttrees.com`) | JS + `force_stop` delay |
+| 2026-06 | Summit Tree Service (`summittrees.example`) | JS + `force_stop` delay |
 | 2026-07-13 | Greater Life Chiropractic (`getgreaterlifechiropractic.com`) | Googlebot WAF / `forbidden_http_header` |
 
 ---
 
-## Incident A — DeForest (2026-06)
+## Incident A — Summit (2026-06)
 
 **Resolution:** DataForSEO platform `force_stop` delay fixed; site requires `enable_javascript`; apex target + `respect_sitemap` for full 14-page export.
 
@@ -23,7 +23,7 @@
 #### 2. Site: JavaScript-rendered HTML
 
 - **Symptom:** With `enable_javascript: false`, `pages_crawled` stays 0 or very low; `/pages` HTML export is 1 row while summary shows more; looks like a “stuck crawl.”
-- **Cause:** Most pages return no usable body without JS (DataForSEO confirmed for deforesttrees.com).
+- **Cause:** Most pages return no usable body without JS (DataForSEO confirmed for summittrees.example).
 - **Fix:** `enable_javascript: true` and **`load_resources: true`** (API 40501 if `enable_browser_rendering` without `load_resources`).
 - **Orphans:** `/service` and `/location` require **`respect_sitemap: true`** (always on in our script).
 
@@ -32,11 +32,11 @@
 - Long fixed shell poll loops after `finished` — use **`check-task --wait`** only.
 - Zero-progress for 10 min without trying JS — script now **auto-probes** and enables JS.
 
-### Validated working `task_post` (DeForest)
+### Validated working `task_post` (Summit)
 
 ```json
 {
-  "target": "deforesttrees.com",
+  "target": "summittrees.example",
   "max_crawl_pages": 20,
   "enable_javascript": true,
   "respect_sitemap": true
@@ -99,18 +99,18 @@ Feeding the full blog-heavy crawl into geographic city extraction produced `city
 
 ## Per-client overrides (`field-learnings.md`)
 
-Some sites (including **deforesttrees.com**) serve boilerplate HTML with high plain-text word counts but DataForSEO still needs JS. The HTTP probe may **not** auto-detect these.
+Some sites (including **summittrees.example**) serve boilerplate HTML with high plain-text word counts but DataForSEO still needs JS. The HTTP probe may **not** auto-detect these.
 
 When `--project-dir` is set, `crawl-domain.mjs` reads `field-learnings.md` from (first match):
 
-1. `{project_dir}/01-intake/1.2-audit/field-learnings.md` (Golden Image default)
+1. `{project_dir}/01-intake/1.2-audit/field-learnings.md` (campaign folder default)
 2. `{project_dir}/audit/crawl-report/field-learnings.md` (legacy fallback during transition)
 
 Example blocks:
 
 ```text
 enable_javascript: true
-crawl_target: deforesttrees.com
+crawl_target: summittrees.example
 no_sitemap_only: true
 use_apex_target: true
 ```

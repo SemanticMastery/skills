@@ -1,6 +1,6 @@
 # Stage map
 
-Ordered produce stages for `content-pipeline-run` (v1.5). Paths are relative to `{pipeline_dir}` = `{campaign_dir}/06-content-pipeline/`.
+Ordered produce stages for `content-pipeline-run` (v1.6.3). Paths are relative to `{pipeline_dir}` = `{campaign_dir}/06-content-pipeline/`.
 
 `plan` is **init-owned**. This skill consumes `02-plan/editorial-roadmap.md` and `02-plan/siteswarm-tag-taxonomy.md`; it does not create them.
 
@@ -14,6 +14,7 @@ Ordered produce stages for `content-pipeline-run` (v1.5). Paths are relative to 
 | 3 | `edit` | `03-write/3.3-edit/` | `03-write/3.3-edit/CONTEXT.md` | Structural/editorial pass |
 | 4 | `polish` | `03-write/3.4-polish/` | `03-write/3.4-polish/CONTEXT.md` | CMS-ready text package |
 | 5 | `images` | `03-write/3.5-images/` | `03-write/3.5-images/CONTEXT.md` | Generate images from polish placeholders |
+| 6 | `schema` | `03-write/3.6-schema/` | `03-write/3.6-schema/CONTEXT.md` | Blog schema after images. Overwrite this post’s JSON-LD |
 
 Parent routers (read for orientation; do not treat as executable stage prompts):
 
@@ -66,6 +67,12 @@ If either file is missing, hard-stop → run `content-pipeline-init`. Do not exe
 - Optional business-dossier for visual brand cues only
 - Engine: approved photo library via `{pipeline_dir}/scripts/match-library.mjs` (seeded by `content-pipeline-photo-library`; primary topic tag required; county bonus; no intra-post reuse; see `3.5-images/CONTEXT.md`) → Fal.ai `fal-ai/flux-2-pro` via `{pipeline_dir}/scripts/fal-generate.mjs` on miss. The library is **built after `content-pipeline-init`** by the setup operator; this stage only consumes `approved/`. Fal images are **outcome/feeling stills**, not mid-job process or physics. Requires `FAL_AI_API_KEY` or `FAL_KEY`. Do not use Cursor GenerateImage. Do not silently overwrite existing `post-01-img-*.png`.
 
+### `schema`
+
+- Images package from `3.5-images/post-{NN}-images/`
+- Existing campaign schema under `{campaign_dir}/02-deliverables/2.4-schema/` when present. Reuse its `@id`s. Overwrite `blog/blogpost-{slug}.jsonld` for this post.
+- Follow `3.6-schema/CONTEXT.md` and `schema-markup-generator`. Do not call SiteSwarm.
+
 ## Outputs by stage
 
 | Stage | Content shape (from CONTEXT `output_format`) | Filename (see artifact-naming) |
@@ -77,6 +84,7 @@ If either file is missing, hard-stop → run `content-pipeline-init`. Do not exe
 | `edit` | Editorial Log + Revised Article | `post-{NN}-edit.md` |
 | `polish` | Technical Suite + Final Publication Asset | `post-{NN}-polish/post-{NN}-polish.md` |
 | `images` | Image Manifest + Technical Suite + Publication Asset (with images) | `post-{NN}-images/post-{NN}-images.md` + `post-{NN}-img-{KK}.png` |
+| `schema` | Script-wrapped `WebPage` whose `mainEntity` is the `BlogPosting`, plus a short note | `post-{NN}-schema/post-{NN}-schema.jsonld` + `post-{NN}-schema.md` |
 
 ## Execution rule
 

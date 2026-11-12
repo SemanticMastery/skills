@@ -22,13 +22,13 @@ import { parseCityStateFromWorkbook, normalizeState } from './geographic-wikiped
 
 export { isGoldenImageCampaign };
 
-/** Golden Image ICM intake slot (campaign-relative). */
+/** campaign folder ICM intake slot (campaign-relative). */
 export const GOLDEN_IMAGE_DOSSIER_REL = path.join('outputs', 'business-dossier');
 
-/** Golden Image ICM on-page crawl / audit output slot (campaign-relative). */
+/** campaign folder ICM on-page crawl / audit output slot (campaign-relative). */
 export const GOLDEN_IMAGE_CRAWL_REL = GOLDEN_IMAGE_AUDIT_REL;
 
-/** Legacy crawl output path (pre–Golden Image). */
+/** Legacy crawl output path (pre–campaign folder). */
 export const LEGACY_CRAWL_REL = path.join('audit', 'crawl-report');
 
 function listDossierMdInDir(dir) {
@@ -103,7 +103,7 @@ export function resolveDossierArtifactPaths(
 }
 
 /**
- * Find an existing dossier markdown by business name (Golden Image path first, legacy root second).
+ * Find an existing dossier markdown by business name (campaign folder path first, legacy root second).
  * Accepts hyphenated `{slug}-Dossier.md` (current) or legacy `{Name} Dossier.md`.
  *
  * @param {string} projectDir
@@ -736,7 +736,7 @@ export function findDossierFiles(projectDir) {
 
 /**
  * Default crawl deliverable directory for a campaign folder.
- * Golden Image: `01-intake/1.2-audit/`. Legacy: `audit/crawl-report/`.
+ * campaign folder: `01-intake/1.2-audit/`. Legacy: `audit/crawl-report/`.
  *
  * @param {string} projectDir campaign folder (--project-dir)
  * @param {{ create?: boolean }} [opts]
@@ -793,7 +793,7 @@ function extractOfficialWebsiteFromMarkdown(text) {
 }
 
 /**
- * Read Official Website from dossier (Golden Image `1.1-docs/` first, legacy root second).
+ * Read Official Website from dossier (campaign folder `1.1-docs/` first, legacy root second).
  * Accepts labeled **Website:** / **Official Website:** or prose `Website: https://…`.
  *
  * @param {string} projectDir campaign folder

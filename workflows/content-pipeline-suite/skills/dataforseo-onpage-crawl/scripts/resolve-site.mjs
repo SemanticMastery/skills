@@ -2,7 +2,7 @@
  * Resolve live hostname + sitemap host alignment before OnPage task_post.
  *
  * Also probes whether the site needs enable_javascript on task_post (SPA / empty
- * plain HTML). See docs/solutions/onpage-js-and-stall-fix.md (DeForest 2026-06).
+ * plain HTML). See docs/solutions/onpage-js-and-stall-fix.md (Summit 2026-06).
  */
 
 const JS_PLAIN_TEXT_WORD_THRESHOLD = 100;

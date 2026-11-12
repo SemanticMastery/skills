@@ -1,5 +1,6 @@
 ---
 name: dataforseo-paa-queries
+disable-model-invocation: true
 description: >-
   Extract People Also Ask (PAA) queries via DataForSEO SERP Google Organic Live
   Advanced. Writes JSON under {project}/outputs/dataforseo-paa-queries/.

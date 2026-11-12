@@ -171,7 +171,7 @@ export function renderPasteBlock({ company, expiresOn, links }) {
   const lines = [
     `# Owner interview links — ${title}`,
     "",
-    `Complete each link once. If a call is interrupted, reopen the same link to resume. Links are valid until ${expiresOn}.`,
+    `Complete each link once, in the numbered order, one at a time. Finish a link before you open the next. If a call stops early, reopen that same link and continue. Do not start another interview until this one is done. Links are valid until ${expiresOn}.`,
     "",
   ];
   if (!links.length) {

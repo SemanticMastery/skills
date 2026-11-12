@@ -1,6 +1,8 @@
 # Content Pipeline Suite
 
-Course (source of truth): https://docshare.us/content-pipeline-suite-course/
+Blog course (current blog lesson): https://docshare.us/content-pipeline-blog/
+
+Previous combined course: https://docshare.us/content-pipeline-suite-course/
 
 **License:** Semantic Mastery Member License. See LICENSE-MEMBERS.md at the repository root.
 

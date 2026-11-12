@@ -14,12 +14,13 @@ export const PRODUCE_FOLDERS = {
   edit: "03-write/3.3-edit",
   polish: "03-write/3.4-polish",
   images: "03-write/3.5-images",
+  schema: "03-write/3.6-schema",
 };
 
 /** Always nest: these stages accrue more than one file per post. */
-export const BUNDLE_STAGES = new Set(["polish", "images"]);
+export const BUNDLE_STAGES = new Set(["polish", "images", "schema"]);
 
-const STAGE_FILE_RE = /^post-(\d+)-(brief|draft|edit|polish|images)(\.[^.]+)?$/i;
+const STAGE_FILE_RE = /^post-(\d+)-(brief|draft|edit|polish|images|schema)(\.[^.]+)?$/i;
 const IMAGE_PNG_RE = /^post-(\d+)-img-\d+\.[^.]+$/i;
 
 export function padPost(n) {

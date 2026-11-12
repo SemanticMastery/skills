@@ -1,5 +1,6 @@
 ---
 name: contentmaxima
+disable-model-invocation: true
 description: >-
   Content Maxima automation and reverse-engineered prompt workflows for SEO
   analysis, keyword matrix, personas, pathways, perspectives, signatures, and

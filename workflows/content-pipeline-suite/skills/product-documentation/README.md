@@ -5,7 +5,7 @@
 
 ## What this skill does
 
-Creates or refreshes a client's canonical **Product-Documentation.md** — durable product/service truth — from a business dossier, on-page crawl, optional EntityMap, and other intake documents. Hard-stops when required inputs are missing unless the operator waives them.
+Creates or refreshes a client's canonical **Product-Documentation.md** — durable product/service truth — from a business dossier, on-page crawl, optional EntityMap, and other intake documents. Hard-stops when required inputs are missing unless the operator waives them (continue-without or greenfield stub).
 
 ## Requirements
 
@@ -39,6 +39,7 @@ product-documentation/
   SKILL.md
   README.md
   references/canonical-artifact.md
+  references/greenfield-stub.md
   evals/evals.json
 ```
 
@@ -52,12 +53,13 @@ Example prompts:
 
 - “Create product documentation for this client from the dossier and on-page crawl.”
 - “Refresh Product-Documentation.md from current sources.”
+- “/product-documentation --stub” or “greenfield stub” when dossier and crawl are absent and the operator will confirm the offering list. `--stub` is an invocation phrase, not a CLI.
 
 ## Output location
 
-`{campaign-root}/01-intake/1.1-docs/Product-Documentation.md`
+The one canonical file is `{campaign-root}/01-intake/1.1-docs/Product-Documentation.md`. The `{campaign-root}/06-content-pipeline/01-resources/Product-Documentation.md` copy is a mirror for the content pipeline: `content-pipeline-init` `scripts/sync-resources.mjs` refreshes it from the canonical. This skill never writes the mirror.
 
-Do **not** create `{campaign-root}/outputs/product-documentation/`.
+Do **not** create `{campaign-root}/outputs/product-documentation/` or a new `06-content-pipeline/` tree from this skill.
 
 Expected companion inputs:
 

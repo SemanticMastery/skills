@@ -23,7 +23,7 @@ export function companySlug(campaignDir) {
   return path.basename(campaignDir);
 }
 
-/** Parent folder of the campaign — Golden Image `{Agency}`. */
+/** Parent folder of the campaign — campaign layout `{Agency}`. */
 export function agencySlug(campaignDir) {
   return path.basename(path.dirname(campaignDir));
 }

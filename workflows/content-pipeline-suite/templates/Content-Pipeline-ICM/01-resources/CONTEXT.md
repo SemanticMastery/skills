@@ -24,7 +24,7 @@ Hold and inventory the content source pack for this **campaign template copy**. 
 ### Optional
 
 - Voice DNA (`*voice-dna*`, brand-voice, author-voice) and any other campaign extras referenced by produce stages
-- `image-library/` — HITL-approved brand photos for `3.5-images` (setup operator via `content-pipeline-photo-library`). Not a ninth init hard-gate. Empty approved is a Fal miss.
+- `image-library/` — HITL-approved brand photos for `3.5-images` and `06-pages/p.5-images` (setup operator via `content-pipeline-photo-library`). Not a ninth init hard-gate. Empty approved is a Fal miss.
 
 ## Process
 

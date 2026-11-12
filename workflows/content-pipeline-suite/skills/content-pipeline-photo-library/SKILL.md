@@ -1,5 +1,6 @@
 ---
 name: content-pipeline-photo-library
+disable-model-invocation: true
 description: >-
   Ingest, classify, and human-approve a per-campaign photo library so
   3.5-images can copy real brand photos before Fal. Requires campaign_dir.

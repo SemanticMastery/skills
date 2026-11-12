@@ -1,5 +1,6 @@
 ---
 name: business-dossier
+disable-model-invocation: true
 description: >-
   Produce a TSCR business dossier (Markdown + DOCX) for a local entity using
   xAI Grok with live search and optional SerpAPI/Firecrawl pre-gather. Writes
