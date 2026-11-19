@@ -1,5 +1,5 @@
 /**
- * DOCX writer for Glen Patel business dossiers — matches standard business dossier DOCX layout.
+ * DOCX writer for Glen Patel business dossiers — matches Ridgeline Tree Care Dossier.docx layout.
  * Aptos font, GBP header block, TSCR intro, bold section headers, label:value lines, 3-col table.
  */
 

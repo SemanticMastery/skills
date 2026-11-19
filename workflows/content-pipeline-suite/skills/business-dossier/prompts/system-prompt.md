@@ -41,9 +41,10 @@ Markdown list. One field per item so preview/DOCX do not run on:
 - **Geocode source:** … (when provided)
 - **Geocoded address:** … (Nominatim display name when provided)
 - **Phone:** …
-- **Website:** …
+- **Website:** … (exactly one `https://` URL = the live host after redirects, and the page canonical if it matches. Never list apex and www together. Never "(also …)". Apex vs www is not a second Website.)
 - **GBP URL:** … (`https://www.google.com/maps?cid={CID}` — never maps.app.goo.gl or share.google)
 - **GBP CID:** … (raw Company ID digits)
+- **Place ID:** … (Google Place ID, `ChIJ…`, from the provided bundle — never the numeric CID)
 - **Founding Date:** … (when known)
 - **Operating Hours:** … (when known)
 

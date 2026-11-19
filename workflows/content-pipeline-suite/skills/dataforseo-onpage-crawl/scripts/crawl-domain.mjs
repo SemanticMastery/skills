@@ -5,13 +5,20 @@
  *
  * Pre-flight (resolve-site.mjs): canonical host, sitemap, JS probe, orphan/sitemap rules.
  * Polling exits immediately when crawl_progress=finished.
+ * in_progress with pages_crawled=0 force_stops after max-zero-progress-minutes
+ * even when pages_in_queue is still above 0, then Instant Pages runs in this
+ * process. onpage-live is one exec and cannot start the fallback itself.
  * See docs/solutions/onpage-js-and-stall-fix.md for incident learnings
- * (Summit 2026-06 JS/stall; Greater Life 2026-07 Googlebot WAF).
+ * (Summit 2026-06 JS/stall; Northside Care 2026-07 Googlebot WAF;
+ *  Harborview 2026-08-10 bot_block / stuck-zero / overlapping posts).
  */
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
 import XLSX from 'xlsx';
+import { isInProgressZeroCrawl } from './crawl-stall.mjs';
+import { runSitemapInstantFallback } from './sitemap-instant-fallback.mjs';
 import { normalizeField, normalizeText } from './text-normalize.mjs';
 import { normalizeHost, planCrawlTarget } from './resolve-site.mjs';
 import { assertDeliverableContent } from './content-quality.mjs';
@@ -20,16 +27,24 @@ import {
   findFieldLearningsFile,
   readDossierWebsite,
   resolveCrawlOutputDir,
-} from '../lib/project-paths.mjs';
+} from '../../../scripts/seo/lib/dossier-firmographics.mjs';
+import {
+  clearActiveTask,
+  ensureBrowserUaLearning,
+  hostKey,
+  readActiveTask,
+  writeActiveTask,
+} from './active-task.mjs';
 
 const API = 'https://api.dataforseo.com/v3';
 const SITEMAP_ONLY_MAX_URLS = 30;
 const IDLE_POLLS_BEFORE_FORCE_STOP = 3;
 const ZERO_PROGRESS_FORCE_STOP_AFTER_MS = 90 * 1000;
-const ZERO_PROGRESS_GIVE_UP_AFTER_MS = 120 * 1000;
-/** Short post-only window: bot blocks often finish in <10s (Greater Life ~6s). */
+/** Short post-only window: bot blocks often finish in <10s (Northside Care ~6s). */
 const BOT_BLOCK_PROBE_MAX_MS = 90 * 1000;
 const BOT_BLOCK_PROBE_POLL_MS = 5 * 1000;
+/** Minimum wait when sitemap budget is known (forbid fake 1-min failures). */
+const MIN_WAIT_MINUTES_WITH_EXPECTED = 12;
 
 const ROW_HEADERS = [
   'url',
@@ -70,7 +85,7 @@ function pagesCrawledOf(result) {
 
 /**
  * Finished crawl that should trigger browser-UA retry (WAF / unreachable / tiny vs sitemap).
- * Greater Life: forbidden_http_header (0 pages) OR site_unreachable (1 page) vs ~390 sitemap.
+ * Northside Care: forbidden_http_header (0 pages) OR site_unreachable (1 page) vs ~390 sitemap.
  */
 function isBotBlockResult(result, expectedPages = 0) {
   if (!result || result.crawl_progress !== 'finished') return false;
@@ -103,7 +118,7 @@ function parseArgs(argv) {
     maxCrawlPages: 500,
     format: 'json',
     pollSeconds: 15,
-    maxWaitMinutes: 10,
+    maxWaitMinutes: 15,
     maxQueueMinutes: 5,
     maxZeroProgressMinutes: 3,
     taskId: null,
@@ -120,6 +135,12 @@ function parseArgs(argv) {
     probeBotBlock: true,
     noUaRetry: false,
     allowEmptyContent: false,
+    forceNewTask: false,
+    allowShortWait: false,
+    allowPathSubstrings: [],
+    denyPathSubstrings: [],
+    includeHome: false,
+    excludeSitemapChildren: [],
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -144,6 +165,19 @@ function parseArgs(argv) {
     else if (a === '--no-probe-bot-block') out.probeBotBlock = false;
     else if (a === '--no-ua-retry') out.noUaRetry = true;
     else if (a === '--allow-empty-content') out.allowEmptyContent = true;
+    else if (a === '--force-new-task') out.forceNewTask = true;
+    else if (a === '--allow-short-wait') out.allowShortWait = true;
+    else if (a === '--allow-url-path' && argv[i + 1]) out.allowPathSubstrings.push(argv[++i]);
+    else if (a === '--deny-url-path' && argv[i + 1]) out.denyPathSubstrings.push(argv[++i]);
+    else if (a === '--include-home') out.includeHome = true;
+    else if (a === '--exclude-sitemap-child' && argv[i + 1]) {
+      out.excludeSitemapChildren.push(
+        ...String(argv[++i])
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
+      );
+    }
     else if (a === '--output-dir' && argv[i + 1]) out.outputDir = argv[++i];
     else if (a === '--domain-slug' && argv[i + 1]) out.domainSlug = argv[++i];
     else if (a === '--help' || a === '-h') out.help = true;
@@ -157,7 +191,7 @@ function domainSlugFromHost(host) {
 }
 
 /**
- * Per-client overrides from field-learnings.md (campaign folder `1.2-audit/` first, legacy fallback).
+ * Per-client overrides from field-learnings.md (campaign layout `1.2-audit/` first, legacy fallback).
  */
 function readProjectCrawlOverrides(projectDir, outputDir = null) {
   if (!projectDir) return {};
@@ -172,6 +206,8 @@ function readProjectCrawlOverrides(projectDir, outputDir = null) {
   if (/use_apex_target:\s*true/i.test(text)) out.useApexTarget = true;
   const uaMatch = text.match(/user_agent:\s*(googlebot|browser|chrome|[^\s]+)/i);
   if (uaMatch) out.userAgent = uaMatch[1].trim();
+  const startUrlMatch = text.match(/start_url:\s*(\S+)/i);
+  if (startUrlMatch) out.startUrl = startUrlMatch[1].trim();
   return out;
 }
 
@@ -201,25 +237,56 @@ async function dfsRequest(apiPath, { method = 'GET', body = null } = {}) {
   return json;
 }
 
-function buildTaskBody(crawlTarget, maxCrawlPages, crawlSitemapOnly, enableJavascript, userAgentString) {
-  return [
-    {
-      target: crawlTarget,
-      max_crawl_pages: maxCrawlPages,
-      custom_user_agent: userAgentString,
-      robots_txt_merge_mode: 'merge',
-      respect_sitemap: true,
-      crawl_sitemap_only: crawlSitemapOnly,
-      load_resources: enableJavascript,
-      enable_javascript: enableJavascript,
-      enable_browser_rendering: false,
-      calculate_keyword_density: false,
-      check_spell: false,
-    },
-  ];
+function robotsTxtFromDenyPaths(denyPathSubstrings) {
+  const lines = ['User-agent: *'];
+  const seen = new Set();
+  for (const raw of denyPathSubstrings || []) {
+    const p = String(raw || '').trim();
+    if (!p) continue;
+    const path = p.startsWith('/') ? p : `/${p}`;
+    if (seen.has(path)) continue;
+    seen.add(path);
+    lines.push(`Disallow: ${path}`);
+  }
+  if (![...seen].some((p) => p.includes('/blogs'))) lines.push('Disallow: /blogs/');
+  return lines.join('\n');
 }
 
-async function createTask(crawlTarget, maxCrawlPages, crawlSitemapOnly, enableJavascript, userAgentString) {
+function buildTaskBody(
+  crawlTarget,
+  maxCrawlPages,
+  crawlSitemapOnly,
+  enableJavascript,
+  userAgentString,
+  extras = {},
+) {
+  const task = {
+    target: crawlTarget,
+    max_crawl_pages: maxCrawlPages,
+    custom_user_agent: userAgentString,
+    robots_txt_merge_mode: extras.robotsTxtMergeMode || 'merge',
+    respect_sitemap: true,
+    crawl_sitemap_only: crawlSitemapOnly,
+    load_resources: enableJavascript,
+    enable_javascript: enableJavascript,
+    enable_browser_rendering: false,
+    calculate_keyword_density: false,
+    check_spell: false,
+  };
+  if (extras.startUrl) task.start_url = extras.startUrl;
+  // priority_urls removed — DataForSEO task_post returns 40501 Invalid Field (2026-09).
+  if (extras.customRobotsTxt) task.custom_robots_txt = extras.customRobotsTxt;
+  return [task];
+}
+
+async function createTask(
+  crawlTarget,
+  maxCrawlPages,
+  crawlSitemapOnly,
+  enableJavascript,
+  userAgentString,
+  extras = {},
+) {
   const data = await dfsRequest('/on_page/task_post', {
     method: 'POST',
     body: buildTaskBody(
@@ -227,7 +294,8 @@ async function createTask(crawlTarget, maxCrawlPages, crawlSitemapOnly, enableJa
       maxCrawlPages,
       crawlSitemapOnly,
       enableJavascript,
-      userAgentString
+      userAgentString,
+      extras,
     ),
   });
   const task = data.tasks?.[0];
@@ -239,22 +307,123 @@ async function createTask(crawlTarget, maxCrawlPages, crawlSitemapOnly, enableJa
 }
 
 class BotBlockError extends Error {
-  constructor(taskId, extendedStatus, result) {
+  constructor(taskId, extendedStatus, result, { escalate = false } = {}) {
     const crawled = pagesCrawledOf(result);
     super(
-      `BOT_BLOCK: task ${taskId} finished with pages_crawled=${crawled} ` +
-        `(extended_crawl_status=${extendedStatus}). ` +
-        `WAF/unreachable likely blocked Googlebot — retry with --user-agent browser before instant_pages.`
+      escalate
+        ? `BOT_BLOCK (browser UA already tried): task ${taskId} pages_crawled=${crawled} ` +
+            `(extended_crawl_status=${extendedStatus}). Escalate to sitemap-instant-fallback.mjs ` +
+            `(force_stop this task first). Do not post a third domain crawl.`
+        : `BOT_BLOCK: task ${taskId} finished with pages_crawled=${crawled} ` +
+            `(extended_crawl_status=${extendedStatus}). ` +
+            `WAF/unreachable likely blocked Googlebot — retry with --user-agent browser before instant_pages.`
     );
     this.name = 'BotBlockError';
     this.taskId = taskId;
     this.extendedStatus = extendedStatus;
     this.result = result;
+    this.escalate_to_instant_fallback = escalate;
+  }
+}
+
+class StuckZeroError extends Error {
+  constructor(taskId, detail = '') {
+    super(
+      `STUCK_ZERO: task ${taskId} stayed pages_crawled=0 after force_stop. ` +
+        `Escalate to sitemap-instant-fallback.mjs — do not post another domain crawl. ${detail}`.trim()
+    );
+    this.name = 'StuckZeroError';
+    this.taskId = taskId;
+    this.escalate_to_instant_fallback = true;
+  }
+}
+
+async function forceStopQuiet(taskId) {
+  if (!taskId) return false;
+  try {
+    await forceStopTask(taskId);
+    process.stderr.write(`[dataforseo] force_stop ok task_id=${taskId}\n`);
+    return true;
+  } catch (err) {
+    process.stderr.write(
+      `[dataforseo] force_stop warn task_id=${taskId}: ${err.message}\n`
+    );
+    return false;
   }
 }
 
 /**
+ * Refuse overlapping --post-only while same-host task is in_progress / queued.
+ * --force-new-task force_stops the prior task first.
+ */
+async function gateOverlappingPost({ outputDir, host, forceNewTask }) {
+  if (!outputDir) return { priorStopped: null };
+  const active = readActiveTask(outputDir);
+  if (!active?.task_id) return { priorStopped: null };
+  if (hostKey(active.host) !== hostKey(host)) return { priorStopped: null };
+
+  let stillActive = true;
+  try {
+    const { task, result } = await getSummary(active.task_id);
+    const progress = result?.crawl_progress;
+    const code = task?.status_code;
+    stillActive =
+      progress === 'in_progress' ||
+      code === 40601 ||
+      code === 40602 ||
+      (progress == null && code != null && code < 50000 && code !== 20100 && code !== 20000);
+    if (progress === 'finished' || (code != null && code >= 50000)) stillActive = false;
+  } catch {
+    stillActive = true; // fail closed — require force or clear
+  }
+
+  if (!stillActive) {
+    clearActiveTask(outputDir);
+    return { priorStopped: null };
+  }
+
+  if (!forceNewTask) {
+    throw new Error(
+      `ACTIVE_TASK: host ${hostKey(host)} already has task_id=${active.task_id} ` +
+        `(status=${active.status ?? 'in_progress'}). ` +
+        `Wait with check-task.mjs --wait --expected-pages N --max-wait-minutes 15, ` +
+        `or pass --force-new-task (force_stops the old task first). ` +
+        `Do not open a second overlapping --post-only.`
+    );
+  }
+
+  process.stderr.write(
+    `[dataforseo] --force-new-task: force_stop prior ${active.task_id} before new post\n`
+  );
+  await forceStopQuiet(active.task_id);
+  clearActiveTask(outputDir);
+  return { priorStopped: active.task_id };
+}
+
+function persistActive(outputDir, taskId, host, userAgent) {
+  if (!outputDir || !taskId) return null;
+  return writeActiveTask(outputDir, {
+    task_id: taskId,
+    host,
+    user_agent: userAgent,
+    status: 'in_progress',
+  });
+}
+
+function recordBrowserUaLearning(projectDir, outputDir) {
+  const res = ensureBrowserUaLearning(projectDir, outputDir);
+  if (res.wrote) {
+    process.stderr.write(
+      `[dataforseo] wrote field-learnings user_agent: browser → ${res.path}\n`
+    );
+  }
+  return res;
+}
+
+/**
  * After post-only: poll briefly for finished bot-block / tiny crawl; if so, re-post with browser UA once.
+ * progress=unknown (or null summary / 40602 limbo) for the full probe window soft-fails → browser UA
+ * (Harborview 2026-08-10). Always force_stop the prior Googlebot task before the retry post.
  */
 async function probeAndMaybeRetryUa({
   taskId,
@@ -265,23 +434,58 @@ async function probeAndMaybeRetryUa({
   uaInfo,
   allowRetry,
   expectedPages = 0,
+  projectDir = null,
+  outputDir = null,
+  taskExtras = {},
 }) {
-  const started = Date.now();
+  let started = Date.now();
   let currentId = taskId;
   let currentUa = uaInfo;
   let priorTaskId = null;
   let uaRetried = false;
   let lastResult = null;
+  let lastTaskStatus = null;
+  let sawKnownProgress = false;
+
+  async function switchToBrowser(reason) {
+    process.stderr.write(
+      `[dataforseo] BOT_BLOCK soft-fail (${reason}) ua=${currentUa.label} → browser UA\n`
+    );
+    if (currentUa.label === 'googlebot') {
+      recordBrowserUaLearning(projectDir, outputDir);
+    }
+    await forceStopQuiet(currentId);
+    const nextUa = resolveUserAgent('browser');
+    priorTaskId = currentId;
+    currentId = await createTask(
+      crawlTarget,
+      maxCrawlPages,
+      crawlSitemapOnly,
+      enableJavascript,
+      nextUa.ua,
+      taskExtras,
+    );
+    currentUa = nextUa;
+    uaRetried = true;
+    persistActive(outputDir, currentId, crawlTarget, currentUa.label);
+    process.stderr.write(`[dataforseo] retry_task_id=${currentId}\n`);
+    started = Date.now();
+    sawKnownProgress = false;
+    lastResult = null;
+    lastTaskStatus = null;
+  }
 
   while (Date.now() - started < BOT_BLOCK_PROBE_MAX_MS) {
-    const { result } = await getSummary(currentId);
+    const { task, result } = await getSummary(currentId);
     lastResult = result;
+    lastTaskStatus = task?.status_code ?? null;
     const progress = result?.crawl_progress ?? 'unknown';
+    if (progress === 'finished' || progress === 'in_progress') sawKnownProgress = true;
     const crawled =
       result?.crawl_status?.pages_crawled ?? result?.crawl_status?.pages_count ?? '?';
     const elapsedSec = Math.round((Date.now() - started) / 1000);
     process.stderr.write(
-      `[dataforseo] bot_probe elapsed=${elapsedSec}s progress=${progress} pages=${crawled} ua=${currentUa.label}\n`
+      `[dataforseo] bot_probe elapsed=${elapsedSec}s status=${lastTaskStatus ?? '?'} progress=${progress} pages=${crawled} ua=${currentUa.label}\n`
     );
 
     if (progress === 'finished') {
@@ -290,28 +494,14 @@ async function probeAndMaybeRetryUa({
         process.stderr.write(
           `[dataforseo] BOT_BLOCK detected extended=${extended} pages=${crawled} expected~${expectedPages} ua=${currentUa.label}\n`
         );
-        if (allowRetry && currentUa.label === 'googlebot') {
-          const nextUa = resolveUserAgent('browser');
-          process.stderr.write(
-            `[dataforseo] auto-retry task_post with user_agent=browser (was googlebot)\n`
-          );
-          priorTaskId = currentId;
-          currentId = await createTask(
-            crawlTarget,
-            maxCrawlPages,
-            crawlSitemapOnly,
-            enableJavascript,
-            nextUa.ua
-          );
-          currentUa = nextUa;
-          uaRetried = true;
-          process.stderr.write(`[dataforseo] retry_task_id=${currentId}\n`);
-          // Continue probe on the new task (may finish fast too)
+        if (allowRetry && currentUa.label === 'googlebot' && !uaRetried) {
+          await switchToBrowser(`finished:${extended}`);
           continue;
         }
-        throw new BotBlockError(currentId, extended, result);
+        throw new BotBlockError(currentId, extended, result, {
+          escalate: currentUa.label !== 'googlebot' || uaRetried,
+        });
       }
-      // Finished with pages or benign status — ready for wait/deliver
       return {
         taskId: currentId,
         uaInfo: currentUa,
@@ -323,6 +513,48 @@ async function probeAndMaybeRetryUa({
     }
 
     await new Promise((r) => setTimeout(r, BOT_BLOCK_PROBE_POLL_MS));
+  }
+
+  const finalProgress = lastResult?.crawl_progress ?? 'unknown';
+  const unknownLimbo =
+    !sawKnownProgress ||
+    finalProgress === 'unknown' ||
+    (lastResult == null && (lastTaskStatus === 40602 || lastTaskStatus == null));
+
+  if (allowRetry && currentUa.label === 'googlebot' && !uaRetried && unknownLimbo) {
+    await switchToBrowser(
+      `progress=${finalProgress} status=${lastTaskStatus ?? 'null'} for full ${BOT_BLOCK_PROBE_MAX_MS / 1000}s`
+    );
+    // One short confirmation loop on browser task (do not 40602-limbo again)
+    const browserProbeStarted = Date.now();
+    while (Date.now() - browserProbeStarted < BOT_BLOCK_PROBE_MAX_MS) {
+      const { task, result } = await getSummary(currentId);
+      lastResult = result;
+      lastTaskStatus = task?.status_code ?? null;
+      const progress = result?.crawl_progress ?? 'unknown';
+      const crawled =
+        result?.crawl_status?.pages_crawled ?? result?.crawl_status?.pages_count ?? '?';
+      const elapsedSec = Math.round((Date.now() - browserProbeStarted) / 1000);
+      process.stderr.write(
+        `[dataforseo] bot_probe elapsed=${elapsedSec}s status=${lastTaskStatus ?? '?'} progress=${progress} pages=${crawled} ua=${currentUa.label}\n`
+      );
+      if (progress === 'finished') {
+        if (isBotBlockResult(result, expectedPages)) {
+          const extended = result?.domain_info?.extended_crawl_status ?? 'unknown';
+          throw new BotBlockError(currentId, extended, result, { escalate: true });
+        }
+        return {
+          taskId: currentId,
+          uaInfo: currentUa,
+          priorTaskId,
+          uaRetried,
+          probeFinished: true,
+          result,
+        };
+      }
+      if (progress === 'in_progress') break;
+      await new Promise((r) => setTimeout(r, BOT_BLOCK_PROBE_POLL_MS));
+    }
   }
 
   process.stderr.write(
@@ -359,8 +591,7 @@ async function waitForCrawl(
 ) {
   const deadline = Date.now() + maxWaitMinutes * 60 * 1000;
   const queueDeadline = Date.now() + maxQueueMinutes * 60 * 1000;
-  const zeroProgressDeadline =
-    Date.now() + maxZeroProgressMinutes * 60 * 1000;
+  const zeroProgressMs = maxZeroProgressMinutes * 60 * 1000;
   let sawInProgress = false;
   let lastCrawled = null;
   let idlePolls = 0;
@@ -407,37 +638,29 @@ async function waitForCrawl(
     }
 
     const crawledNum = typeof crawled === 'number' ? crawled : 0;
-    const zeroProgress =
-      progress === 'in_progress' && inQueue === 0 && crawledNum === 0;
+    const zeroProgress = isInProgressZeroCrawl(progress, crawled);
 
     if (zeroProgress) {
-      if (zeroProgressSince == null) zeroProgressSince = Date.now();
-      if (
-        !forceStopSent &&
-        Date.now() >= zeroProgressDeadline
-      ) {
+      if (zeroProgressSince == null) {
+        zeroProgressSince = Date.now();
         process.stderr.write(
-          `[dataforseo] zero_progress ${maxZeroProgressMinutes}m pages=0 queue=0 → force_stop\n`
-        );
-        await forceStopTask(taskId);
-        forceStopSent = true;
-        forceStopAt = Date.now();
-        await new Promise((r) => setTimeout(r, pollSeconds * 1000));
-        continue;
-      }
-      if (
-        forceStopSent &&
-        forceStopAt &&
-        Date.now() - forceStopAt >= ZERO_PROGRESS_GIVE_UP_AFTER_MS &&
-        progress === 'in_progress'
-      ) {
-        throw new Error(
-          `DataForSEO zero-progress zombie: task ${taskId} still in_progress with 0 pages after force_stop. ` +
-            `Try --no-sitemap-only on a new crawl or open a DataForSEO ticket. ` +
-            `Check: node scripts/check-task.mjs --task-id ${taskId}`
+          `[dataforseo] zero_crawl pages=0 queue=${inQueue} → force_stop if still 0 after ${maxZeroProgressMinutes}m\n`
         );
       }
-    } else {
+      if (!forceStopSent && Date.now() - zeroProgressSince >= zeroProgressMs) {
+        process.stderr.write(
+          `[dataforseo] zero_progress ${maxZeroProgressMinutes}m pages=0 queue=${inQueue} → force_stop + instant_pages\n`
+        );
+        try {
+          await forceStopTask(taskId);
+        } catch (stopErr) {
+          process.stderr.write(
+            `[dataforseo] force_stop warn task_id=${taskId}: ${stopErr.message}\n`
+          );
+        }
+        throw new StuckZeroError(taskId, `queue=${inQueue}`);
+      }
+    } else if (crawledNum > 0) {
       zeroProgressSince = null;
     }
 
@@ -472,6 +695,12 @@ async function waitForCrawl(
     ) {
       const { result: afterStop } = await getSummary(taskId);
       if (afterStop?.crawl_progress !== 'finished') {
+        if ((crawled ?? 0) === 0) {
+          throw new StuckZeroError(
+            taskId,
+            `pages=${crawled ?? '?'}. Check: node scripts/check-task.mjs --task-id ${taskId}`
+          );
+        }
         throw new Error(
           `Crawl stuck after force_stop (task_id=${taskId}, pages=${crawled ?? '?'}). ` +
             `Check: node scripts/check-task.mjs --task-id ${taskId}`
@@ -541,6 +770,144 @@ function leanRow(item) {
     word_count: meta.content?.plain_text_word_count ?? null,
     is_orphan_page: item?.is_orphan_page ?? null,
   };
+}
+
+/** Apex/www + trailing-slash fold so sitemap loc and DFS item.url can match. */
+function sitemapUrlKey(u) {
+  try {
+    const x = new URL(u);
+    const host = x.hostname.replace(/^www\./i, '').toLowerCase();
+    let p = x.pathname || '/';
+    if (p.length > 1) p = p.replace(/\/+$/, '');
+    return `${host}${p.toLowerCase()}`;
+  } catch {
+    return String(u || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\/+$/, '');
+  }
+}
+
+function missingSitemapLocs(rows, sitemapLocs) {
+  const have = new Set((rows || []).map((r) => sitemapUrlKey(r.url)));
+  const seen = new Set();
+  const missing = [];
+  for (const loc of sitemapLocs || []) {
+    const k = sitemapUrlKey(loc);
+    if (!k || seen.has(k)) continue;
+    seen.add(k);
+    if (!have.has(k)) missing.push(loc);
+  }
+  return missing;
+}
+
+/**
+ * A sitemap loc that redirects (or canonicalizes) to a URL already crawled is
+ * covered. Do not append a second row for that target, and do not treat the
+ * original loc as still missing.
+ * fetched: [{ loc, url, row? }]
+ */
+export function coverRedirectedSitemapLocs(rows, sitemapLocs, fetched) {
+  const extra = [];
+  const covered = new Set();
+  const have = new Set((rows || []).map((r) => sitemapUrlKey(r.url)));
+  for (const hit of fetched || []) {
+    const want = sitemapUrlKey(hit.loc);
+    const got = sitemapUrlKey(hit.url);
+    if (!want || !got) continue;
+    if (got !== want) {
+      covered.add(want);
+      if (!have.has(got)) {
+        extra.push(hit.row ?? { url: hit.url });
+        have.add(got);
+      }
+      continue;
+    }
+    if (!have.has(got)) {
+      extra.push(hit.row ?? { url: hit.url });
+      have.add(got);
+    }
+  }
+  const merged = (rows || []).concat(extra);
+  const missing = missingSitemapLocs(merged, sitemapLocs).filter(
+    (loc) => !covered.has(sitemapUrlKey(loc))
+  );
+  return { rows: merged, missing };
+}
+
+/**
+ * Unique HTML rows can sit below the sitemap loc count when a loc redirects
+ * onto a page already crawled. Unresolved locs are listed and the finished
+ * crawl is still written. Zero rows, and a short crawl with no sitemap, are not.
+ */
+export function decideDeliverableWrite({
+  rowCount,
+  minPages,
+  sitemapLocCount = 0,
+  missingCount = 0,
+}) {
+  if (rowCount <= 0) return { write: false, reason: 'no_rows' };
+  if (sitemapLocCount > 0) {
+    if (missingCount > 0) return { write: true, reason: 'sitemap_gap' };
+    if (rowCount < minPages) return { write: true, reason: 'redirects_share_rows' };
+    return { write: true, reason: 'ok' };
+  }
+  if (rowCount < minPages) return { write: false, reason: 'below_min' };
+  return { write: true, reason: 'ok' };
+}
+
+async function instantPageItemOnce(url, userAgentString) {
+  const data = await dfsRequest('/on_page/instant_pages', {
+    method: 'POST',
+    body: [{ url, custom_user_agent: userAgentString, enable_javascript: false }],
+  });
+  const task = data.tasks?.[0];
+  if (task?.status_code && task.status_code !== 20000 && task.status_code !== 20100) {
+    throw new Error(
+      `instant_pages failed for ${url}: ${task.status_message} (${task.status_code})`
+    );
+  }
+  const item = task?.result?.[0]?.items?.[0];
+  if (!item) throw new Error(`No instant_pages result for ${url}`);
+  if (item.status_code && item.status_code >= 40000) {
+    throw new Error(`instant_pages failed for ${url}: ${item.status_code}`);
+  }
+  return item;
+}
+
+async function instantPageItem(url, userAgentString, { retryTaskId = null } = {}) {
+  try {
+    return await instantPageItemOnce(url, userAgentString);
+  } catch (err) {
+    if (retryTaskId && /40501|duplicate crawl/i.test(String(err?.message ?? err))) {
+      await forceStopQuiet(retryTaskId);
+      await new Promise((r) => setTimeout(r, 2000));
+      return instantPageItemOnce(url, userAgentString);
+    }
+    throw err;
+  }
+}
+
+async function fillMissingSitemapRows(rows, sitemapLocs, { delayMs = 1200, retryTaskId = null } = {}) {
+  const missing = missingSitemapLocs(rows, sitemapLocs);
+  if (missing.length === 0) return { rows, filled: 0, missing: [] };
+  process.stderr.write(
+    `[dataforseo] sitemap_gap ${missing.length} loc(s) missing from task pages → instant_pages fill\n`
+  );
+  const fetched = [];
+  for (let i = 0; i < missing.length; i++) {
+    const loc = missing[i];
+    process.stderr.write(`[dataforseo] instant fill ${i + 1}/${missing.length} ${loc}\n`);
+    const item = await instantPageItem(loc, BROWSER_CHROME_UA, { retryTaskId });
+    const row = leanRow(item);
+    if (sitemapUrlKey(row.url) !== sitemapUrlKey(loc)) {
+      process.stderr.write(`[dataforseo] sitemap loc ${loc} resolved to ${row.url}\n`);
+    }
+    fetched.push({ loc, url: row.url, row });
+    if (i < missing.length - 1) await new Promise((r) => setTimeout(r, delayMs));
+  }
+  const applied = coverRedirectedSitemapLocs(rows, sitemapLocs, fetched);
+  return { rows: applied.rows, filled: fetched.length, missing: applied.missing };
 }
 
 function cellValue(v) {
@@ -629,28 +996,68 @@ function printHelp() {
   console.log(`Usage: node crawl-domain.mjs --domain example.com [options]
 
 Options:
-  --domain               Required unless --task-id (resume/deliverables).
-  --project-dir          Campaign folder; reads *Dossier.md from outputs/business-dossier/ (legacy root fallback).
+  --domain               Crawl target. Required unless --task-id (resume/deliverables) or a dossier website.
+  --project-dir          Campaign folder for the report (01-intake/1.2-audit/ when --output-dir is omitted). *Dossier.md is optional when --domain is set.
   --task-id              Resume existing task (skip task_post).
   --post-only            Post task + print JSON; do not poll full crawl (fast handoff).
+  --force-new-task       Allow a new post while a same-host task is active (force_stops it first).
   --user-agent           googlebot (default) | browser | custom UA string.
   --no-probe-bot-block   With --post-only: skip short probe / Googlebot→browser auto-retry.
   --no-ua-retry          Never auto-repost with browser UA on BOT_BLOCK.
   --allow-empty-content  Write CSV even if ~all rows lack title/words (debug only).
+  --allow-short-wait     Permit --max-wait-minutes < 12 when sitemap budget is known (not recommended).
   --max-crawl-pages      Page budget (auto-capped from sitemap when small).
+  --allow-url-path       Repeatable. Keep sitemap locs whose path contains this (e.g. /pages/).
+  --deny-url-path        Repeatable. Drop locs whose path contains this (e.g. /products/).
+  --include-home         Always keep / and set start_url to the homepage.
+  --exclude-sitemap-child  Comma list of child sitemap tokens to skip (e.g. product,products for PDP indexes; do not skip blog/post sitemaps on local SEO audits).
   --sitemap-only         Force crawl_sitemap_only=true.
   --no-sitemap-only      Force crawl_sitemap_only=false.
-  --output-dir           Write .csv + .xlsx deliverables (default: {project-dir}/outputs/dataforseo-onpage-crawl/).
+  --output-dir           Write .csv + .xlsx deliverables (default: {project-dir}/01-intake/1.2-audit/).
   --poll-seconds         Default 15.
-  --max-wait-minutes     Default 10 (after queue clears, force_stop if idle).
+  --max-wait-minutes     Default 15 (forbid 1-min waits for sitemap crawls).
   --max-queue-minutes    Fail if stuck at 40602 (default 5).
-  --max-zero-progress-minutes  force_stop then fail if still 0 pages (default 3).
+  --max-zero-progress-minutes  in_progress and 0 pages, even if queue > 0: force_stop then escalate (default 3).
   --min-pages            Refuse deliverables below N (auto from sitemap when omitted).
   --no-resolve-canonical Use --domain as target (not recommended).
   --enable-javascript    Force enable_javascript + load_resources on task_post.
   --no-auto-javascript   Disable auto JS when probe recommends it.
 
 Requires DATAFORSEO_USERNAME and DATAFORSEO_PASSWORD.`);
+}
+
+/**
+ * Host for a new crawl.
+ * `--domain` is the target; `*Dossier.md` is optional in that case.
+ * With no `--domain`, Official Website from the dossier supplies the host.
+ * `readDossierWebsite` stays the optional hint on the resolve path.
+ *
+ * @param {{ domain?: string|null, projectDir?: string|null, taskId?: string|null }} args
+ * @returns {string|null}
+ */
+export function resolveCrawlInputDomain(args) {
+  let inputDomain = normalizeHost(args.domain);
+  if (args.projectDir && !args.taskId) {
+    const resolved = path.resolve(args.projectDir);
+    if (!fs.existsSync(resolved)) {
+      throw new Error(`Project dir not found: ${resolved}`);
+    }
+    if (!inputDomain) {
+      const { website } = assertDossierForCrawl(args.projectDir);
+      try {
+        inputDomain = normalizeHost(new URL(website).hostname);
+      } catch {
+        throw new Error(`Invalid Official Website in dossier: ${website}`);
+      }
+    }
+  }
+  return inputDomain;
+}
+
+function isDirectRun() {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  return path.resolve(entry) === path.resolve(fileURLToPath(import.meta.url));
 }
 
 async function main() {
@@ -660,18 +1067,7 @@ async function main() {
     process.exit(0);
   }
 
-  let inputDomain = normalizeHost(args.domain);
-
-  if (args.projectDir && !args.taskId) {
-    const { website } = assertDossierForCrawl(args.projectDir);
-    if (!inputDomain) {
-      try {
-        inputDomain = normalizeHost(new URL(website).hostname);
-      } catch {
-        throw new Error(`Invalid Official Website in dossier: ${website}`);
-      }
-    }
-  }
+  let inputDomain = resolveCrawlInputDomain(args);
 
   if (!args.taskId && !inputDomain) {
     console.error('Error: --domain is required unless --task-id or --project-dir with dossier is provided');
@@ -693,19 +1089,37 @@ async function main() {
     ? readProjectCrawlOverrides(args.projectDir, args.outputDir)
     : {};
 
-  if (!args.taskId && inputDomain && args.resolveCanonical) {
+  // Resolve on deliver (--task-id) too: sitemapLocs are required to fill gaps.
+  if (inputDomain && args.resolveCanonical) {
     const dossierWebsite = args.projectDir ? readDossierWebsite(args.projectDir) : null;
-    plan = await planCrawlTarget(inputDomain, { dossierWebsite });
+    plan = await planCrawlTarget(inputDomain, {
+      dossierWebsite,
+      allowPathSubstrings: args.allowPathSubstrings,
+      denyPathSubstrings: args.denyPathSubstrings,
+      includeHome: args.includeHome,
+      excludeSitemapChildren: args.excludeSitemapChildren,
+    });
     logPlan(plan);
     crawlTarget = plan.crawlTarget;
+    const pathFilterOn =
+      args.includeHome ||
+      args.allowPathSubstrings.length > 0 ||
+      args.denyPathSubstrings.length > 0;
     if (args.forceSitemapOnly === true) crawlSitemapOnly = true;
     else if (args.forceSitemapOnly === false) crawlSitemapOnly = false;
     else crawlSitemapOnly = plan.crawlSitemapOnly;
+    if (pathFilterOn && args.forceSitemapOnly !== true) {
+      crawlSitemapOnly = false;
+      process.stderr.write(
+        '[dataforseo] path filter on → crawl_sitemap_only=false (avoid Shopify product index)\n',
+      );
+    }
 
     if (plan.sitemapUrlCount > 0 && maxCrawlPages === 500) {
       maxCrawlPages = plan.maxCrawlPagesSuggested;
     }
     if (args.minPages == null) minPages = plan.minPagesSuggested;
+    else if (plan.sitemapUrlCount > 0) minPages = Math.max(args.minPages, plan.sitemapUrlCount);
     if (!args.noAutoJavascript && plan.jsRequiredRecommended && !args.enableJavascript) {
       args.enableJavascript = true;
       process.stderr.write('[dataforseo] auto enable_javascript=true (JS probe)\n');
@@ -734,62 +1148,166 @@ async function main() {
   let uaInfo = resolveUserAgent(args.userAgent);
   let priorTaskId = null;
   let uaRetried = false;
+  const targetDomain = crawlTarget ?? inputDomain ?? 'unknown';
+  const pathFilterOn =
+    args.includeHome ||
+    args.allowPathSubstrings.length > 0 ||
+    args.denyPathSubstrings.length > 0;
+  const taskExtras = {};
+  if (projectOverrides.startUrl) {
+    taskExtras.startUrl = projectOverrides.startUrl;
+    process.stderr.write(`[dataforseo] start_url=${projectOverrides.startUrl} (field-learnings.md)\n`);
+  }
+  if (pathFilterOn) {
+    const home = plan?.canonicalUrl || `https://${targetDomain}/`;
+    taskExtras.startUrl = home;
+    taskExtras.customRobotsTxt = robotsTxtFromDenyPaths(args.denyPathSubstrings);
+    taskExtras.robotsTxtMergeMode = 'merge';
+  }
+
+  const expectedPages = plan?.sitemapUrlCount ?? maxCrawlPages ?? 0;
+
+  if (
+    !args.allowShortWait &&
+    !args.postOnly &&
+    !args.taskId &&
+    expectedPages >= 20 &&
+    args.maxWaitMinutes < MIN_WAIT_MINUTES_WITH_EXPECTED
+  ) {
+    throw new Error(
+      `WAIT_BUDGET: --max-wait-minutes ${args.maxWaitMinutes} is too short for sitemap budget ` +
+        `${expectedPages}. Use 12–15 (default 15). Short waits caused fake failures (Harborview). ` +
+        `Override only with --allow-short-wait.`
+    );
+  }
 
   let taskId = args.taskId;
   if (!taskId) {
+    const gate = await gateOverlappingPost({
+      outputDir: args.outputDir,
+      host: targetDomain,
+      forceNewTask: args.forceNewTask,
+    });
+    if (gate.priorStopped) priorTaskId = gate.priorStopped;
+
     taskId = await createTask(
       crawlTarget,
       maxCrawlPages,
       crawlSitemapOnly,
       args.enableJavascript,
-      uaInfo.ua
+      uaInfo.ua,
+      taskExtras,
     );
+    persistActive(args.outputDir, taskId, targetDomain, uaInfo.label);
   }
-  const targetDomain = crawlTarget ?? inputDomain ?? 'unknown';
   process.stderr.write(
     `[dataforseo] task_id=${taskId} target=${targetDomain} sitemap_only=${crawlSitemapOnly} js=${args.enableJavascript} ua=${uaInfo.label} max_pages=${maxCrawlPages}\n`
   );
 
   if (args.postOnly) {
-    if (args.probeBotBlock && !args.taskId) {
-      const probed = await probeAndMaybeRetryUa({
-        taskId,
-        crawlTarget: targetDomain,
-        maxCrawlPages,
-        crawlSitemapOnly,
-        enableJavascript: args.enableJavascript,
-        uaInfo,
-        allowRetry: !args.noUaRetry,
-        expectedPages: plan?.sitemapUrlCount ?? maxCrawlPages ?? 0,
-      });
-      taskId = probed.taskId;
-      uaInfo = probed.uaInfo;
-      priorTaskId = probed.priorTaskId;
-      uaRetried = probed.uaRetried;
+    try {
+      if (args.probeBotBlock && !args.taskId) {
+        const probed = await probeAndMaybeRetryUa({
+          taskId,
+          crawlTarget: targetDomain,
+          maxCrawlPages,
+          crawlSitemapOnly,
+          enableJavascript: args.enableJavascript,
+          uaInfo,
+          allowRetry: !args.noUaRetry,
+          expectedPages,
+          projectDir: args.projectDir,
+          outputDir: args.outputDir,
+          taskExtras,
+        });
+        taskId = probed.taskId;
+        uaInfo = probed.uaInfo;
+        priorTaskId = probed.priorTaskId ?? priorTaskId;
+        uaRetried = probed.uaRetried;
+        persistActive(args.outputDir, taskId, targetDomain, uaInfo.label);
+      }
+      console.log(
+        JSON.stringify(
+          {
+            task_id: taskId,
+            crawl_target: targetDomain,
+            canonical_url: plan?.canonicalUrl ?? `https://${targetDomain}/`,
+            sitemap_url: plan?.sitemapUrl ?? null,
+            sitemap_url_count: plan?.sitemapUrlCount ?? null,
+            crawl_sitemap_only: crawlSitemapOnly,
+            enable_javascript: args.enableJavascript,
+            js_auto_enabled: Boolean(plan?.jsRequiredRecommended && args.enableJavascript),
+            user_agent: uaInfo.label,
+            ua_retried: uaRetried,
+            prior_task_id: priorTaskId,
+            max_crawl_pages: maxCrawlPages,
+            min_pages: minPages,
+            path_filter: pathFilterOn
+              ? {
+                  allow: args.allowPathSubstrings,
+                  deny: args.denyPathSubstrings,
+                  include_home: args.includeHome,
+                  exclude_sitemap_child: args.excludeSitemapChildren,
+                }
+              : null,
+            post_only: true,
+            recommended_max_wait_minutes: 15,
+            active_task_file: args.outputDir
+              ? path.join(args.outputDir, '.dfs-active-task.json')
+              : null,
+          },
+          null,
+          2
+        )
+      );
+      return;
+    } catch (err) {
+      if (err instanceof BotBlockError || err instanceof StuckZeroError) {
+        if (err.escalate_to_instant_fallback) {
+          await forceStopQuiet(err.taskId);
+          clearActiveTask(args.outputDir);
+        }
+        console.log(
+          JSON.stringify(
+            {
+              error: err.name,
+              message: err.message,
+              task_id: err.taskId,
+              escalate_to_instant_fallback: Boolean(err.escalate_to_instant_fallback),
+              ua_retried: uaRetried,
+              user_agent: uaInfo.label,
+              next_step: err.escalate_to_instant_fallback
+                ? 'node scripts/sitemap-instant-fallback.mjs --domain … --project-dir …'
+                : 'retry --user-agent browser --post-only (once) then wait 12–15m',
+            },
+            null,
+            2
+          )
+        );
+        process.exitCode = 2;
+        return;
+      }
+      throw err;
     }
-    console.log(
-      JSON.stringify(
-        {
-          task_id: taskId,
-          crawl_target: targetDomain,
-          canonical_url: plan?.canonicalUrl ?? `https://${targetDomain}/`,
-          sitemap_url: plan?.sitemapUrl ?? null,
-          sitemap_url_count: plan?.sitemapUrlCount ?? null,
-          crawl_sitemap_only: crawlSitemapOnly,
-          enable_javascript: args.enableJavascript,
-          js_auto_enabled: Boolean(plan?.jsRequiredRecommended && args.enableJavascript),
-          user_agent: uaInfo.label,
-          ua_retried: uaRetried,
-          prior_task_id: priorTaskId,
-          max_crawl_pages: maxCrawlPages,
-          min_pages: minPages,
-          post_only: true,
-        },
-        null,
-        2
-      )
+  }
+
+  async function runInstantFallbackNow(err) {
+    const stalledId = err.taskId ?? taskId;
+    await forceStopQuiet(stalledId);
+    clearActiveTask(args.outputDir);
+    process.stderr.write(
+      `[dataforseo] ${err.name || 'stall'} → instant_pages in this run task_id=${stalledId}\n`
     );
-    return;
+    await runSitemapInstantFallback({
+      domain: inputDomain || targetDomain,
+      projectDir: args.projectDir,
+      outputDir: args.outputDir,
+      domainSlug: args.domainSlug,
+      minPages: args.minPages ?? 8,
+      userAgent: 'browser',
+      allowEmptyContent: args.allowEmptyContent,
+      stopTaskId: stalledId,
+    });
   }
 
   let summary;
@@ -800,18 +1318,21 @@ async function main() {
       args.maxWaitMinutes,
       args.maxQueueMinutes,
       args.maxZeroProgressMinutes,
-      plan?.sitemapUrlCount ?? minPages ?? 0
+      expectedPages || minPages || 0
     ));
   } catch (err) {
     if (
       err instanceof BotBlockError &&
       !args.noUaRetry &&
       uaInfo.label === 'googlebot' &&
+      !uaRetried &&
       !args.taskId
     ) {
       process.stderr.write(
-        `[dataforseo] BOT_BLOCK on wait → re-post with user_agent=browser (prior=${taskId})\n`
+        `[dataforseo] BOT_BLOCK on wait → force_stop + re-post with user_agent=browser (prior=${taskId})\n`
       );
+      recordBrowserUaLearning(args.projectDir, args.outputDir);
+      await forceStopQuiet(taskId);
       priorTaskId = taskId;
       uaInfo = resolveUserAgent('browser');
       taskId = await createTask(
@@ -819,30 +1340,77 @@ async function main() {
         maxCrawlPages,
         crawlSitemapOnly,
         args.enableJavascript,
-        uaInfo.ua
+        uaInfo.ua,
+        taskExtras,
       );
       uaRetried = true;
+      persistActive(args.outputDir, taskId, targetDomain, uaInfo.label);
       process.stderr.write(`[dataforseo] retry_task_id=${taskId} ua=${uaInfo.label}\n`);
-      ({ result: summary } = await waitForCrawl(
-        taskId,
-        args.pollSeconds,
-        args.maxWaitMinutes,
-        args.maxQueueMinutes,
-        args.maxZeroProgressMinutes,
-        plan?.sitemapUrlCount ?? minPages ?? 0
-      ));
+      try {
+        ({ result: summary } = await waitForCrawl(
+          taskId,
+          args.pollSeconds,
+          args.maxWaitMinutes,
+          args.maxQueueMinutes,
+          args.maxZeroProgressMinutes,
+          expectedPages || minPages || 0
+        ));
+      } catch (err2) {
+        if (err2 instanceof StuckZeroError || err2 instanceof BotBlockError) {
+          err2.escalate_to_instant_fallback = true;
+          await runInstantFallbackNow(err2);
+          return;
+        }
+        throw err2;
+      }
+    } else if (
+      err instanceof StuckZeroError ||
+      err instanceof BotBlockError ||
+      err?.escalate_to_instant_fallback
+    ) {
+      await runInstantFallbackNow(err);
+      return;
     } else {
       throw err;
     }
   }
+  clearActiveTask(args.outputDir);
   const items = await fetchAllPages(taskId);
-  const rows = items.map(leanRow);
+  let rows = items.map(leanRow);
   const pagesCrawled = summary?.crawl_status?.pages_crawled ?? null;
+  let sitemapFilled = 0;
+  let sitemapMissing = [];
 
-  if (rows.length < minPages) {
+  if (plan?.sitemapLocs?.length) {
+    const filled = await fillMissingSitemapRows(rows, plan.sitemapLocs, { retryTaskId: taskId });
+    rows = filled.rows;
+    sitemapFilled = filled.filled;
+    sitemapMissing = filled.missing;
+  }
+
+  const writeGate = decideDeliverableWrite({
+    rowCount: rows.length,
+    minPages,
+    sitemapLocCount: plan?.sitemapLocs?.length ?? 0,
+    missingCount: sitemapMissing.length,
+  });
+  if (!writeGate.write) {
     throw new Error(
       `Only ${rows.length} HTML page(s) returned (pages_crawled=${pagesCrawled ?? '?'}, min=${minPages}). ` +
         `Not writing deliverables. task_id=${taskId}`
+    );
+  }
+  if (writeGate.reason === 'redirects_share_rows') {
+    process.stderr.write(
+      `[dataforseo] sitemap covered with ${rows.length} HTML row(s) ` +
+        `(sitemap locs=${plan.sitemapLocs.length}); redirect locs share a row. ` +
+        `Writing deliverables. task_id=${taskId}\n`
+    );
+  }
+  if (writeGate.reason === 'sitemap_gap') {
+    process.stderr.write(
+      `[dataforseo] sitemap_gap_remaining ${sitemapMissing.length} loc(s): ` +
+        `${sitemapMissing.join(', ')}. Writing deliverables. task_id=${taskId}\n`
     );
   }
 
@@ -867,6 +1435,9 @@ async function main() {
     ua_retried: uaRetried,
     prior_task_id: priorTaskId,
     sitemap_url_count: plan?.sitemapUrlCount ?? null,
+    sitemap_filled: sitemapFilled,
+    sitemap_missing: sitemapMissing,
+    sitemap_missing_count: sitemapMissing.length,
     pages_returned: rows.length,
     content_quality: contentStats,
     crawl_status: summary?.crawl_status ?? null,
@@ -902,7 +1473,9 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(`Error: ${err.message}`);
-  process.exit(1);
-});
+if (isDirectRun()) {
+  main().catch((err) => {
+    console.error(`Error: ${err.message}`);
+    process.exit(1);
+  });
+}

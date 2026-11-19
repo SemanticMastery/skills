@@ -10,7 +10,7 @@ Address: 1206 Carbon St Suite 200, Reading, PA 19601
 Phone: (484) 878-8947
 Website: https://www.arbormaxpa.com/
 GBP: https://maps.app.goo.gl/...
-Project folder: your project root (dossier → outputs/business-dossier/)
+Project folder: campaign root (dossier → 01-intake/1.1-docs/)
 ```
 
 ```
@@ -29,21 +29,19 @@ From the skill's `scripts/` folder (after `npm install`):
 ```bash
 node compose-business-dossier.mjs \
   --name "Example Tree Care" \
-  --address "123 Main St, Austin, TX 78701" \
-  --phone "(512) 555-0100" \
+  --address "123 Main St, Denver, CO 80014" \
+  --phone "(555) 555-0100" \
   --website "https://example.com/" \
   --gbp-url "https://maps.app.goo.gl/EXAMPLE" \
   --project-dir "/absolute/path/to/project"
 ```
 
-Compose resolves share / maps.app / place URLs to `https://www.google.com/maps?cid={CID}` before writing `[II]` / `[V]`. If CID cannot be resolved, it stops.
-
 ## Expected deliverables
 
 ```text
-your-project/
-  outputs/
-    business-dossier/
+your-campaign/
+  01-intake/
+    1.1-docs/
       Example-Tree-Care-Dossier.md
       Example-Tree-Care-Dossier.docx
 ```
@@ -54,23 +52,23 @@ Pre-gather scratch and run metadata stay in temp / stdout JSON only (not in the 
 
 ```markdown
 [I] EXECUTIVE SUMMARY:
-Example Tree Care LLC is a local tree service company based in Austin, TX...
+Example Tree Care LLC is a local tree service company based in Denver, CO...
 
 [II] FIRMOGRAPHICS:
-- **Name:** Example Tree Care
-- **Address:** 123 Main St, Austin, TX 78701
-- **Latitude:** 30.2672
-- **Longitude:** -97.7431
+- **Name**: Example Tree Care
+- **Address:** 123 Main St, Denver, CO 80014
+- **Latitude:** 00.0000
+- **Longitude:** 00.0000
 - **Geocode source:** OpenStreetMap Nominatim
-- **Geocoded address:** 123 Main Street, Austin, Travis County, Texas, 78701, United States
+- **Geocoded address:** 123 Main Street, Denver, Valley County, Colorado, 80014, United States
 ...
 ```
 
 ## Downstream usage
 
-After a dossier exists in `outputs/business-dossier/`:
+After a dossier exists in `01-intake/1.1-docs/`:
 
 - Reference `*Dossier.md` for schema / entity skills
-- Postal + brand from `[II]` for brand SERP work
-- **GBP URL** / **GBP CID** from `[II]` (and Google Maps row in `[V]`) — CID URL `https://www.google.com/maps?cid={CID}` for schema `hasMap` / Maps `sameAs`
+- Postal + brand from [II] for brand SERP work
+- **GBP URL** / **GBP CID** / **Place ID** from `[II]` (and Google Maps row in `[V]`) — CID URL `https://www.google.com/maps?cid={CID}` for schema `hasMap` / Maps `sameAs`. **Place ID** (`ChIJ…`) is the Local Search Grid `target_place_id`. The CID URL does not contain it.
 - **Latitude** / **Longitude** from `[II]` for schema `geo` / local pack bias

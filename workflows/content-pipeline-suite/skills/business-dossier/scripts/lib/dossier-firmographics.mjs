@@ -5,9 +5,10 @@
  *   - **Name:** …
  *   - **Address:** street, City, ST ZIP
  *   - **Phone:** …
- *   - **Website:** …   (alias: Official Website)
+ *   - **Website:** …   (alias: Official Website; exactly one https URL = live/canonical host)
  *   - **GBP URL:** …   (canonical https://www.google.com/maps?cid={CID})
  *   - **GBP CID:** …   (raw Company ID digits)
+ *   - **Place ID:** …  (Google Place ID, ChIJ… — not the CID)
  *
  * Also accepts a legacy prose/semicolon [II] line and can normalize it.
  */
@@ -19,16 +20,17 @@ import {
   GOLDEN_IMAGE_AUDIT_REL,
 } from './audit-output-dir.mjs';
 import { parseCityStateFromWorkbook, normalizeState } from './geographic-wikipedia.mjs';
+import { isGooglePlaceId } from './place-id.mjs';
 
 export { isGoldenImageCampaign };
 
-/** campaign folder ICM intake slot (campaign-relative). */
-export const GOLDEN_IMAGE_DOSSIER_REL = path.join('outputs', 'business-dossier');
+/** campaign layout ICM intake slot (campaign-relative). */
+export const GOLDEN_IMAGE_DOSSIER_REL = path.join('01-intake', '1.1-docs');
 
-/** campaign folder ICM on-page crawl / audit output slot (campaign-relative). */
+/** campaign layout ICM on-page crawl / audit output slot (campaign-relative). */
 export const GOLDEN_IMAGE_CRAWL_REL = GOLDEN_IMAGE_AUDIT_REL;
 
-/** Legacy crawl output path (pre–campaign folder). */
+/** Legacy crawl output path (pre–campaign layout). */
 export const LEGACY_CRAWL_REL = path.join('audit', 'crawl-report');
 
 function listDossierMdInDir(dir) {
@@ -39,10 +41,35 @@ function listDossierMdInDir(dir) {
     .map((n) => path.join(dir, n));
 }
 
+export const NEEDS_GOLDENIZE_MESSAGE =
+  'Campaign folder is not goldenized (campaign layout tree incomplete). Dossier still writes to 01-intake/1.1-docs/. Goldenize this campaign folder so the rest of the tree exists.';
+
+/**
+ * Full campaign layout tree — not merely `01-intake/` created as a dossier write side-effect.
+ * Call this **before** `resolveDossierOutputDir(..., { create: true })`.
+ *
+ * @param {string} projectDir campaign folder (--project-dir)
+ * @returns {{ goldenized: boolean, needs_goldenize: boolean, needs_goldenize_message: string | null }}
+ */
+export function dossierGoldenizeStatus(projectDir) {
+  const resolved = path.resolve(projectDir);
+  const siblings = ['02-deliverables', '03-decisions', '04-archives'];
+  const hasIntake = isGoldenImageCampaign(resolved);
+  const hasTree = siblings.some((name) => {
+    const p = path.join(resolved, name);
+    return fs.existsSync(p) && fs.statSync(p).isDirectory();
+  });
+  const goldenized = hasIntake && hasTree;
+  return {
+    goldenized,
+    needs_goldenize: !goldenized,
+    needs_goldenize_message: goldenized ? null : NEEDS_GOLDENIZE_MESSAGE,
+  };
+}
+
 /**
  * Resolve dossier output directory for a campaign folder.
- * Default: `{project}/outputs/business-dossier/`.
- * Legacy (no `01-intake/`): campaign root.
+ * Always `{campaign_dir}/01-intake/1.1-docs/` (creates the slot when `create` is true).
  *
  * @param {string} projectDir campaign folder (--project-dir)
  * @param {{ create?: boolean }} [opts]
@@ -103,7 +130,7 @@ export function resolveDossierArtifactPaths(
 }
 
 /**
- * Find an existing dossier markdown by business name (campaign folder path first, legacy root second).
+ * Find an existing dossier markdown by business name (campaign layout path first, legacy root second).
  * Accepts hyphenated `{slug}-Dossier.md` (current) or legacy `{Name} Dossier.md`.
  *
  * @param {string} projectDir
@@ -139,6 +166,7 @@ const FIELD_ALIASES = {
     'GBP Share URL',
   ],
   gbp_cid: ['GBP CID', 'Maps CID', 'data_cid', 'Company ID', 'CID'],
+  gbp_place_id: ['Place ID', 'Google Place ID', 'GBP Place ID'],
   latitude: ['Latitude', 'Lat'],
   longitude: ['Longitude', 'Lng', 'Long'],
   geocode_source: ['Geocode source', 'Coordinate source'],
@@ -198,9 +226,32 @@ function extractPhoneFromText(text) {
   return m ? m[0].trim() : '';
 }
 
+function parenGroupsBalanced(value) {
+  let depth = 0;
+  for (const ch of String(value || '')) {
+    if (ch === '(') depth += 1;
+    else if (ch === ')') {
+      depth -= 1;
+      if (depth < 0) return false;
+    }
+  }
+  return depth === 0;
+}
+
+/** Name value from a collapsed firmographics blob that still has **Name:** labels. */
+function labeledNameFromBlob(blob) {
+  const match = String(blob || '').match(
+    /\*\*(?:Legal\s+Name|Name):\*\*\s*(.+?)(?=\s+-\s+\*\*|\s+\*\*[A-Za-z][^:*]{0,40}:\*\*|$)/i
+  );
+  return match ? match[1].trim() : '';
+}
+
 /**
  * Fallback when [II] is a single prose / semicolon line instead of labeled fields.
  * Example: "Legal Name; street, City, ST ZIP; (555) 555-5555; Website: https://…"
+ *
+ * Labeled `- **Name:**` / `**Name:**` wins. Do not take a later semicolon piece
+ * from a founding-date note such as `(BBB; discrepancy between profiles)`.
  *
  * @param {string} section body of [II] FIRMOGRAPHICS
  * @returns {{ name: string, address: string, phone: string, website: string } | null}
@@ -249,14 +300,22 @@ export function parseProseFirmographicsSection(section) {
 
   if (!address) return null;
 
-  // Name = first segment that is not the address / phone
-  for (const seg of segments) {
-    if (phone && seg.includes(phone)) continue;
-    if (parseUsAddress(seg)?.city) continue;
-    if (/^https?:\/\//i.test(seg)) continue;
-    if (seg.length >= 2) {
-      name = seg.replace(/^(?:Legal\s+)?Name:\s*/i, '').trim();
-      break;
+  const labeledName = readField(text, FIELD_ALIASES.name) || labeledNameFromBlob(working);
+  const nameLabelPresent = /\*\*(?:Legal\s+Name|Name):\*\*/i.test(text);
+  if (labeledName) {
+    name = labeledName;
+  } else if (!nameLabelPresent) {
+    // True prose: first segment that is not the address / phone.
+    // Skip an unmatched ")" left by a semicolon inside a parenthetical note.
+    for (const seg of segments) {
+      if (phone && seg.includes(phone)) continue;
+      if (parseUsAddress(seg)?.city) continue;
+      if (/^https?:\/\//i.test(seg)) continue;
+      if (!parenGroupsBalanced(seg)) continue;
+      if (seg.length >= 2) {
+        name = seg.replace(/^(?:Legal\s+)?Name:\s*/i, '').trim();
+        break;
+      }
     }
   }
 
@@ -298,6 +357,9 @@ export function formatLabeledFirmographicsBody(fields) {
   }
   if (fields.gbp_cid) {
     lines.push(`- **GBP CID:** ${fields.gbp_cid}`.trimEnd());
+  }
+  if (isGooglePlaceId(fields.gbp_place_id)) {
+    lines.push(`- **Place ID:** ${String(fields.gbp_place_id).trim()}`.trimEnd());
   }
   return `\n${lines.join('\n')}\n`;
 }
@@ -447,6 +509,28 @@ function ensureGbpCidInFirmographics(markdown, cid) {
     return { markdown: next, changed: next !== markdown };
   }
   return { markdown, changed: false };
+}
+
+/**
+ * Write **Place ID:** into [II] after **GBP CID:**.
+ * Refuses anything that is not a Google Place ID (`ChIJ…`). A numeric CID is not a Place ID.
+ *
+ * @param {string} markdown
+ * @param {string} placeId
+ * @returns {{ markdown: string, changed: boolean, gbp_place_id: string }}
+ */
+export function ensurePlaceIdInDossier(markdown, placeId) {
+  const id = String(placeId || '').trim();
+  if (!isGooglePlaceId(id)) {
+    return { markdown, changed: false, gbp_place_id: '' };
+  }
+  const next = upsertLabeledField(
+    normalizeDossierMarkdown(markdown),
+    FIELD_ALIASES.gbp_place_id,
+    id,
+    FIELD_ALIASES.gbp_cid
+  );
+  return { markdown: next.markdown, changed: next.changed, gbp_place_id: id };
 }
 
 /**
@@ -736,7 +820,7 @@ export function findDossierFiles(projectDir) {
 
 /**
  * Default crawl deliverable directory for a campaign folder.
- * campaign folder: `01-intake/1.2-audit/`. Legacy: `audit/crawl-report/`.
+ * campaign layout: `01-intake/1.2-audit/`. Legacy: `audit/crawl-report/`.
  *
  * @param {string} projectDir campaign folder (--project-dir)
  * @param {{ create?: boolean }} [opts]
@@ -774,6 +858,84 @@ export function findFieldLearningsFile(projectDir, { outputDir = null } = {}) {
   return null;
 }
 
+/**
+ * One Official Website token. Apex vs www is not a second URL.
+ * "https://a.com (also https://www.a.com/)" → "https://a.com"
+ */
+export function firstHttpUrl(value) {
+  if (!value) return null;
+  const text = String(value).trim();
+  const md = text.match(/\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/i);
+  const raw = md ? md[2] : (text.match(/https?:\/\/[^\s<>"'()]+/i) || [])[0];
+  if (!raw) return null;
+  return raw.replace(/[.,;)\]]+$/, '');
+}
+
+/**
+ * Follow redirects. Official Website is the host that actually 200s
+ * (www if apex redirects there). Apex vs www is not a second Website.
+ *
+ * @param {string} input
+ * @returns {Promise<string|null>} `https://{liveHost}/` or null
+ */
+export async function resolveOfficialWebsiteLive(input) {
+  const seed = firstHttpUrl(input);
+  if (!seed) return null;
+  let host;
+  try {
+    host = new URL(seed).hostname;
+  } catch {
+    return null;
+  }
+  const apex = host.replace(/^www\./i, '');
+  const www = `www.${apex}`;
+  // www first: apex HTTPS often hangs; http apex usually 301s to www.
+  const startUrls = [
+    `https://${www}/`,
+    `http://${www}/`,
+    `http://${apex}/`,
+    `https://${apex}/`,
+  ];
+  for (const start of startUrls) {
+    let url = start;
+    for (let hop = 0; hop < 10; hop += 1) {
+      try {
+        const res = await fetch(url, {
+          redirect: 'manual',
+          signal: AbortSignal.timeout(8000),
+        });
+        if (res.status >= 300 && res.status < 400) {
+          const loc = res.headers.get('location');
+          if (!loc) break;
+          url = new URL(loc, url).href;
+          continue;
+        }
+        if (res.status >= 200 && res.status < 300) {
+          return `https://${new URL(url).hostname}/`;
+        }
+        break;
+      } catch {
+        break;
+      }
+    }
+  }
+  return `https://${www}/`;
+}
+
+/**
+ * Pin [II] **Website:** to the live Official Website. CLI resolved URL is SoT.
+ *
+ * @param {string} markdown
+ * @param {string} website
+ * @returns {{ markdown: string, changed: boolean, website: string }}
+ */
+export function ensureOfficialWebsiteInDossier(markdown, website) {
+  const url = firstHttpUrl(website);
+  if (!url) return { markdown, changed: false, website: '' };
+  const result = upsertLabeledField(markdown, FIELD_ALIASES.website, url, ['Phone']);
+  return { markdown: result.markdown, changed: result.changed, website: url };
+}
+
 function extractOfficialWebsiteFromMarkdown(text) {
   const patterns = [
     /\*\*Official Website:\*\*\s*(.+)$/im,
@@ -783,18 +945,16 @@ function extractOfficialWebsiteFromMarkdown(text) {
   for (const re of patterns) {
     const m = text.match(re);
     if (!m) continue;
-    let val = (m[3] || m[1] || '').trim();
-    const link = val.match(/\[([^\]]*)\]\(([^)]+)\)/);
-    if (link) val = (link[2] || link[1]).trim();
-    val = val.replace(/[.,;)\]]+$/, '');
-    if (/^https?:\/\//i.test(val)) return val;
+    const one = firstHttpUrl(m[3] || m[1] || '');
+    if (one) return one;
   }
   return null;
 }
 
 /**
- * Read Official Website from dossier (campaign folder `1.1-docs/` first, legacy root second).
+ * Read Official Website from dossier (campaign layout `1.1-docs/` first, legacy root second).
  * Accepts labeled **Website:** / **Official Website:** or prose `Website: https://…`.
+ * Returns the first http(s) token only (ignores "(also …)" apex/www twins).
  *
  * @param {string} projectDir campaign folder
  * @returns {string | null}
@@ -905,6 +1065,7 @@ export function parseGbpAnchorFromDossier(dossierPath) {
     website: website || null,
     gbp_url: unwrapMarkdownLink(readField(section, FIELD_ALIASES.gbp_url)) || null,
     gbp_cid: unwrapMarkdownLink(readField(section, FIELD_ALIASES.gbp_cid)) || null,
+    gbp_place_id: unwrapMarkdownLink(readField(section, FIELD_ALIASES.gbp_place_id)) || null,
     latitude: readField(section, FIELD_ALIASES.latitude) || null,
     longitude: readField(section, FIELD_ALIASES.longitude) || null,
     geocode_source: readField(section, FIELD_ALIASES.geocode_source) || null,
@@ -948,6 +1109,7 @@ export function validateFirmographicsSection(markdownOrPath) {
   }
   const gbpUrl = unwrapMarkdownLink(readField(section, FIELD_ALIASES.gbp_url));
   const gbpCid = unwrapMarkdownLink(readField(section, FIELD_ALIASES.gbp_cid));
+  const gbpPlaceId = unwrapMarkdownLink(readField(section, FIELD_ALIASES.gbp_place_id));
   const gbpIsRedirect =
     /maps\.app\.goo\.gl|share\.google|goo\.gl\/maps/i.test(gbpUrl || '');
   if (gbpIsRedirect) {
@@ -975,6 +1137,7 @@ export function validateFirmographicsSection(markdownOrPath) {
       state: parsed?.state || null,
       gbp_url: gbpUrl || null,
       gbp_cid: gbpCid || null,
+      gbp_place_id: isGooglePlaceId(gbpPlaceId) ? gbpPlaceId : null,
       latitude: latitude || null,
       longitude: longitude || null,
     };

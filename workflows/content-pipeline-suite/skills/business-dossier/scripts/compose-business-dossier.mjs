@@ -4,7 +4,7 @@
  *
  * Pre-gather: SerpAPI (GBP + place details) + Firecrawl (website, reviews, owner, BBB, registry)
  * Synthesis: xAI Grok (default grok-4.5) with live search
- * Output: Markdown + standard DOCX at {campaign}/outputs/business-dossier/
+ * Output: Markdown + standard DOCX at {campaign}/01-intake/1.1-docs/
  *
  * Env:
  *   GROK_API_KEY (required)
@@ -23,12 +23,19 @@ import {
 } from './lib/pregather-dossier.mjs';
 import {
   resolveDossierArtifactPaths,
+  dossierGoldenizeStatus,
   validateFirmographicsSection,
   normalizeDossierFirmographics,
   ensureGbpUrlInDossier,
   ensureCoordinatesInDossier,
+  ensurePlaceIdInDossier,
+  firstHttpUrl,
+  resolveOfficialWebsiteLive,
+  ensureOfficialWebsiteInDossier,
 } from './lib/dossier-firmographics.mjs';
 import { resolveMapsCid } from './lib/resolve-maps-cid.mjs';
+import { isGooglePlaceId } from './lib/place-id.mjs';
+import { resolvePlaceIdFromCid } from './lib/resolve-place-id.mjs';
 import { sanitizeDossierMarkdown } from './lib/sanitize-dossier-markdown.mjs';
 import {
   geocodeAddress,
@@ -118,9 +125,9 @@ Options:
   --latitude / --lat NUM   Optional lat override (skip Nominatim)
   --longitude / --lng NUM  Optional lng override (skip Nominatim)
   --phone TEXT             Primary phone (required)
-  --website TEXT           Official website URL (required)
+  --website TEXT           Official website: exactly one https URL (live/canonical host)
   --gbp-url URL            Maps / GBP URL (required). Share / maps.app / place URLs are resolved to https://www.google.com/maps?cid={CID} before write. Compose stops if CID cannot be resolved.
-  --project-dir PATH       Campaign folder (--project-dir); dossier writes to outputs/business-dossier/
+  --project-dir PATH       Campaign folder; dossier writes to 01-intake/1.1-docs/
   --output-dir PATH        Optional override for dossier output directory
   --model TEXT             xAI model slug (default: ${DEFAULT_MODEL})
   --skip-pregather         Skip SerpAPI + Firecrawl pre-gather (Grok only)
@@ -132,9 +139,10 @@ Options:
 Pre-gather scratch (temp — deleted after success unless --keep-artifacts):
   {tmpdir}/business-dossier-{slug}-{timestamp}/
 
-Output (campaign folder — only deliverables):
-  {campaign}/outputs/business-dossier/{Business-Name}-Dossier.md
-  {campaign}/outputs/business-dossier/{Business-Name}-Dossier.docx`;
+Output (campaign layout — only deliverables):
+  {campaign}/01-intake/1.1-docs/{Business-Name}-Dossier.md
+  {campaign}/01-intake/1.1-docs/{Business-Name}-Dossier.docx
+  If the campaign is not goldenized, still writes there and sets needs_goldenize.`;
 }
 
 function grokApiKey() {
@@ -230,9 +238,10 @@ function buildUserMessage(args, pregatherBundle) {
     '- **Geocode source:** …',
     '- **Geocoded address:** … (Nominatim display name when provided)',
     '- **Phone:** …',
-    '- **Website:** …',
+    '- **Website:** …   (MUST be exactly one https URL = the live/canonical host after redirects. Never apex and www in the same field. Never "(also …)".)',
     '- **GBP URL:** …   (MUST be https://www.google.com/maps?cid={CID} — never maps.app.goo.gl or share.google)',
     '- **GBP CID:** …   (raw Company ID digits from that URL)',
+    '- **Place ID:** …  (Google Place ID from the pre-gather bundle, ChIJ… — never the numeric CID)',
     '(Official Website is an accepted alias for Website. GB Map Share URL / Google Maps URL are accepted aliases for GBP URL.)',
     'In [V] DIGITAL ECOSYSTEM include a Google Maps (GBP) table row with that same CID URL (not a share or maps.app redirect).',
     '',
@@ -244,6 +253,29 @@ function buildUserMessage(args, pregatherBundle) {
   }
 
   return lines.filter((line) => line != null).join('\n');
+}
+
+async function stampPlaceId(markdown, { pregatherBundle, cid, log }) {
+  const fromBundle =
+    pregatherBundle?.gbp_data?.result?.business?.place_id ||
+    pregatherBundle?.place_details?.place_id ||
+    '';
+  let placeId = isGooglePlaceId(fromBundle) ? String(fromBundle).trim() : '';
+  let source = placeId ? 'pregather' : '';
+  if (!placeId && cid) {
+    const resolved = await resolvePlaceIdFromCid(cid);
+    if (resolved.ok) {
+      placeId = resolved.place_id;
+      source = 'serpapi_data_cid';
+    } else {
+      log.push(`WARNING: could not resolve **Place ID:** from GBP CID (${resolved.error}).`);
+    }
+  }
+  if (!placeId) return { markdown, changed: false, placeId: '' };
+  const stamped = ensurePlaceIdInDossier(markdown, placeId);
+  if (stamped.changed) log.push(`Ensured **Place ID:** from ${source}.`);
+  const next = stamped.markdown.endsWith('\n') ? stamped.markdown : `${stamped.markdown}\n`;
+  return { markdown: next, changed: stamped.changed, placeId };
 }
 
 function validateSections(text) {
@@ -330,6 +362,38 @@ async function callGrok({ model, systemPrompt, userMessage, log }) {
   return { content, raw: parsed };
 }
 
+const MAX_GROK_ATTEMPTS = 3;
+let wastedGrokCostUsd = 0;
+
+/**
+ * Grok sometimes answers with pseudo tool-call text (`<tool_call>` / `<tool_name>web_search`) and runs
+ * no server-side search (num_server_side_tools_used 0, ~400 output tokens). That is not a dossier.
+ * Seen 2026-10-06 (Full Swing Healthcare); healthy runs use ~18-24 server-side tools and ~3K output tokens.
+ */
+function degenerateGrokReason(content) {
+  if (/<tool_call>|<tool_name>|<parameter_name>/i.test(content)) return 'pseudo tool-call markup instead of a dossier';
+  const missing = validateSections(sanitizeDossierMarkdown(content)).missing;
+  if (missing.length >= REQUIRED_SECTIONS.length - 1) return `no dossier sections (${missing.length} of ${REQUIRED_SECTIONS.length} missing)`;
+  return null;
+}
+
+/** callGrok, retried when the answer is degenerate. Never writes a file; failed attempts only cost cents. */
+async function callGrokValidated(opts) {
+  let lastReason = null;
+  for (let attempt = 1; attempt <= MAX_GROK_ATTEMPTS; attempt++) {
+    const result = await callGrok(opts);
+    lastReason = degenerateGrokReason(result.content);
+    if (!lastReason) return result;
+    wastedGrokCostUsd += xaiCostFromUsage(result.raw?.usage) || 0;
+    opts.log.push(
+      `WARNING: Grok attempt ${attempt}/${MAX_GROK_ATTEMPTS} returned ${lastReason}; server-side tools used: ${result.raw?.usage?.num_server_side_tools_used ?? '?'}.`
+    );
+  }
+  throw new Error(
+    `Grok returned no usable dossier after ${MAX_GROK_ATTEMPTS} attempts (${lastReason}). Nothing was written. Rerun compose; do not run the crawl without a dossier.`
+  );
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
@@ -345,11 +409,37 @@ async function main() {
     process.exit(1);
   }
 
+  const websiteOne = firstHttpUrl(args.website);
+  if (!websiteOne) {
+    console.error(
+      JSON.stringify(
+        {
+          error: 'Invalid --website',
+          hint: 'Pass exactly one https URL (the live/canonical host after redirects). Do not list apex and www together.',
+        },
+        null,
+        2
+      )
+    );
+    process.exit(1);
+  }
+  args.website = websiteOne;
+
   const projectDir = path.resolve(args.projectDir);
+  const goldenize = dossierGoldenizeStatus(projectDir);
   const { outputDir, mdPath, docxPath } = resolveOutputPaths(args);
   const slug = slugify(args.name);
   const log = [];
   let workDir = null;
+  if (goldenize.needs_goldenize) {
+    log.push(`WARNING: ${goldenize.needs_goldenize_message}`);
+  }
+
+  const liveWebsite = await resolveOfficialWebsiteLive(websiteOne);
+  if (liveWebsite && liveWebsite !== websiteOne && liveWebsite !== `${websiteOne}/`) {
+    log.push(`Resolved --website ${websiteOne} → ${liveWebsite}`);
+  }
+  if (liveWebsite) args.website = liveWebsite;
 
   const intakeGbpUrl = args.gbpUrl;
   let mapsCid = null;
@@ -428,6 +518,9 @@ async function main() {
       },
       coordinates: geoForOutput(args.geo),
       outputs: { md: mdPath, docx: docxPath },
+      goldenized: goldenize.goldenized,
+      needs_goldenize: goldenize.needs_goldenize,
+      needs_goldenize_message: goldenize.needs_goldenize_message,
       scratch_dir_pattern: path.join(os.tmpdir(), `business-dossier-${slug}-{timestamp}`),
       grok_api_key_present: Boolean(process.env.GROK_API_KEY),
       serpapi_key_present: Boolean(process.env.SERPAPI_API_KEY),
@@ -472,7 +565,7 @@ async function main() {
 
   try {
     const userMessage = buildUserMessage(args, pregatherBundle);
-    const { content, raw } = await callGrok({
+    const { content, raw } = await callGrokValidated({
       model: args.model,
       systemPrompt,
       userMessage,
@@ -527,6 +620,16 @@ async function main() {
       markdownOut = fs.readFileSync(mdPath, 'utf8');
     }
 
+    const websiteEnsured = ensureOfficialWebsiteInDossier(markdownOut, args.website);
+    if (websiteEnsured.changed) {
+      markdownOut = websiteEnsured.markdown.endsWith('\n')
+        ? websiteEnsured.markdown
+        : `${websiteEnsured.markdown}\n`;
+      fs.writeFileSync(mdPath, markdownOut, 'utf8');
+      log.push(`Ensured **Website:** ${websiteEnsured.website} in [II] (live host after redirects).`);
+      firmographics = validateFirmographicsSection(mdPath);
+    }
+
     const geoOut = geoForOutput(args.geo);
     if (geoOut.ok) {
       const coordsEnsured = ensureCoordinatesInDossier(markdownOut, {
@@ -562,6 +665,22 @@ async function main() {
       }
     }
 
+    const placeStamp = await stampPlaceId(markdownOut, {
+      pregatherBundle,
+      cid: args.gbpCid,
+      log,
+    });
+    markdownOut = placeStamp.markdown;
+    if (placeStamp.changed) {
+      fs.writeFileSync(mdPath, markdownOut, 'utf8');
+      firmographics = validateFirmographicsSection(mdPath);
+    }
+    if (!placeStamp.placeId && !firmographics.gbp_place_id) {
+      log.push(
+        'WARNING: [II] FIRMOGRAPHICS has no **Place ID:**. Local Search Grid create_scan will refuse to run until this is resolved.'
+      );
+    }
+
     if (!firmographics.gbp_url) {
       log.push('WARNING: [II] FIRMOGRAPHICS missing **GBP URL:** after inject.');
       firmographics = {
@@ -591,10 +710,15 @@ async function main() {
         {
           ok: sectionOk,
           business_name: args.name,
+          website: args.website,
           gbp_url: args.gbpUrl,
           gbp_cid: args.gbpCid,
+          gbp_place_id: firmographics.gbp_place_id || null,
           coordinates: geoForOutput(args.geo),
           output_dir: outputDir,
+          goldenized: goldenize.goldenized,
+          needs_goldenize: goldenize.needs_goldenize,
+          needs_goldenize_message: goldenize.needs_goldenize_message,
           markdown: mdPath,
           docx: docxPath,
           section_validation: validation,
@@ -602,7 +726,7 @@ async function main() {
           firmographics_normalized: firmographicsNormalized,
           model: args.model,
           xai_usage: raw.usage || null,
-          cost_usd: xaiCostFromUsage(raw.usage),
+          cost_usd: (xaiCostFromUsage(raw.usage) || 0) + wastedGrokCostUsd,
           warnings: log.filter((line) => line.startsWith('WARNING:')),
         },
         null,

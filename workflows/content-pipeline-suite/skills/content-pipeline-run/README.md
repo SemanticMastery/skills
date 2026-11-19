@@ -1,7 +1,7 @@
 # content-pipeline-run
 
-**Version:** 1.6.3  
-**Semantic Mastery Mastermind** — Bradley Benner  
+**Version:** 1.6.4  
+**Semantic Mastery Mastermind** — the operator Benner  
 **License:** Semantic Mastery Member License. See LICENSE-MEMBERS.md at the repository root.
 
 ## What this skill does
@@ -33,7 +33,8 @@ It does **not** initialize research resources, publish to a CMS, or archive runs
 | **1.6.0** | When the selected voice file is a person, company and crew work is we / us / our and that person's own actions are I / me / my. Edit and polish keep that speaker. |
 | **1.6.1** | Template stage `3.6-schema` is on the tree. Produce still hard-stops after `3.5-images` unless the operator asks for schema. |
 | **1.6.2** | `3.6-schema` reads `02-deliverables/2.4-schema` first and follows `schema-markup-generator`. A blog post is a `WebPage` whose `mainEntity` is the `BlogPosting`. |
-| **1.6.3** (this package) | Blog produce continues from images into schema and overwrites that post’s JSON-LD. Page produce still stops after polish. |
+| **1.6.3** | Blog produce continues from images into schema and overwrites that post’s JSON-LD. Page produce still stops after polish. |
+| **1.6.4** (this package) | After schema, tell the operator to run siteswarm-publish-kit, then content-pipeline-social when the campaign has the social posting add-on. This skill still does not publish. |
 | Later | Publishing instructions will be added to the campaign `04-publish/CONTEXT.md` and this skill will gain a publish step. |
 
 Keep the zip filename version (`content-pipeline-run-v1.3.3.zip`) so you can tell which release students installed when publish support ships.

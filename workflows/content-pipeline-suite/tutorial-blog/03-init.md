@@ -1,6 +1,6 @@
 # 03 — content-pipeline-init
 
-**Version 1.3.4. Once per campaign. Photo library and run both wait on it.**
+**Version 1.3.5. Once per campaign. Photo library and run both wait on it.**
 
 ## What it is for
 
@@ -60,6 +60,12 @@ Tags come next. Init extracts the roadmap's Cluster values and writes `02-plan/s
 ## Done
 
 `init_complete` is the eight classes, `ai-isms.md`, the roadmap, and the taxonomy. Init then tells you to run the photo library. It does not start the scrape unless you say to do the library in this same session.
+
+Scaffold copies missing template files and skips `AGENTS.md` and `.cursor/rules/`. The rules students follow are `PROJECT-RULES.mdc` in the pipeline folder.
+
+If the client has the social posting add-on, init can mention `postiz-channel-auth` for a later call. It does not generate those links, and a missing add-on does not block `init_complete`.
+
+Dossier compose stops when the Google Maps link cannot be resolved to a CID. Wave 1 still waits for your yes before a paid compose.
 
 Resume: re-read the manifest, dispatch only classes that are still missing. If the resources are present and the plan is not, resume at the roadmap or the taxonomy. Do not re-run the research waves.
 

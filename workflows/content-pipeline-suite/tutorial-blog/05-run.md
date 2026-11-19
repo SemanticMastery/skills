@@ -2,7 +2,7 @@
 
 ![One slot through schema](../diagrams/content-pipeline-blog-run.png)
 
-**Version 1.6.3. One roadmap slot. Brief through schema. Then stop.**
+**Version 1.6.4. One roadmap slot. Brief through schema. Then stop.**
 
 ## What it is for
 
@@ -49,7 +49,7 @@ flowchart LR
 | edit | `03-write/3.3-edit/` | Structural pass. Keeps the draft's speaker. |
 | polish | `03-write/3.4-polish/` | CMS-ready text package. |
 | images | `03-write/3.5-images/` | Library hit, otherwise Fal. Ignores the copy model pin. |
-| schema | `03-write/3.6-schema/` | This post's JSON-LD. `WebPage` with `BlogPosting` as `mainEntity`. Overwrites the existing file for this slug under `02-deliverables/2.4-schema`. |
+| schema | `03-write/3.6-schema/` | This post's JSON-LD. Reuses the campaign graph. Writes `blog/blogpost-{slug}.jsonld`. Does not insert it into a CMS. |
 
 In `review`, each stage stops for your OK. In `auto`, the six stages chain, then stop. Either mode: do not open the next roadmap row in the same invoke.
 
@@ -65,7 +65,7 @@ Names that match: `*voice-dna*`, `*voice_dna*`, `*brand-voice*`, `*author-voice*
 
 Images use `{pipeline}/scripts/match-library.mjs`, then `fal-generate.mjs` on a miss (`fal-ai/flux-2-pro`). Empty `approved/` is a Fal miss. Do not start photo ingest from this skill. If those two scripts are missing, seed them from the photo-library skill. Do not stop because a global skills folder is absent.
 
-Schema does not call SiteSwarm. Publish and archive stay empty.
+Schema does not call SiteSwarm. Publish and archive stay empty. After schema, the skill stops and names two later skills. It does not start them. **siteswarm-publish-kit** publishes the post. **content-pipeline-social** is only for a campaign that has the social add-on, and only after the article is on the production blog.
 
 ```bash
 node scripts/advance-run.mjs --campaign-dir "C:\work\clients\ridgeline-tree-care" --produce-complete

@@ -25,6 +25,7 @@ When this stage runs, execute the **Agent prompt** below exactly.
 - `content-pipeline-run` continues into this stage after `3.5-images`. It does not stop at images.
 - This stage does not call SiteSwarm. `schema-publish-kit` owns insert after the post is live.
 - Point agents here from the root `CONTEXT.md` task table and `03-write/CONTEXT.md`.
+- SiteSwarm post URL pattern: `{blog-host}/blog/{post-slug}`. Example: `https://blog.example.com/blog/welcome-to-the-blog`. Keep the `/blog/` segment. Do not put the slug at the host root.
 
 ---
 
@@ -40,7 +41,7 @@ You write one BlogPosting schema package for a local-business blog post. You reu
 <context>
 The post package is `3.5-images/post-{NN}-images/post-{NN}-images.md`.
 Campaign schema, when it exists, is `{campaign_dir}/02-deliverables/2.4-schema/`.
-A finished blog post in that folder is a `WebPage` whose `mainEntity` is the `BlogPosting`. The `BlogPosting` points back with `mainEntityOfPage`. The same file also carries the short Corporation, local-business, author, Blog, and WebSite nodes, and a `BreadcrumbList` when the sample has one.
+A finished blog post is one `WebPage`. Nest the `BlogPosting` on `mainEntity` with no `@id`, no `url`, no `description`, no `mainEntityOfPage`, and no `isPartOf`. An `@id` on the article makes the validator list a second CreativeWork. `isPartOf` pointing at the Blog `@id` is worse: that Blog node is not in this file, and `isPartOf` expects a CreativeWork, so the validator invents a CreativeWork that is not attached to the page. Nest one `ImageObject` on `primaryImageOfPage` with no `@id`. `BlogPosting.image` is that same URL string, not a second `ImageObject`. The logo is a URL string, not an `ImageObject`. Nest the `Corporation` once on `isPartOf.publisher`. `parentOrganization` is `{ "@id": "<that Corporation @id>" }` only. Do not use `@graph`. Do not emit a second script or a bare `BlogPosting` root.
 schema-markup-generator is `schema-markup-generator/SKILL.md`.
 </context>
 
@@ -51,11 +52,10 @@ schema-markup-generator is `schema-markup-generator/SKILL.md`.
 
 3. A file named `blog/blogpost-{slug}.jsonld` is the previous schema for this slug. Read it, then overwrite it. A new post often has no file yet. Other posts’ files stay as they are. Use them only as the graph pattern.
 
-4. When a blog-post sample exists:
-   - Match that sample’s linking style, including `@graph` when the sample uses `@graph`. The skill’s single-root rule yields to this sample.
-   - `WebPage.mainEntity` is the `BlogPosting` (an `@id` reference when the sample links that way).
-   - Copy Corporation, local-business, Blog, and WebSite `@id`s from the sample and from `homepage.jsonld`. Keep the local-business `@type` the homepage already uses.
-   - Copy `publisher`, `mentions`, and `isPartOf` the way the sample does.
+4. One `WebPage` root. Do not copy an `@graph` from an older sample.
+   - Nest the `BlogPosting` on `WebPage.mainEntity` only. Give it no `@id`, no `url`, no `mainEntityOfPage`, and no `isPartOf`. Do not list it in `about`.
+   - Nest one `ImageObject` on `primaryImageOfPage` with no `@id`. `BlogPosting.image` is that image URL as a string. The logo is a URL string.
+   - Copy Corporation, local-business, Blog, and WebSite `@id`s from `homepage.jsonld` and the blog pages. Keep the local-business `@type` the homepage already uses. Reference them. Do not paste a second full copy of a node that is already nested in this file.
    - `BlogPosting.author` is required. Set it to `{ "@type": "Person", "@id": "<About page Person @id>" }`. The `@id` is the `Person` who is `mainEntity` of `blog/aboutpage.jsonld`, the same author that page features. A bare `@id` with no `@type` is not enough. When the post graph includes a `Person` node, that node uses this same `@id` and `@type` `Person`. Do not invent a second person. Do not copy a sample `author` that omits `@type`.
    - Add `BreadcrumbList` only when the sample post has one.
    - Skip schema-markup-generator Steps 0b, 0c, 2b, and 2c. Those gates mint a new local-business graph. This post only references the graph that already exists.
@@ -63,13 +63,13 @@ schema-markup-generator is `schema-markup-generator/SKILL.md`.
 
 5. When `02-deliverables/2.4-schema/` has no schema files:
    - Read `schema-markup-generator` and follow it from Step 0, including its stop gates.
-   - The file is still one `WebPage` root with the `BlogPosting` nested as `mainEntity`. Do not use `@graph`. Do not emit a bare `BlogPosting` root.
+   - The file is still one `WebPage` root. Nest the `BlogPosting` on `mainEntity`. Do not use `@graph`. Do not emit a bare `BlogPosting` root. Do not give the `BlogPosting` the page `url`.
    - `BlogPosting.author` is still `{ "@type": "Person", "@id": "<About page Person @id>" }`. Stop when `blog/aboutpage.jsonld` has no Person.
    - If the skill path is missing, stop and say `schema-markup-generator` is not installed.
 
-6. Fill the post from the images package. `headline` and `description` match the Technical Suite. `significantLink` equals the post URL. Build that URL by taking an existing blog-post URL and replacing only the slug. If no blog sample exists and no blog host is on disk, stop and ask for the blog host. Do not invent a domain.
-   - `datePublished` only when the publication asset prints a published date. Otherwise omit it and say so in the note.
-   - `image` / `primaryImageOfPage` only when a public image URL is already known from the sample’s host pattern or the operator. A local PNG path is not a public URL. Do not invent a CDN URL. Do not write the working `post-{NN}-img-{KK}` name into the graph. The images manifest names a public JPEG; after upload that basename is the `/media/` path, and `siteswarm-publish-kit` writes those URLs.
+6. Fill the post from the images package. `WebPage.name` and `BlogPosting.headline` match the Technical Suite title. `WebPage.description` matches the Technical Suite meta description. Do not copy that description onto the `BlogPosting`. `significantLink` equals `WebPage.url`. SiteSwarm blog posts use `{blog-host}/blog/{post-slug}`. `{blog-host}` is the production blog origin, for example `https://blog.example.com`. Example: `https://blog.example.com/blog/welcome-to-the-blog`. Replace only `{post-slug}`. Keep the `/blog/` segment. Do not put the slug at the host root, and do not invent a domain.
+   - `datePublished` only when the publication asset prints a published date, or when this post is already live and `published_at` is known. Otherwise omit it and say so in the note.
+   - Nest one `ImageObject` on `primaryImageOfPage` only when a public image URL is already known. `BlogPosting.image` references that `@id`. A local PNG path is not a public URL. Do not invent a CDN URL. Do not write the working `post-{NN}-img-{KK}` name into the graph. The images manifest names a public JPEG; after upload that basename is the `/media/` path, and `siteswarm-publish-kit` writes those URLs.
 
 7. Write:
    - `3.6-schema/post-{NN}-schema/post-{NN}-schema.jsonld` (script wrapper required)
@@ -79,6 +79,7 @@ schema-markup-generator is `schema-markup-generator/SKILL.md`.
 
 <constraints>
 - One post only. Overwrite this slug’s `blogpost-{slug}.jsonld` and the stage copy. Leave every other slug’s file alone.
+- One JSON-LD script. One root, and that root is the `WebPage`. No `@graph`. The `BlogPosting` does not carry the page `url` or a second copy of the description. The image node appears once.
 - `BlogPosting.author` must be `{ "@type": "Person", "@id": "<the Person @id that is mainEntity of blog/aboutpage.jsonld>" }`. That is the author featured on the blog About page. Do not omit `@type`. Do not invent a different person.
 - Do not invent NAP, `sameAs`, geo, reviews, dates, or image URLs.
 - Do not call SiteSwarm or `update_page_json_ld`.
@@ -87,8 +88,9 @@ schema-markup-generator is `schema-markup-generator/SKILL.md`.
 </constraints>
 
 <output_format>
-`post-{NN}-schema.jsonld` is one `<script type="application/ld+json">` block.
-The `WebPage` `mainEntity` is the `BlogPosting`.
+`post-{NN}-schema.jsonld` is one `<script type="application/ld+json">` block with one `WebPage` root.
+The `BlogPosting` is nested on `mainEntity` and has no `@id`. It is not a second item.
+The image is one `ImageObject` on `primaryImageOfPage`, also with no `@id`. `BlogPosting.image` is that URL string.
 `BlogPosting.author` is `{ "@type": "Person", "@id": "<About page Person @id>" }`.
 `post-{NN}-schema.md` names the pattern file, the reused `@id`s, and anything omitted because it was not on disk.
 </output_format>

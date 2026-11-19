@@ -6,10 +6,13 @@
  * Defaults to a normal browser UA (not Googlebot) — WAF sites that set
  * forbidden_http_header on Googlebot will fail again if fallback uses Googlebot.
  * Full sitemap is always crawled for service/storefront sites (no cap here).
+ * A target that returns 50402 is retried once, then skipped. More than
+ * three slow skips aborts without writing a partial crawl file.
  */
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
 import XLSX from 'xlsx';
 import { normalizeField, normalizeText } from './text-normalize.mjs';
 import {
@@ -23,7 +26,12 @@ import {
   assertDossierForCrawl,
   readDossierWebsite,
   resolveCrawlOutputDir,
-} from '../lib/project-paths.mjs';
+} from '../../../scripts/seo/lib/dossier-firmographics.mjs';
+import {
+  clearActiveTask,
+  hostKey,
+  readActiveTask,
+} from './active-task.mjs';
 
 const API = 'https://api.dataforseo.com/v3';
 const ROW_HEADERS = [
@@ -42,6 +50,8 @@ const BROWSER_CHROME_UA =
 
 const DEFAULT_DELAY_MS = 1200;
 const HEARTBEAT_EVERY = 10;
+const SLOW_TARGET_SKIP_MAX = 3;
+const INSTANT_CONCURRENCY = 4;
 
 function resolveUserAgent(spec) {
   const raw = (spec ?? 'browser').trim();
@@ -65,6 +75,7 @@ function parseArgs(argv) {
     userAgent: 'browser',
     delayMs: DEFAULT_DELAY_MS,
     allowEmptyContent: false,
+    stopTaskId: null,
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -75,6 +86,7 @@ function parseArgs(argv) {
     else if (a === '--min-pages' && argv[i + 1]) out.minPages = Number(argv[++i]);
     else if (a === '--user-agent' && argv[i + 1]) out.userAgent = argv[++i];
     else if (a === '--delay-ms' && argv[i + 1]) out.delayMs = Number(argv[++i]);
+    else if (a === '--stop-task-id' && argv[i + 1]) out.stopTaskId = argv[++i];
     else if (a === '--allow-empty-content') out.allowEmptyContent = true;
     else if (a === '--help' || a === '-h') out.help = true;
   }
@@ -99,6 +111,59 @@ async function dfsRequest(apiPath, body) {
     throw new Error(`DataForSEO ${apiPath}: ${json?.status_message} (${json?.status_code})`);
   }
   return json;
+}
+
+async function forceStopTask(taskId) {
+  if (!taskId) return false;
+  try {
+    await dfsRequest('/on_page/force_stop', [{ id: taskId }]);
+    process.stderr.write(`[dataforseo] force_stop ok task_id=${taskId}\n`);
+    return true;
+  } catch (err) {
+    process.stderr.write(`[dataforseo] force_stop warn task_id=${taskId}: ${err.message}\n`);
+    return false;
+  }
+}
+
+/**
+ * Clear zombie domain crawls before instant_pages — avoids 40501 duplicate crawl host
+ * (Harborview 2026-08-10).
+ */
+async function clearHostLock({ outputDir, host, stopTaskId }) {
+  const ids = new Set();
+  if (stopTaskId) ids.add(stopTaskId);
+  const active = outputDir ? readActiveTask(outputDir) : null;
+  if (active?.task_id && (!host || hostKey(active.host) === hostKey(host))) {
+    ids.add(active.task_id);
+  }
+  for (const id of ids) {
+    await forceStopTask(id);
+  }
+  if (outputDir) clearActiveTask(outputDir);
+  return [...ids];
+}
+
+function isDuplicateCrawlHostError(err) {
+  const msg = String(err?.message ?? err ?? '');
+  return /40501/i.test(msg) && /duplicate crawl host/i.test(msg);
+}
+
+function isSlowTargetError(err) {
+  const msg = String(err?.message ?? err ?? '');
+  return /50402/.test(msg) || /took too long to respond/i.test(msg);
+}
+
+async function instantPageResilient(url, userAgentString) {
+  try {
+    return await instantPage(url, userAgentString);
+  } catch (err) {
+    if (!isSlowTargetError(err)) throw err;
+    process.stderr.write(
+      `[dataforseo] instant slow-target retry once ${url}: ${err.message}\n`
+    );
+    await new Promise((r) => setTimeout(r, 2000));
+    return await instantPage(url, userAgentString);
+  }
 }
 
 function leanRow(item) {
@@ -180,7 +245,13 @@ async function instantPage(url, userAgentString) {
   const data = await dfsRequest('/on_page/instant_pages', [
     { url, custom_user_agent: userAgentString, enable_javascript: false },
   ]);
-  const item = data.tasks?.[0]?.result?.[0]?.items?.[0];
+  const task = data.tasks?.[0];
+  if (task?.status_code && task.status_code !== 20000 && task.status_code !== 20100) {
+    throw new Error(
+      `instant_pages failed for ${url}: ${task.status_message} (${task.status_code})`
+    );
+  }
+  const item = task?.result?.[0]?.items?.[0];
   if (!item) throw new Error(`No instant_pages result for ${url}`);
   if (item.status_code && item.status_code >= 40000) {
     throw new Error(`instant_pages failed for ${url}: ${item.status_code}`);
@@ -188,29 +259,18 @@ async function instantPage(url, userAgentString) {
   return item;
 }
 
-async function main() {
-  const args = parseArgs(process.argv.slice(2));
-  if (args.help) {
-    console.log(
-      'Usage: node sitemap-instant-fallback.mjs --domain example.com --project-dir DIR [--output-dir DIR] [--user-agent browser|googlebot]'
-    );
-    process.exit(0);
-  }
-
-  if (!args.domain) {
-    console.log(
-      'Usage: node sitemap-instant-fallback.mjs --domain example.com --project-dir DIR [--output-dir DIR]'
-    );
-    process.exit(1);
-  }
+export async function runSitemapInstantFallback(args) {
+  if (!args.domain) throw new Error('--domain is required');
+  if (args.delayMs == null) args.delayMs = DEFAULT_DELAY_MS;
+  if (args.minPages == null) args.minPages = 8;
+  if (!args.userAgent) args.userAgent = 'browser';
 
   if (args.projectDir && !args.outputDir) {
     args.outputDir = resolveCrawlOutputDir(args.projectDir);
   }
 
   if (!args.outputDir) {
-    console.error('Error: --output-dir is required unless --project-dir is set');
-    process.exit(1);
+    throw new Error('--output-dir is required unless --project-dir is set');
   }
 
   if (args.projectDir) {
@@ -221,39 +281,111 @@ async function main() {
   const inputHost = normalizeHost(args.domain);
   const dossierWebsite = args.projectDir ? readDossierWebsite(args.projectDir) : null;
   const plan = await planCrawlTarget(inputHost, { dossierWebsite });
+
+  const stopped = await clearHostLock({
+    outputDir: args.outputDir,
+    host: plan.crawlTarget,
+    stopTaskId: args.stopTaskId,
+  });
+  if (stopped.length) {
+    process.stderr.write(
+      `[dataforseo] cleared host lock before instant_pages (force_stop ${stopped.join(', ')})\n`
+    );
+  }
+
   const sm = await fetchSitemapXml(plan.crawlTarget);
   const locs = sm ? (await expandSitemapPageLocs(sm)).locs : [];
   if (locs.length === 0) throw new Error('No sitemap URLs found for fallback crawl');
 
-  const perUrlSec = args.delayMs / 1000 + 1.5;
-  const etaTotalSec = Math.round(locs.length * perUrlSec);
+  const perUrlSec = 2;
+  const etaTotalSec = Math.round((locs.length * perUrlSec) / INSTANT_CONCURRENCY);
   process.stderr.write(
-    `[dataforseo] fallback=instant_pages urls=${locs.length} target=${plan.crawlTarget} ua=${uaInfo.label} eta~${formatEta(etaTotalSec)} (full sitemap, no cap)\n`
+    `[dataforseo] fallback=instant_pages urls=${locs.length} target=${plan.crawlTarget} ua=${uaInfo.label} concurrency=${INSTANT_CONCURRENCY} eta~${formatEta(etaTotalSec)} (full sitemap, no cap)\n`
   );
 
-  const rows = [];
+  const skipped = [];
+  const results = new Array(locs.length);
   const started = Date.now();
-  for (let i = 0; i < locs.length; i++) {
-    const url = locs[i];
-    const n = i + 1;
-    const elapsedSec = (Date.now() - started) / 1000;
-    const avg = n > 1 ? elapsedSec / i : perUrlSec;
-    const remainSec = Math.round((locs.length - i) * avg);
-    process.stderr.write(
-      `[dataforseo] instant ${n}/${locs.length} (~${Math.round((100 * i) / locs.length)}%) eta~${formatEta(remainSec)} ${url}\n`
-    );
-    if (n === 1 || n % HEARTBEAT_EVERY === 0 || n === locs.length) {
-      process.stderr.write(
-        `[dataforseo] heartbeat done=${i}/${locs.length} ok=${rows.length} elapsed=${formatEta(elapsedSec)} eta~${formatEta(remainSec)}\n`
-      );
+  let cursor = 0;
+  let done = 0;
+  let fatal = null;
+  let hostClear = null;
+
+  async function clearHostOnce() {
+    if (!hostClear) {
+      hostClear = (async () => {
+        process.stderr.write(
+          `[dataforseo] 40501 duplicate crawl host on instant_pages — force_stop active task and retry once\n`
+        );
+        await clearHostLock({
+          outputDir: args.outputDir,
+          host: plan.crawlTarget,
+          stopTaskId: args.stopTaskId,
+        });
+        await new Promise((r) => setTimeout(r, 2000));
+      })();
     }
-    const item = await instantPage(url, uaInfo.ua);
-    rows.push(leanRow(item));
-    if (i < locs.length - 1) await new Promise((r) => setTimeout(r, args.delayMs));
+    await hostClear;
   }
 
-  if (rows.length < args.minPages) {
-    throw new Error(`Fallback returned ${rows.length} pages (min=${args.minPages})`);
+  async function fetchOne(url) {
+    try {
+      return await instantPageResilient(url, uaInfo.ua);
+    } catch (err) {
+      if (!isDuplicateCrawlHostError(err)) throw err;
+      await clearHostOnce();
+      return await instantPageResilient(url, uaInfo.ua);
+    }
+  }
+
+  async function worker() {
+    while (!fatal && skipped.length <= SLOW_TARGET_SKIP_MAX) {
+      const i = cursor++;
+      if (i >= locs.length) return;
+      const url = locs[i];
+      try {
+        results[i] = leanRow(await fetchOne(url));
+      } catch (err) {
+        if (!isSlowTargetError(err)) {
+          fatal = err;
+          return;
+        }
+        skipped.push(url);
+        process.stderr.write(
+          `[dataforseo] instant skip slow-target ${skipped.length}/${SLOW_TARGET_SKIP_MAX} ${url}: ${err.message}\n`
+        );
+        if (skipped.length > SLOW_TARGET_SKIP_MAX) {
+          fatal = new Error(
+            `instant_pages slow-target abort after ${skipped.length} timeouts (last ${url}). ` +
+              `${results.filter(Boolean).length} page(s) fetched were not written.`
+          );
+          return;
+        }
+      } finally {
+        done += 1;
+        if (done === 1 || done % HEARTBEAT_EVERY === 0 || done === locs.length) {
+          const elapsedSec = (Date.now() - started) / 1000;
+          const ok = results.filter(Boolean).length;
+          const remainSec = done > 0 ? ((locs.length - done) * elapsedSec) / done : etaTotalSec;
+          process.stderr.write(
+            `[dataforseo] heartbeat done=${done}/${locs.length} ok=${ok} elapsed=${formatEta(elapsedSec)} eta~${formatEta(remainSec)}\n`
+          );
+        }
+      }
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(INSTANT_CONCURRENCY, locs.length) }, () => worker())
+  );
+  if (fatal) throw fatal;
+  const rows = results.filter(Boolean);
+
+  const minRequired = Math.max(args.minPages, locs.length - skipped.length);
+  if (rows.length < minRequired) {
+    throw new Error(
+      `SITEMAP_INCOMPLETE: fallback returned ${rows.length} pages (min=${minRequired}, sitemap=${locs.length}, slow_skips=${skipped.length})`
+    );
   }
 
   const contentStats = assertDeliverableContent(rows, {
@@ -275,6 +407,7 @@ async function main() {
         sitemap_url: plan.sitemapUrl,
         user_agent: uaInfo.label,
         pages_returned: rows.length,
+        slow_skips: skipped,
         content_quality: contentStats,
         elapsed_seconds: elapsedSec,
         written: [written.csvPath, written.xlsxPath],
@@ -286,7 +419,26 @@ async function main() {
   );
 }
 
-main().catch((err) => {
-  console.error(`Error: ${err.message}`);
-  process.exit(1);
-});
+function isDirectRun() {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  return path.resolve(entry) === path.resolve(fileURLToPath(import.meta.url));
+}
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  if (args.help || !args.domain) {
+    console.log(
+      'Usage: node sitemap-instant-fallback.mjs --domain example.com --project-dir DIR [--output-dir DIR] [--user-agent browser|googlebot] [--stop-task-id UUID]'
+    );
+    process.exit(args.help ? 0 : 1);
+  }
+  await runSitemapInstantFallback(args);
+}
+
+if (isDirectRun()) {
+  main().catch((err) => {
+    console.error(`Error: ${err.message}`);
+    process.exit(1);
+  });
+}

@@ -9,9 +9,11 @@ description: >-
   taxonomy in 02-plan. Requires an explicit campaign/project directory.
   Does not produce 03-write slots. After init_complete, run
   content-pipeline-photo-library if installed, then content-pipeline-run.
-  (v1.3.4)
+  If the client has the social posting add-on, suggest postiz-channel-auth
+  for a later call. Do not generate those links during init.
+  (v1.3.5)
 metadata:
-  version: "1.3.4"
+  version: "1.3.5"
 ---
 
 # Content Pipeline Init (Orchestrator)
@@ -158,6 +160,8 @@ Manifest `status: init_complete` only when all 8 classes exist under `06-content
 Otherwise set `init_partial` (resource gaps) or `awaiting_horizon` / `awaiting_plan` / `awaiting_taxonomy`.
 
 Do not start produce (3.1→3.5) in this skill. If `content-pipeline-photo-library` is installed, run it next so classify can use the taxonomy. Then the writing team can run `content-pipeline-run`.
+
+If the client has the social posting add-on, you can run `postiz-channel-auth` on a call with the client. Those links last about an hour, so they are generated on that call, not during init. A missing add-on does not block `init_complete`. A LinkedIn profile is not a company page.
 
 ## Resume
 

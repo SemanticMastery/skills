@@ -8,23 +8,18 @@ WorkFlows ICM **campaign template** for **Content-Pipeline-ICM**:
 - Canonical rules: `PROJECT-RULES.mdc`
 - Stages with hard-coded Agent prompts: `02-plan`, `3.1`–`3.6`, and `06-pages` (`p.1`–`p.6`).
 - Permanent resource: `01-resources/ai-isms.md`
-- Harness: Cursor — `AGENTS.md` + `.cursor/rules/project-rules.mdc` (thin pointers)
 
 Duplicate this entire folder for each campaign. Fill campaign-supplied files under `01-resources/`. Customize `04-publish` only when the publishing platform is known.
 
 ## Folder structure
 
-Visual map of the scaffolded tree (read top-down: routers and harness at root, then numbered stages):
+Visual map of the scaffolded tree (read top-down: routers at root, then numbered stages):
 
 ```text
 Content-Pipeline-ICM/
 ├── CONTEXT.md
 ├── PROJECT-RULES.mdc
 ├── HOW-TO-WORK-THIS-PROJECT.md
-├── AGENTS.md
-├── .cursor/
-│   └── rules/
-│       └── project-rules.mdc
 ├── 01-resources/
 │   ├── CONTEXT.md
 │   └── ai-isms.md          # always included
@@ -86,7 +81,7 @@ Content-Pipeline-ICM/
 3. Confirm `01-resources/ai-isms.md` is present; drop campaign-supplied research files into `01-resources/`.
 4. Run `02-plan` (13 or 26 weeks), then one vertical slice through 3.1→3.6. Run `04-publish` when ready.
 5. When the campaign’s CMS/platform is known, update `04-publish/CONTEXT.md` only — leave earlier stages alone unless forking intentionally.
-6. Log durable rules in `PROJECT-RULES.mdc`; keep harness files as pointers.
+6. Log durable rules in `PROJECT-RULES.mdc`.
 
 ## Going deeper on ICM
 

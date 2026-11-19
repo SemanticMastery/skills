@@ -3,7 +3,12 @@
  *
  * Also probes whether the site needs enable_javascript on task_post (SPA / empty
  * plain HTML). See docs/solutions/onpage-js-and-stall-fix.md (Summit 2026-06).
+ *
+ * CLI (no DataForSEO): node resolve-site.mjs --domain example.com --project-dir "…"
  */
+
+import path from 'node:path';
+import { readDossierWebsite } from '../../../scripts/seo/lib/dossier-firmographics.mjs';
 
 const JS_PLAIN_TEXT_WORD_THRESHOLD = 100;
 const JS_SHELL_MARKERS =
@@ -140,8 +145,51 @@ export async function fetchSitemapXmlByUrl(url) {
   return { url, text };
 }
 
+/** Skip Shopify/product child sitemaps by token (products, blogs, agentic, …). */
+export function skipSitemapChildByNames(childUrl, names) {
+  if (!names?.length) return false;
+  const u = String(childUrl).toLowerCase();
+  return names.some((raw) => {
+    const k = String(raw).toLowerCase().replace(/[^a-z0-9]+/g, '');
+    if (!k) return false;
+    return (
+      u.includes(`sitemap_${k}`) ||
+      u.includes(`sitemap-${k}`) ||
+      u.includes(`${k}-sitemap`)
+    );
+  });
+}
+
+/**
+ * Keep homepage and/or URL path substrings; drop product (and similar) paths.
+ * `/collections/foo/products/bar` is denied when deny includes `/products/`.
+ */
+export function locAllowedByPath(
+  url,
+  { allowPathSubstrings = [], denyPathSubstrings = [], includeHome = false } = {},
+) {
+  let pathname;
+  try {
+    pathname = new URL(url).pathname || '/';
+  } catch {
+    return false;
+  }
+  const path = pathname.toLowerCase();
+  if (includeHome && (path === '/' || path === '')) return true;
+  for (const d of denyPathSubstrings) {
+    const needle = String(d || '').toLowerCase();
+    if (needle && path.includes(needle)) return false;
+  }
+  if (!allowPathSubstrings.length) return true;
+  return allowPathSubstrings.some((a) => {
+    const needle = String(a || '').toLowerCase();
+    return needle && path.includes(needle);
+  });
+}
+
 /** Expand sitemap indexes into page URLs (e.g. sitemaps.xml → post-sitemap1.xml → N URLs). */
-export async function expandSitemapPageLocs(rootSm) {
+export async function expandSitemapPageLocs(rootSm, opts = {}) {
+  const skipChild = opts.skipChildUrl || (() => false);
   const top = parseSitemapLocs(rootSm.text);
   if (!isSitemapIndex(rootSm.text)) {
     return {
@@ -154,13 +202,15 @@ export async function expandSitemapPageLocs(rootSm) {
 
   const pageLocs = [];
   const hosts = {};
-  const childSitemapUrls = [...top.locs];
+  const childSitemapUrls = [];
   for (const childUrl of top.locs) {
+    if (skipChild(childUrl)) continue;
+    childSitemapUrls.push(childUrl);
     try {
       const child = await fetchSitemapXmlByUrl(childUrl);
       if (!child) continue;
       if (isSitemapIndex(child.text)) {
-        const nested = await expandSitemapPageLocs(child);
+        const nested = await expandSitemapPageLocs(child, opts);
         pageLocs.push(...nested.locs);
         childSitemapUrls.push(...(nested.childSitemapUrls || []));
         for (const [h, count] of Object.entries(nested.hosts)) {
@@ -230,7 +280,7 @@ function apexHost(host) {
 
 /**
  * @param {string} inputDomain bare host from user/cli
- * @param {{ dossierWebsite?: string|null }} opts
+ * @param {{ dossierWebsite?: string|null, allowPathSubstrings?: string[], denyPathSubstrings?: string[], includeHome?: boolean, excludeSitemapChildren?: string[] }} opts
  */
 export async function planCrawlTarget(inputDomain, opts = {}) {
   const warnings = [];
@@ -257,10 +307,34 @@ export async function planCrawlTarget(inputDomain, opts = {}) {
   let sitemapChildUrls = [];
   if (sm) {
     sitemapUrl = sm.url;
-    const expanded = await expandSitemapPageLocs(sm);
+    const expanded = await expandSitemapPageLocs(sm, {
+      skipChildUrl: (url) => skipSitemapChildByNames(url, opts.excludeSitemapChildren),
+    });
     sitemapLocs = expanded.locs;
-    sitemapUrlCount = sitemapLocs.length;
     sitemapChildUrls = expanded.childSitemapUrls || [];
+    const pathFilterOn =
+      Boolean(opts.includeHome) ||
+      (opts.allowPathSubstrings || []).length > 0 ||
+      (opts.denyPathSubstrings || []).length > 0;
+    if (pathFilterOn) {
+      const before = sitemapLocs.length;
+      sitemapLocs = sitemapLocs.filter((loc) => locAllowedByPath(loc, opts));
+      if (opts.includeHome) {
+        const home = `https://${crawlTarget}/`;
+        const hasHome = sitemapLocs.some((loc) => {
+          try {
+            return new URL(loc).pathname === '/';
+          } catch {
+            return false;
+          }
+        });
+        if (!hasHome) sitemapLocs.unshift(home);
+      }
+      warnings.push(
+        `url path filter kept ${sitemapLocs.length} of ${before} sitemap loc(s) (home=${Boolean(opts.includeHome)})`
+      );
+    }
+    sitemapUrlCount = sitemapLocs.length;
     sitemapPredominantHost = predominantHost(expanded.hosts);
     if (expanded.indexChildCount > 0) {
       warnings.push(
@@ -313,16 +387,23 @@ export async function planCrawlTarget(inputDomain, opts = {}) {
   }
 
   const canonicalUrl = `https://${crawlTarget}/`;
+  const pathFilterOn =
+    Boolean(opts.includeHome) ||
+    (opts.allowPathSubstrings || []).length > 0 ||
+    (opts.denyPathSubstrings || []).length > 0;
   // Prefer sitemap-only whenever a sitemap exists (service/storefront): crawl what
-  // sitemaps explicitly list. Avoids unbounded link-queue balloons (Greater Life).
+  // sitemaps explicitly list. Avoids unbounded link-queue balloons (Northside Care).
   // JS-required sites still spider with respect_sitemap for orphans.
+  // Path-limited ecommerce (skip /products/) must not crawl_sitemap_only on the
+  // full Shopify index — product children are listed first and burn the budget.
   const crawlSitemapOnly =
-    sitemapUrlCount > 0 && !jsRequiredRecommended;
+    sitemapUrlCount > 0 && !jsRequiredRecommended && !pathFilterOn;
   // No soft 500 cap for known sitemap budgets — service sites get full sitemap + headroom.
   const maxCrawlPagesSuggested =
     sitemapUrlCount > 0 ? sitemapUrlCount + 10 : 500;
-  const minPagesSuggested =
-    sitemapUrlCount > 0 ? Math.max(2, Math.floor(sitemapUrlCount * 0.6)) : 2;
+  // Sitemap-only (and any known sitemap) must cover every loc. 60% was a
+  // false-success floor (TLC 2026-09-18: 20/21 accepted because min=12).
+  const minPagesSuggested = sitemapUrlCount > 0 ? sitemapUrlCount : 2;
 
   return {
     inputHost,
@@ -342,4 +423,101 @@ export async function planCrawlTarget(inputDomain, opts = {}) {
     minPagesSuggested,
     warnings,
   };
+}
+
+function parseResolveArgs(argv) {
+  const out = { domain: null, projectDir: null, help: false };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === '--help' || a === '-h') out.help = true;
+    else if (a === '--domain' && argv[i + 1]) out.domain = argv[++i];
+    else if (a === '--project-dir' && argv[i + 1]) out.projectDir = argv[++i];
+    else if (a.startsWith('-')) {
+      throw new Error(
+        `Unknown flag: ${a}. This script is resolve only. Do not pass --post-only, --task-id, --force-new-task, or --allow-empty-content.`
+      );
+    }
+  }
+  return out;
+}
+
+function toCliSummary(plan, extra = {}) {
+  const js = plan.jsProbe
+    ? {
+        jsRequired: plan.jsProbe.jsRequired,
+        plainTextWords: plan.jsProbe.plainTextWords,
+        probeUrl: plan.jsProbe.probeUrl,
+        shellMarkers: plan.jsProbe.shellMarkers,
+      }
+    : null;
+  return {
+    spend: false,
+    source: 'resolve-site',
+    ...extra,
+    inputHost: plan.inputHost,
+    dossierHost: plan.dossierHost,
+    liveHost: plan.liveHost,
+    crawlTarget: plan.crawlTarget,
+    canonicalUrl: plan.canonicalUrl,
+    sitemapUrl: plan.sitemapUrl,
+    sitemapUrlCount: plan.sitemapUrlCount,
+    crawlSitemapOnly: plan.crawlSitemapOnly,
+    jsRequiredRecommended: plan.jsRequiredRecommended,
+    jsProbe: js,
+    maxCrawlPagesSuggested: plan.maxCrawlPagesSuggested,
+    minPagesSuggested: plan.minPagesSuggested,
+    warnings: plan.warnings,
+  };
+}
+
+async function main() {
+  const args = parseResolveArgs(process.argv.slice(2));
+  if (args.help) {
+    console.log(`Usage: node resolve-site.mjs --domain example.com --project-dir "C:\\\\campaign\\\\folder"
+
+No DataForSEO spend. Local robots/sitemap/JS probe only.`);
+    return;
+  }
+
+  let domain = args.domain ? normalizeHost(args.domain) : null;
+  let dossierWebsite = null;
+  if (args.projectDir) {
+    try {
+      dossierWebsite = readDossierWebsite(args.projectDir);
+    } catch (err) {
+      console.error(`[resolve-site] dossier read skipped: ${err.message}`);
+    }
+    if (!domain && dossierWebsite) {
+      try {
+        domain = normalizeHost(new URL(dossierWebsite).hostname);
+      } catch {
+        throw new Error(`Invalid Official Website in dossier: ${dossierWebsite}`);
+      }
+    }
+  }
+
+  if (!domain) {
+    throw new Error(
+      'Error: --domain is required unless --project-dir has a dossier Official Website'
+    );
+  }
+
+  const plan = await planCrawlTarget(domain, { dossierWebsite });
+  console.log(
+    JSON.stringify(
+      toCliSummary(plan, { domain, projectDir: args.projectDir || null, dossierWebsite }),
+      null,
+      2
+    )
+  );
+}
+
+const invokedAsCli = Boolean(
+  process.argv[1] && path.basename(process.argv[1]).toLowerCase() === 'resolve-site.mjs'
+);
+if (invokedAsCli) {
+  main().catch((err) => {
+    console.error(err.message || err);
+    process.exit(1);
+  });
 }

@@ -711,15 +711,15 @@ function metroTitleCandidates(city, state) {
     `${city} metropolitan area, ${state}`,
     `${city} metropolitan area`,
   ];
-  if (city === 'Norfolk' && state === 'Virginia') {
-    c.push('Virginia Beach-Norfolk-Newport News metropolitan area');
+  if (city === 'Eastport' && state === 'Virginia') {
+    c.push('Lakeside-Eastport-Newport News metropolitan area');
   }
   if (city === 'Wilmington' && state === 'North Carolina') {
     c.push('Wilmington, North Carolina metropolitan area');
     c.push('Wilmington metropolitan area, North Carolina');
     c.push('Wilmington metropolitan area');
   }
-  if (city === 'Norfolk' && state === 'Virginia') {
+  if (city === 'Eastport' && state === 'Virginia') {
     c.push('Hampton Roads');
   }
   return c;
@@ -775,7 +775,7 @@ export async function enrichMetroTitles(resolved) {
   const displayFallbacks = {
     'winchester|virginia': 'Winchester metropolitan area, Virginia',
     'wilmington|north carolina': 'Wilmington metropolitan area, North Carolina',
-    'norfolk|virginia': 'Virginia Beach-Norfolk-Newport News metropolitan area',
+    'norfolk|virginia': 'Lakeside-Eastport-Newport News metropolitan area',
   };
   for (const row of resolved) {
     const key = `${row.city}|${row.state}`.toLowerCase();

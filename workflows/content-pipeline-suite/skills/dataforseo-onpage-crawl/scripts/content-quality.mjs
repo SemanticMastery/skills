@@ -1,6 +1,6 @@
 /**
  * Refuse OnPage deliverables that look complete by row count but have ~empty content.
- * Greater Life 2026-07-13: 390 URLs written with 100% empty title/words after bot-block fallback.
+ * Northside Care 2026-07-13: 390 URLs written with 100% empty title/words after bot-block fallback.
  */
 
 /** Default: refuse when ≥95% of rows lack both title and words (i.e. usable content < 5%). */

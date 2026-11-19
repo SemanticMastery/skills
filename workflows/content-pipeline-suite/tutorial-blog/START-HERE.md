@@ -9,7 +9,7 @@ The earlier combined course is still at [https://docshare.us/content-pipeline-su
 
 ## The one-paragraph version
 
-Run **`content-pipeline-init`** once per campaign (version 1.3.4). It scaffolds `06-content-pipeline/`, fills eight research classes, and writes an editorial roadmap plus a SiteSwarm tag taxonomy. Then **`content-pipeline-photo-library`** (1.8.0) ingests real photos and waits for you to approve them. Then **`content-pipeline-run`** (1.6.3) produces **one roadmap slot** from brief through schema. **`expert-interview`** (0.1.1) keeps a story bank current on a cadence. **`voice-interview`** (0.1.1) lands a Voice DNA file the draft step can use. A missing story bank or a missing Voice DNA file does not block the first post.
+Run **`content-pipeline-init`** once per campaign (version 1.3.5). It scaffolds `06-content-pipeline/`, fills eight research classes, and writes an editorial roadmap plus a SiteSwarm tag taxonomy. Then **`content-pipeline-photo-library`** (1.8.0) ingests real photos and waits for you to approve them. Then **`content-pipeline-run`** (1.6.4) produces **one roadmap slot** from brief through schema. **`expert-interview`** (0.1.1) keeps a story bank current on a cadence. **`voice-interview`** (0.1.1) lands a Voice DNA file the draft step can use. A missing story bank or a missing Voice DNA file does not block the first post.
 
 ## Read in this order
 
@@ -33,9 +33,9 @@ If you only have twenty minutes: read 00, then 01, then the first-post sequence 
 
 | Skill | Version in this lesson | Role |
 |---|---|---|
-| `content-pipeline-init` | 1.3.4 | Research pack, roadmap, tags |
+| `content-pipeline-init` | 1.3.5 | Research pack, roadmap, tags |
 | `content-pipeline-photo-library` | 1.8.0 | Real photos, you approve |
-| `content-pipeline-run` | 1.6.3 | One post: brief through schema |
+| `content-pipeline-run` | 1.6.4 | One post: brief through schema |
 | `expert-interview` | 0.1.1 | Recurring story series |
 | `voice-interview` | 0.1.1 | Spoken-source Voice DNA |
 | `contentmaxima` | bundled | Matrix and Personas exports |
@@ -78,7 +78,7 @@ Every example in this course is **Ridgeline Tree Care** in **Greater Denver**, p
 3. Pick one campaign folder. Have the website URL ready. Have two or three seed keywords ready, and a city or region for People Also Ask.
 4. `/content-pipeline-init` on that folder. Let it stop when it asks. When it asks 13 weeks or 26, pick **13** the first time.
 5. When the manifest says `init_complete`, run the photo library and approve at least a few real photos.
-6. Open a chat on **Grok 4.6** or **ChatGPT-5.6 Terra**. Run `content-pipeline-run` with `gate_mode review` for **one** roadmap row. It stops after schema. It does not publish.
+6. Open a chat on **Grok 4.6** or **ChatGPT-5.6 Terra**. Run `content-pipeline-run` with `gate_mode review` for **one** roadmap row. It stops after schema. It does not publish. The closing message names **siteswarm-publish-kit** for the blog push, then **content-pipeline-social** only when that campaign has the social add-on.
 
 ```text
 /content-pipeline-init on C:\work\clients\ridgeline-tree-care

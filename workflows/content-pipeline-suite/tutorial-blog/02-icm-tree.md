@@ -4,7 +4,7 @@
 
 `{campaign}/06-content-pipeline/`
 
-Point init at your unzipped template with `--template`, or set `CONTENT_PIPELINE_ICM_TEMPLATE`. The copy fills **missing** files only. It does not overwrite research you already placed under `01-resources/`, and it does not overwrite stage outputs that already exist. It does make sure `01-resources/ai-isms.md` exists.
+Point init at your unzipped template with `--template`, or set `CONTENT_PIPELINE_ICM_TEMPLATE`. The copy fills **missing** files only. It does not copy `AGENTS.md` or `.cursor/rules/`. It does not overwrite research you already placed under `01-resources/`, and it does not overwrite stage outputs that already exist. It does make sure `01-resources/ai-isms.md` exists.
 
 ## Tree
 
@@ -48,7 +48,7 @@ Manifests appear when those skills run. Research subfolders appear when sync cop
 | `02-plan/` | Editorial roadmap and SiteSwarm tags. Init writes both. Run only reads them. |
 | `03-write/3.1-brief` through `3.4-polish` | One slot's copy. Each stage has its own `CONTEXT.md`. The agent follows that prompt. |
 | `03-write/3.5-images` | Approved photos first. Fal when the library misses. |
-| `03-write/3.6-schema` | Blog JSON-LD after images. Overwrites this post's file under the campaign `02-deliverables/2.4-schema` blog folder when that file is already there. |
+| `03-write/3.6-schema` | Blog JSON-LD after images. Reuses the campaign schema graph when `02-deliverables/2.4-schema/` already exists. Writes `post-{NN}-schema/` and `blog/blogpost-{slug}.jsonld`. The post URL keeps `/blog/{slug}`. `schema-publish-kit` inserts it after the post is live. |
 | `04-publish/` | Publish-ready holding area. Run does not write it. |
 | `05-archives/` | Cold storage. Run does not write it. |
 

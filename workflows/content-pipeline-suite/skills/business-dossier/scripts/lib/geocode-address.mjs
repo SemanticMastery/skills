@@ -48,24 +48,80 @@ export function formatDecimalDegrees(n) {
 
 /**
  * Prefer place pin `!3dLAT!4dLNG` over map-center `@lat,lng`.
- * @param {string} [mapsUrl]
+ * Same tokens appear in a Maps share URL and in Maps HTML after the pin.
+ * @param {string} [text]
  * @returns {{ latitude: number, longitude: number } | null}
  */
 export function parseCoordsFromMapsUrl(mapsUrl) {
-  const url = String(mapsUrl || '');
-  if (!url) return null;
+  const text = String(mapsUrl || '');
+  if (!text) return null;
 
-  const pin = url.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+  const pin = text.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
   if (pin && isValidLatLng(pin[1], pin[2])) {
     return { latitude: Number(pin[1]), longitude: Number(pin[2]) };
   }
 
-  const at = url.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+  const at = text.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
   if (at && isValidLatLng(at[1], at[2])) {
     return { latitude: Number(at[1]), longitude: Number(at[2]) };
   }
 
   return null;
+}
+
+const MAPS_UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36';
+
+/**
+ * Follow a GBP / Maps URL and read the pin (`!3d!4d` / `@lat,lng`).
+ * Stand-in for right-clicking the Maps pin. Fails for SAB unpublished addresses.
+ * @param {string} [mapsUrl]
+ * @param {{ timeoutMs?: number }} [opts]
+ */
+export async function resolveCoordsFromMapsPage(mapsUrl, { timeoutMs = 15000 } = {}) {
+  const raw = String(mapsUrl || '').trim();
+  if (!raw) return { ok: false, error: 'empty maps url' };
+
+  const fromInput = parseCoordsFromMapsUrl(raw);
+  if (fromInput) {
+    return { ok: true, ...fromInput, source: 'maps-url' };
+  }
+
+  let current;
+  try {
+    current = new URL(raw).toString();
+  } catch {
+    return { ok: false, error: 'not a url' };
+  }
+
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), timeoutMs);
+  try {
+    for (let i = 0; i < 8; i++) {
+      const res = await fetch(current, {
+        redirect: 'manual',
+        headers: { 'User-Agent': MAPS_UA, Accept: 'text/html,*/*' },
+        signal: ac.signal,
+      });
+      if (res.status >= 300 && res.status < 400) {
+        const loc = res.headers.get('location');
+        if (!loc) break;
+        current = new URL(loc, current).toString();
+        const hop = parseCoordsFromMapsUrl(current);
+        if (hop) return { ok: true, ...hop, source: 'maps-page' };
+        continue;
+      }
+      const html = await res.text();
+      const fromHtml = parseCoordsFromMapsUrl(html);
+      if (fromHtml) return { ok: true, ...fromHtml, source: 'maps-page' };
+      break;
+    }
+    return { ok: false, error: 'maps page had no pin coords' };
+  } catch (err) {
+    return { ok: false, error: err.name === 'AbortError' ? 'maps page timeout' : err.message };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /**
@@ -82,13 +138,34 @@ export function parseSerpGps(placeDetails) {
 }
 
 /**
- * @param {string} address
- * @param {{ timeoutMs?: number }} [opts]
+ * Suite / unit tokens break Nominatim. Strip them and a trailing country.
+ * @param {string} [address]
  */
+export function streetForGeocode(address) {
+  return String(address || '')
+    .replace(/,?\s*\bUnited States\b\.?/gi, '')
+    .replace(/\s+\b(?:suite|ste|unit|apt)\.?\s+[\w-]+/gi, '')
+    .replace(/\s+#\s*[\w-]+/gi, '')
+    .replace(/\s*,\s*,/g, ',')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/,\s*$/g, '')
+    .trim();
+}
+
 export async function geocodeNominatim(address, { timeoutMs = 15000 } = {}) {
   const q = String(address || '').trim();
   if (!q) return { ok: false, error: 'empty address' };
+  const cleaned = streetForGeocode(q);
+  const attempts = cleaned && cleaned !== q ? [q, cleaned] : [q];
+  let last = { ok: false, error: 'empty address' };
+  for (const attempt of attempts) {
+    last = await geocodeNominatimOnce(attempt, { timeoutMs });
+    if (last.ok) return last;
+  }
+  return last;
+}
 
+async function geocodeNominatimOnce(q, { timeoutMs = 15000 } = {}) {
   const url = `${NOMINATIM_SEARCH}?format=jsonv2&limit=1&addressdetails=1&q=${encodeURIComponent(q)}`;
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), timeoutMs);
@@ -126,7 +203,7 @@ export async function geocodeNominatim(address, { timeoutMs = 15000 } = {}) {
 /**
  * Resolve lat/long for an intake address.
  *
- * Precedence: CLI overrides → Nominatim(address) → Maps URL pin.
+ * Precedence: CLI overrides → Maps URL pin → Maps page pin → Nominatim(address).
  *
  * @param {string} address
  * @param {{ latitude?: unknown, longitude?: unknown, mapsUrl?: string, timeoutMs?: number }} [opts]
@@ -145,23 +222,6 @@ export async function geocodeAddress(address, { latitude, longitude, mapsUrl, ti
     };
   }
 
-  if (trimmed) {
-    const nominatim = await geocodeNominatim(trimmed, { timeoutMs });
-    if (nominatim.ok) return nominatim;
-    const fromUrl = parseCoordsFromMapsUrl(mapsUrl);
-    if (fromUrl) {
-      return {
-        ok: true,
-        ...fromUrl,
-        display_name: '',
-        source: 'maps-url',
-        address: trimmed,
-        warning: nominatim.error,
-      };
-    }
-    return { ok: false, error: nominatim.error || 'geocode failed', address: trimmed };
-  }
-
   const fromUrl = parseCoordsFromMapsUrl(mapsUrl);
   if (fromUrl) {
     return {
@@ -171,6 +231,27 @@ export async function geocodeAddress(address, { latitude, longitude, mapsUrl, ti
       source: 'maps-url',
       address: trimmed,
     };
+  }
+
+  if (mapsUrl) {
+    const fromPage = await resolveCoordsFromMapsPage(mapsUrl, { timeoutMs });
+    if (fromPage.ok) {
+      return {
+        ok: true,
+        latitude: fromPage.latitude,
+        longitude: fromPage.longitude,
+        display_name: '',
+        source: fromPage.source || 'maps-page',
+        address: trimmed,
+      };
+    }
+    if (!trimmed) return { ok: false, error: fromPage.error, address: trimmed };
+  }
+
+  if (trimmed) {
+    const nominatim = await geocodeNominatim(trimmed, { timeoutMs });
+    if (nominatim.ok) return nominatim;
+    return { ok: false, error: nominatim.error || 'geocode failed', address: trimmed };
   }
 
   return { ok: false, error: 'empty address', address: trimmed };
@@ -199,6 +280,7 @@ const SOURCE_LABELS = {
   nominatim: 'OpenStreetMap Nominatim',
   cli: 'CLI override',
   'maps-url': 'Google Maps URL',
+  'maps-page': 'Google Maps pin',
   serpapi: 'SerpAPI Google Maps',
 };
 

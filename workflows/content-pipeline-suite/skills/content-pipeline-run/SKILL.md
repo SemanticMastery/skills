@@ -15,9 +15,11 @@ description: >-
   When the selected voice file is a person, company and crew work
   is we and that person's own actions are I. After images this skill
   continues into 3.6-schema and overwrites that post's JSON-LD.
-  Page produce does not roll into schema. (v1.6.3)
+  At the end, name the next steps: siteswarm-publish-kit, then
+  content-pipeline-social when the campaign has the social add-on.
+  Page produce does not roll into schema. (v1.6.4)
 metadata:
-  version: "1.6.3"
+  version: "1.6.4"
 ---
 
 # Content Pipeline Run (Orchestrator)
@@ -162,7 +164,12 @@ After schema:
 node scripts/advance-run.mjs --campaign-dir "..." --produce-complete
 ```
 
-Report artifact paths. Remind: publish/archive are **out of scope** — do not write `04-publish/` or `05-archives/`.
+Report artifact paths. This skill does not publish the post and does not write `04-publish/` or `05-archives/`.
+
+Tell the operator these next steps, in this order. Do not start either skill in this run. The post has to be published before social can match it.
+
+1. Run **siteswarm-publish-kit** for this slot. That skill publishes the post to the blog.
+2. Run **content-pipeline-social** only when this client or campaign has the social posting add-on. That skill saves unpublished channel drafts after the article is on the production blog.
 
 Optional (operator-triggered only): test a Brainrot vertical short from the polish file. See [brainrot-shorts-test.md](references/brainrot-shorts-test.md). Do not invent a `3.6-video` stage.
 
@@ -185,4 +192,4 @@ Honor `next_action`, `copywriting_model`, and `copywriting_via`. If `next_action
 - First photo-library ingest / classify / HITL (setup operator after init; writers consume only)
 - Rewriting stage CONTEXT prompts
 - Batch-producing all roadmap posts in one invoke
-- CMS push, `04-publish` posts, `05-archives`
+- CMS push, `04-publish` posts, and `05-archives` stay out of this run. The closing message still names **siteswarm-publish-kit**, then **content-pipeline-social** when the social posting add-on applies.

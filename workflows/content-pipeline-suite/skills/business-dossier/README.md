@@ -1,6 +1,6 @@
 # business-dossier
 
-**Semantic Mastery Mastermind** — Bradley Benner  
+**Semantic Mastery Mastermind** — the operator Benner  
 **License:** Semantic Mastery Member License. See LICENSE-MEMBERS.md at the repository root.
 
 ## What this skill does
@@ -41,6 +41,8 @@ Copy that folder into **one** of these locations (create the parent if needed):
 | Codex / OpenAI agents | `.agents/skills/` or tool-specific skills path |
 | OpenCode / other Agent Skills hosts | Project or user `skills/` folder that loads `SKILL.md` |
 
+**Zip filename:** `business-dossier-v1.3.0.zip` (matches `SKILL.md` `metadata.version`).
+
 **Zip layout:**
 
 ```text
@@ -50,7 +52,7 @@ business-dossier/
   …
 ```
 
-Keep the zip filename version (`business-dossier-v1.3.0.zip`) so you can tell which release students installed.
+Keep the zip filename version (`business-dossier-v1.3.0.zip`) so you can tell which release is installed.
 
 Optional: if you use the open skills CLI: `npx skills add <path-or-repo>` when supported by your host.
 
@@ -61,6 +63,7 @@ cd business-dossier/scripts
 npm install
 ```
 
+
 ## Usage
 
 Ask your agent to run the **business-dossier** skill with NAPW + GBP URL, or call `scripts/compose-business-dossier.mjs` as shown in `SKILL.md`.
@@ -69,14 +72,14 @@ Ask your agent to run the **business-dossier** skill with NAPW + GBP URL, or cal
 
 Unless overridden with CLI flags, deliverables write under:
 
-`{project}/outputs/business-dossier/`
+`{project}/01-intake/1.1-docs/`
 
 Run commands with **cwd = your project folder**.
 
 ## Attribution
 
-Packaged for Semantic Mastery Mastermind by Bradley Benner.
+Packaged for Semantic Mastery Mastermind by the operator Benner.
 
 ## Support
 
-Questions about this skill: ask inside Semantic Mastery Mastermind (Bradley Benner).
+Questions about this skill: ask inside Semantic Mastery Mastermind (the operator Benner).

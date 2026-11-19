@@ -57,7 +57,7 @@
 
 ## Rules
 
-Canonical rules: `PROJECT-RULES.mdc`. Stage details live in each stage's `CONTEXT.md`. Harness files are thin pointers only.
+Canonical rules: `PROJECT-RULES.mdc`. Stage details live in each stage's `CONTEXT.md`.
 
 ## Orchestration habit
 

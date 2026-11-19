@@ -15,8 +15,8 @@
 | `--phone` | Yes | — |
 | `--website` | Yes | — |
 | `--gbp-url` | Yes | Resolved to `https://www.google.com/maps?cid={CID}` (compose stops if CID cannot be resolved) |
-| `--project-dir` | Yes | Project folder; dossier writes to `outputs/business-dossier/` |
-| `--output-dir` | No | Override (default: `{project-dir}/outputs/business-dossier/`) |
+| `--project-dir` | Yes | Campaign folder; dossier writes to `01-intake/1.1-docs/` |
+| `--output-dir` | No | Override (default: `{project-dir}/01-intake/1.1-docs/`) |
 | `--model` | No | `grok-4.5` |
 | `--skip-pregather` | No | Run SerpAPI + Firecrawl pre-gather |
 | `--skip-firecrawl` | No | SerpAPI only |
@@ -24,6 +24,8 @@
 | `--dry-run` | No | — |
 
 CID helper: `scripts/resolve-maps-cid.mjs` (and `scripts/lib/resolve-maps-cid.mjs`). Input: share / maps.app / `/maps/place/` / raw CID. Output: `cid` + `https://www.google.com/maps?cid={CID}`. Compose calls it before Grok and writes the CID URL into `[II]` / `[V]`.
+
+Place ID helper: `scripts/resolve-place-id.mjs`. A CID URL does not contain the Place ID. The script reads `[II]` **Place ID:** and, when that field is missing, calls SerpAPI `google_maps` with `data_cid`. `--write` stores `**Place ID:**` (`ChIJ…`) after **GBP CID:**. Compose does the same write from the pre-gather bundle, with one `data_cid` lookup only when the bundle has no Place ID. Local Search Grid must send that value as `target_place_id`. A numeric CID is not a Place ID.
 
 Geocode helper: `scripts/lib/geocode-address.mjs`. Converts `--address` to decimal-degree **Latitude:** / **Longitude:** (Nominatim). Fallbacks: CLI `--latitude`/`--longitude`, Maps URL `!3dLAT!4dLNG`, then SerpAPI `gps_coordinates`. Compose writes those labels (plus **Geocode source:** / **Geocoded address:** when known) into `[II]` after Grok.
 
@@ -90,4 +92,5 @@ Docs: [xAI Tools Overview](https://docs.x.ai/docs/guides/tools/overview)
 
 - Display basename: `{Business-Name}-Dossier` (hyphenated slug from business name)
 - Slug (temp scratch dirs): lowercase, apostrophes stripped, non-alphanumerics → hyphen
-- Default output: `{project}/outputs/business-dossier/{Business-Name}-Dossier.md` and `.docx`
+- Default output: `{project}/01-intake/1.1-docs/{Business-Name}-Dossier.md` and `.docx`
+- If the campaign is not goldenized, stdout JSON sets `needs_goldenize: true` (still writes to `1.1-docs/`)

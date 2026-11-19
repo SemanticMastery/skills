@@ -7,6 +7,8 @@
  * Do not ship maps.app.goo.gl or share.google redirects as hasMap — they hide the CID.
  */
 
+import net from "node:net";
+
 const CID_URL_RE = /^https:\/\/www\.google\.com\/maps\?cid=(\d+)$/;
 const DIGITS_RE = /^\d{6,}$/;
 
@@ -136,16 +138,58 @@ export function extractIdentifiersFromUrl(url) {
   return out;
 }
 
+const PRIVATE_NAME = /(^|\.)(localhost|local|internal|localdomain)\.?$/i;
+const REDIRECT_TIMEOUT_MS = 15000;
+
+function requestBlocked(url) {
+  let parsed;
+  try {
+    parsed = new URL(String(url));
+  } catch {
+    return true;
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return true;
+  const host = parsed.hostname.replace(/^\[|\]$/g, "").replace(/\.$/, "");
+  if (!host || PRIVATE_NAME.test(host)) return true;
+  const bare = host.split("%")[0];
+  const family = net.isIP(bare);
+  if (!family) return false;
+  if (family === 4) {
+    const parts = bare.split(".").map((part) => Number(part));
+    if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part))) return true;
+    const [a, b] = parts;
+    if (a === 0 || a === 10 || a === 127) return true;
+    if (a === 169 && b === 254) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && (b === 0 || b === 168)) return true;
+    if (a === 100 && b >= 64 && b <= 127) return true;
+    if (a >= 224) return true;
+    return false;
+  }
+  const lower = bare.toLowerCase();
+  return lower === "::" || lower === "::1" || lower.startsWith("fc") || lower.startsWith("fd") || lower.startsWith("fe80") || lower.startsWith("ff");
+}
+
 export async function followRedirects(inputUrl, max = 10) {
   let current = inputUrl;
   const chain = [current];
   for (let i = 0; i < max; i++) {
-    const res = await fetch(current, {
-      redirect: 'manual',
-      headers: { 'user-agent': 'Mozilla/5.0 (compatible; maps-cid-resolve/1.0)' },
-    });
+    if (requestBlocked(current)) return { finalUrl: current, chain, blocked: true };
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REDIRECT_TIMEOUT_MS);
+    let res;
+    try {
+      res = await fetch(current, {
+        redirect: "manual",
+        signal: controller.signal,
+        headers: { "user-agent": "Mozilla/5.0 (compatible; maps-cid-resolve/1.0)" },
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+    await res.body?.cancel?.().catch(() => {});
     if (res.status >= 300 && res.status < 400) {
-      const loc = res.headers.get('location');
+      const loc = res.headers.get("location");
       if (!loc) break;
       current = new URL(loc, current).toString();
       chain.push(current);
@@ -214,9 +258,13 @@ export async function resolveMapsCid(input) {
     return out;
   }
 
-  const { finalUrl, chain } = await followRedirects(url);
+  const { finalUrl, chain, blocked } = await followRedirects(url);
   out.final_url = finalUrl;
   out.redirect_chain = chain;
+  if (blocked) {
+    out.parse_notes.push("request_blocked");
+    return out;
+  }
 
   for (const hop of chain) {
     const extracted = extractIdentifiersFromUrl(hop);

@@ -1,7 +1,7 @@
 /**
  * Resolve audit artifact folders under a client project directory.
  *
- * campaign folder / ICM (when `{projectDir}/01-intake/` exists):
+ * campaign layout / ICM (when `{projectDir}/01-intake/` exists):
  *   `{projectDir}/01-intake/1.2-audit/{gbp-categories|geographic-locations|brightlocal}/`
  * Legacy flat campaigns:
  *   `{projectDir}/audit/{…}/`
@@ -11,7 +11,7 @@ import fs from 'fs';
 import path from 'path';
 
 export const AUDIT_FOLDER_NAME = 'audit';
-/** campaign folder ICM audit slot (campaign-relative). */
+/** campaign layout ICM audit slot (campaign-relative). */
 export const GOLDEN_IMAGE_AUDIT_REL = path.join('01-intake', '1.2-audit');
 export const GBP_CATEGORIES_SUBFOLDER = 'gbp-categories';
 export const GEOGRAPHIC_LOCATIONS_SUBFOLDER = 'geographic-locations';
@@ -335,9 +335,9 @@ export function isSeoAuditDocxFilename(filename) {
 }
 
 /**
- * Candidate directories for client-facing *SEO Audit*.docx during campaign folder ICM
+ * Candidate directories for client-facing *SEO Audit*.docx during campaign layout ICM
  * migration limbo:
- * 1. `{projectDir}/01-intake/1.2-audit/` — campaign folder / ICM (preferred when present)
+ * 1. `{projectDir}/01-intake/1.2-audit/` — campaign layout / ICM (preferred when present)
  * 2. `{projectDir}/` — legacy flat campaign root
  *
  * After all clients are migrated, audits live only under `1.2-audit`.

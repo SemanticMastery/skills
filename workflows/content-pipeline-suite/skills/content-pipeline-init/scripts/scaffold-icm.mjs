@@ -38,6 +38,13 @@ function parseArgs(argv) {
   return out;
 }
 
+// Cursor auto-attaches nested AGENTS.md and .cursor/rules/*.mdc.
+// Canonical pipeline rules stay in PROJECT-RULES.mdc. Never copy those pointer stubs.
+function isHarnessPointer(rel) {
+  const norm = String(rel).replaceAll("\\", "/");
+  return norm === "AGENTS.md" || norm.startsWith(".cursor/rules/");
+}
+
 function walkFiles(dir, base = dir, acc = []) {
   for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, ent.name);
@@ -97,6 +104,10 @@ function main() {
     const refreshed = [];
     const missing = [];
     for (const rel of rels) {
+      if (isHarnessPointer(rel)) {
+        missing.push({ rel, reason: "harness_pointer" });
+        continue;
+      }
       const src = path.join(template, rel);
       const dest = path.join(destRoot, rel);
       if (!fs.existsSync(src)) {
@@ -123,6 +134,10 @@ function main() {
   if (!args.dryRun) fs.mkdirSync(destRoot, { recursive: true });
 
   for (const f of files) {
+    if (isHarnessPointer(f.rel)) {
+      skipped.push({ rel: f.rel, reason: "harness_pointer" });
+      continue;
+    }
     const dest = path.join(destRoot, f.rel);
     if (fs.existsSync(dest)) {
       skipped.push({ rel: f.rel, reason: "exists" });

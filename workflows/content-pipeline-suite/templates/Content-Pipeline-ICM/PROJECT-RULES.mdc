@@ -1,16 +1,10 @@
----
-description: Canonical ICM project rules for Content-Pipeline-ICM
-globs:
-alwaysApply: true
----
-
 # Project rules — Content-Pipeline-ICM
 
 ## Context layers
 
 1. Project router: `CONTEXT.md`
 2. Stage folders — one job each; local `CONTEXT.md` with Inputs / Process / Outputs (+ hard-coded Agent prompt where present)
-3. This file: durable rules; keep harness entry files thin
+3. This file: durable rules for this pipeline.
 
 ## Template rules
 

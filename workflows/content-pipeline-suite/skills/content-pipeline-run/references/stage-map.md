@@ -1,6 +1,6 @@
 # Stage map
 
-Ordered produce stages for `content-pipeline-run` (v1.6.3). Paths are relative to `{pipeline_dir}` = `{campaign_dir}/06-content-pipeline/`.
+Ordered produce stages for `content-pipeline-run` (v1.6.4). Paths are relative to `{pipeline_dir}` = `{campaign_dir}/06-content-pipeline/`.
 
 `plan` is **init-owned**. This skill consumes `02-plan/editorial-roadmap.md` and `02-plan/siteswarm-tag-taxonomy.md`; it does not create them.
 

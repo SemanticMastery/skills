@@ -1,6 +1,6 @@
 # content-pipeline-init
 
-**Version:** 1.3.4  
+**Version:** 1.3.5  
 **Semantic Mastery Mastermind** — Bradley Benner  
 **License:** Semantic Mastery Member License. See LICENSE-MEMBERS.md at the repository root.
 
@@ -23,7 +23,7 @@ It does **not** produce 03-write slots (brief → images). That is `content-pipe
 | **1.0.0** | Scaffold, inventory eight resources, companion waves, copy into `01-resources/`. |
 | **1.1.0** (this package) | Also writes the Editorial Roadmap and SiteSwarm tag taxonomy in `02-plan/` (required for `init_complete`). After init, run `content-pipeline-photo-library` if installed, then `content-pipeline-run`. |
 
-Keep the zip filename version (`content-pipeline-init-v1.3.4.zip`) so you can tell which release students installed.
+Keep the zip filename version (`content-pipeline-init-v1.3.5.zip`) so you can tell which release students installed.
 
 ## Requirements
 
